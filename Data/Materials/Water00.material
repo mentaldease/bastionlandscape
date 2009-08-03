@@ -1,0 +1,39 @@
+# libconfig formatted file
+# Basic based material
+
+version = "1.0";
+
+material =
+{
+	name = "water00";
+	effect = "data/effects/ocean.fx";
+	technique = "Main";
+	params =
+	(
+		{
+			semantic = "WORLDVIEWPROJ";
+		},
+		{
+			semantic = "WORLD";
+		},
+		{
+			semantic = "VIEWINV";
+		},
+		{
+			semantic = "TIME";
+		},
+		{
+			semantic = "WORLDINVTRANSPOSE";
+		},
+		{
+			semantic = "ENVIRONMENTTEX";
+			name = "CloudyHillsCubemap2";
+			value = "data/textures/CloudyHillsCubemap2.dds";
+		},
+		{
+			semantic = "NORMALTEX";
+			name = "waves2";
+			value = "data/textures/waves2.dds";
+		}
+	);
+};
