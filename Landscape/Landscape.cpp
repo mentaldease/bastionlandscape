@@ -177,7 +177,7 @@ namespace ElixirEngine
 					}
 					if ((m_oGlobalInfo.m_uQuadSize - 1) != j)
 					{
-						*pIndexes = m_oGlobalInfo.m_uQuadSize + j * m_oGlobalInfo.m_uVertexPerRawCount;
+						*pIndexes = m_oGlobalInfo.m_uQuadSize + (j + 1) * m_oGlobalInfo.m_uVertexPerRawCount;
 						++pIndexes;
 						*pIndexes = 0 + (j + 1) * m_oGlobalInfo.m_uVertexPerRawCount;
 						++pIndexes;
@@ -294,7 +294,7 @@ namespace ElixirEngine
 					pVertex->m_oPosition.y = 0.0f;
 					pVertex->m_oPosition.z = -float(j);
 					pVertex->m_oNormal.x = 0.0f;
-					pVertex->m_oNormal.y = 0.0f;
+					pVertex->m_oNormal.y = 1.0f;
 					pVertex->m_oNormal.z = 0.0f;
 					pVertex->m_oColor.x = 1.0f;
 					pVertex->m_oColor.y = 1.0f;

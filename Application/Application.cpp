@@ -199,7 +199,8 @@ namespace BastionGame
 	{
 		if (NULL == m_pLandscape)
 		{
-			Landscape::OpenInfo oLOInfo = { 4, 16, 4, Landscape::EFormat_LIQUID };
+			//Landscape::OpenInfo oLOInfo = { 8, 16, 4, Landscape::EFormat_LIQUID };
+			Landscape::OpenInfo oLOInfo = { 16, 1, 1, Landscape::EFormat_LIQUID };
 			m_pLandscape = new Landscape(*m_pDisplay);
 			if ((false == m_pLandscape->Create(boost::any(m_pDisplay)))
 				|| (false == m_pLandscape->Open(oLOInfo)))
@@ -223,7 +224,7 @@ namespace BastionGame
 		if (m_pTime->ResetTimer(m_uRLTimerID, fElapsedTime))
 		{
 			fElapsedTime /= 1000.0f;
-			//m_fRelativeTime += fElapsedTime;
+			m_fRelativeTime += fElapsedTime;
 			m_pInput->Update();
 			UpdateSpectatorCamera(fElapsedTime);
 			m_pLandscape->Update();

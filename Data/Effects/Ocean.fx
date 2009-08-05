@@ -320,12 +320,10 @@ OceanVertOut OceanVS(AppData IN,
     uniform float BumpSpeedY
 ) {
     OceanVertOut OUT = (OceanVertOut)0;
-	/*
     wave[0].freq = WaveFreq;
     wave[0].amp = WaveAmp;
     wave[1].freq = WaveFreq*2.0;
     wave[1].amp = WaveAmp*0.5;
-	//*/
     float4 Po = float4(IN.Position.xyz,1.0);
     // sum waves	
     Po.y = 0.0;
@@ -464,7 +462,7 @@ technique Main <
 		ZWriteEnable = true;
 		ZFunc = LessEqual;
 		AlphaBlendEnable = false;
-		CullMode = None;
+		CullMode = cw;
         PixelShader = compile ps_2_0 OceanPS(gEnvSampler,
 		    gKr,gKWater,gFresnelExp,gFresnelBias,gHDRMultiplier,
 		    gDeepColor,gShallowColor,gReflTint);
