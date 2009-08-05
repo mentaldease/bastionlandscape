@@ -58,6 +58,7 @@ namespace ElixirEngine
 			unsigned int	m_uGridWidth;
 			unsigned int	m_uGridDepth;
 			EVertexFormat	m_eFormat;
+			string			m_strHeightmap;
 		};
 
 		struct VertexDefault
