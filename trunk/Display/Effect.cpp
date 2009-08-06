@@ -333,41 +333,43 @@ namespace ElixirEngine
 			Config oConfig;
 			bResult = oConfig.Create(boost::any(&oCCInfo));
 
-			string strEffectPath;
-			string strEffectName;
-			DisplayEffectPtr pEffect;
-			DisplayMaterialPtr pMaterial = NULL;
+			if (false != bResult)
+			{
+				string strEffectPath;
+				string strEffectName;
+				DisplayEffectPtr pEffect;
+				DisplayMaterialPtr pMaterial = NULL;
 
-			if (false != bResult)
-			{
-				bResult = oConfig.GetValue(string("material.effect"), strEffectPath);
-			}
-			if (false != bResult)
-			{
-				FS::GetFileNameWithoutExt(strEffectPath, strEffectName);
-				pEffect = GetEffect(strEffectName);
-				if (NULL == pEffect)
+				if (false != bResult)
 				{
-					bResult = LoadEffect(strEffectName, strEffectPath);
-					pEffect = (false != bResult) ? GetEffect(strEffectName) : NULL;
+					bResult = oConfig.GetValue(string("material.effect"), strEffectPath);
+				}
+				if (false != bResult)
+				{
+					FS::GetFileNameWithoutExt(strEffectPath, strEffectName);
+					pEffect = GetEffect(strEffectName);
+					if (NULL == pEffect)
+					{
+						bResult = LoadEffect(strEffectName, strEffectPath);
+						pEffect = (false != bResult) ? GetEffect(strEffectName) : NULL;
+					}
+				}
+				if (false != bResult)
+				{
+					DisplayMaterial::CreateInfo oDMCInfo = { &oConfig, pEffect };
+					pMaterial = new DisplayMaterial(*this);
+					bResult = pMaterial->Create(boost::any(&oDMCInfo));
+				}
+				if (false != bResult)
+				{
+					m_mMaterials[uKey] = pMaterial;
+				}
+				else if (NULL != pMaterial)
+				{
+					pMaterial->Release();
+					delete pMaterial;
 				}
 			}
-			if (false != bResult)
-			{
-				DisplayMaterial::CreateInfo oDMCInfo = { &oConfig, pEffect };
-				pMaterial = new DisplayMaterial(*this);
-				bResult = pMaterial->Create(boost::any(&oDMCInfo));
-			}
-			if (false != bResult)
-			{
-				m_mMaterials[uKey] = pMaterial;
-			}
-			else if (NULL != pMaterial)
-			{
-				pMaterial->Release();
-				delete pMaterial;
-			}
-
 			oConfig.Release();
 		}
 
@@ -376,9 +378,13 @@ namespace ElixirEngine
 
 	void DisplayMaterialManager::UnloadMaterial(const string& _strName)
 	{
-		Key uKey = 0;
-		uKey = MakeKey(_strName);
-		DisplayMaterialPtrMap::iterator iPair = m_mMaterials.find(uKey);
+		Key uKey = MakeKey(_strName);
+		UnloadMaterial(uKey);
+	}
+
+	void DisplayMaterialManager::UnloadMaterial(const Key& _uNameKey)
+	{
+		DisplayMaterialPtrMap::iterator iPair = m_mMaterials.find(_uNameKey);
 		bool bResult = (m_mMaterials.end() != iPair);
 		if (false != bResult)
 		{

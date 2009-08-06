@@ -94,6 +94,7 @@ namespace ElixirEngine
 
 		bool LoadMaterial(const string& _strName, const string& _strPath);
 		void UnloadMaterial(const string& _strName);
+		void UnloadMaterial(const Key& _uNameKey);
 		DisplayMaterialPtr GetMaterial(const string& _strName);
 
 		bool LoadEffect(const string& _strName, const string& _strPath);

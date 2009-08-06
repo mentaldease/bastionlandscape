@@ -153,6 +153,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Scene.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -180,6 +184,18 @@
 			>
 			<File
 				RelativePath=".\Application.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ApplicationIncludes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ApplicationTypes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Scene.h"
 				>
 			</File>
 			<File

@@ -13,6 +13,8 @@ namespace ElixirEngine
 	class Landscape;
 	typedef Landscape* LandscapePtr;
 	typedef Landscape& LandscapeRef;
+	typedef vector<LandscapePtr> LandscapePtrVec;
+	typedef map<Key, LandscapePtr> LandscapePtrMap;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -54,6 +56,7 @@ namespace ElixirEngine
 
 		struct OpenInfo
 		{
+			string			m_strName;
 			unsigned int	m_uQuadSize;
 			unsigned int	m_uGridWidth;
 			unsigned int	m_uGridDepth;
@@ -90,6 +93,7 @@ namespace ElixirEngine
 			bool Create(const OpenInfo& _rOpenInfo);
 			void Release();
 
+			string			m_strName;
 			unsigned int	m_uQuadSize;
 			unsigned int	m_uGridWidth;
 			unsigned int	m_uGridDepth;

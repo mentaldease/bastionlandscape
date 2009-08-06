@@ -30,7 +30,8 @@ namespace ElixirEngine
 	typedef CoreObject* CoreObjectPtr;
 	typedef CoreObject& CoreObjectRef;
 	typedef vector<CoreObjectPtr> CoreObjectPtrVec;
-	typedef map<CoreObjectPtr, int> CoreObjectPtrMap;
+	typedef map<CoreObjectPtr, int> CoreObjectPtrCounterMap;
+	typedef map<Key, CoreObjectPtr> CoreObjectPtrMap;
 
 	typedef void*			VoidPtr;
 	typedef unsigned int*	UIntPtr;
@@ -70,7 +71,7 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		static CoreObjectPtrMap s_mObjects;
+		static CoreObjectPtrCounterMap s_mObjects;
 
 	protected:
 	private:

@@ -204,7 +204,7 @@ float3 gDeepColor <
 float3 gShallowColor <
     string UIName = "Shallow Water";
     string UIWidget = "Color";
-> = {1.0f, 0.5f, 0.5f};
+> = {0.0f, 0.5f, 0.5f};
 
 float3 gReflTint <
     string UIName = "Reflection Tint";

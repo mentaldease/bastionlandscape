@@ -1,0 +1,27 @@
+# libconfig formatted file
+# simple scene test
+
+version = "1.0";
+
+scene =
+{
+	name = "Test00";
+	materials =
+	(
+		{
+			name = "water00";
+			path = "data/materials/water00.material";
+		}
+	);
+	landscapes =
+	(
+		{
+			name = "water";
+			vertex_format = "liquid";
+			material = "water00x";
+			grid_width = 1;
+			grid_height = 1;
+			grid_chunk_size = 16;
+		}
+	);
+};

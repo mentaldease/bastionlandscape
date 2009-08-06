@@ -73,7 +73,8 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	Landscape::GlobalInfo::GlobalInfo()
-	:	m_uQuadSize(0),
+	:	m_strName(),
+		m_uQuadSize(0),
 		m_uGridWidth(0),
 		m_uGridDepth(0),
 		m_uChunkCount(0),
@@ -97,6 +98,7 @@ namespace ElixirEngine
 		const unsigned int uVertexPerBand = (m_uQuadSize + 1) * 2;
 		const unsigned int uBandJunctionVertexCount = 2 * (m_uQuadSize - 1);
 		m_uStripSize = uBandCount * uVertexPerBand + uBandJunctionVertexCount;
+		m_strName = _rOpenInfo.m_strName;
 		return true;
 	}
 
