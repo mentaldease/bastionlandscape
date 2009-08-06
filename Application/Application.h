@@ -1,13 +1,7 @@
 #ifndef __APPLICATION_H__
 #define __APPLICATION_H__
 
-#include "../Core/Core.h"
-#include "../Core/FileNative.h"
-#include "../Display/Display.h"
-#include "../Landscape/Landscape.h"
-#include "../Input/Input.h"
-#include "../Core/Time.h"
-using namespace ElixirEngine;
+#include "../Application/ApplicationIncludes.h"
 
 namespace BastionGame
 {
@@ -43,12 +37,16 @@ namespace BastionGame
 		const EStateMode& GetStateMode() const;
 		const WindowData& GetWindowData() const;
 
+		DisplayPtr GetDisplay();
+
 	protected:
 		typedef boost::function<void()> UpdateFunction;
 
 	protected:
 		void LoadLandscape();
 		void RenderLandscape();
+		void LoadScene();
+		void RenderScene();
 
 		void UpdateSpectatorCamera(const float& _fElapsedTime);
 
@@ -56,6 +54,7 @@ namespace BastionGame
 		WindowData		m_oWindow;
 		EStateMode		m_eStateMode;
 		DisplayPtr		m_pDisplay;
+		ScenePtr		m_pScene;
 		LandscapePtr	m_pLandscape;
 		UpdateFunction	m_pUpdateFunction;
 		FSPtr			m_pFSRoot;

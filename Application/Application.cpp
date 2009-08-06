@@ -5,6 +5,8 @@
 #include "../Display/EffectParam.h"
 #include "../Display/Camera.h"
 
+#include "../Application/Scene.h"
+
 #include <boost/bind.hpp>
 
 namespace BastionGame
@@ -18,6 +20,7 @@ namespace BastionGame
 		m_oWindow(),
 		m_eStateMode(EStateMode_UNINITIALIZED),
 		m_pDisplay(NULL),
+		m_pScene(NULL),
 		m_pLandscape(NULL),
 		m_pUpdateFunction(NULL),
 		m_pFSRoot(NULL),
@@ -108,7 +111,8 @@ namespace BastionGame
 		{
 			m_pKeyboard = m_pInput->GetDevice(MakeKey(string("DIKEYBOARD")));
 			m_pMouse = m_pInput->GetDevice(MakeKey(string("DIMOUSE")));
-			m_pUpdateFunction = boost::bind(&Application::LoadLandscape, this);
+			//m_pUpdateFunction = boost::bind(&Application::LoadLandscape, this);
+			m_pUpdateFunction = boost::bind(&Application::LoadScene, this);
 		}
 
 		if (false != bResult)
@@ -157,6 +161,12 @@ namespace BastionGame
 			m_pLandscape->Release();
 			m_pLandscape = NULL;
 		}
+		if (NULL != m_pScene)
+		{
+			m_pScene->Release();
+			delete m_pScene;
+			m_pScene = NULL;
+		}
 		if (NULL != m_pDisplay)
 		{
 			m_pDisplay->Release();
@@ -195,14 +205,19 @@ namespace BastionGame
 		return m_oWindow;
 	}
 
+	DisplayPtr Application::GetDisplay()
+	{
+		return m_pDisplay;
+	}
+
 	void Application::LoadLandscape()
 	{
 		if (NULL == m_pLandscape)
 		{
 			//Landscape::OpenInfo oLOInfo = { 8, 16, 4, Landscape::EFormat_LIQUID };
-			Landscape::OpenInfo oLOInfo = { 16, 1, 1, Landscape::EFormat_LIQUID };
+			Landscape::OpenInfo oLOInfo = { "Landscape00", 16, 1, 1, Landscape::EFormat_LIQUID, "" };
 			m_pLandscape = new Landscape(*m_pDisplay);
-			if ((false == m_pLandscape->Create(boost::any(m_pDisplay)))
+			if ((false == m_pLandscape->Create(boost::any(0)))
 				|| (false == m_pLandscape->Open(oLOInfo)))
 			{
 				m_pLandscape->Release();
@@ -228,6 +243,40 @@ namespace BastionGame
 			m_pInput->Update();
 			UpdateSpectatorCamera(fElapsedTime);
 			m_pLandscape->Update();
+			m_pDisplay->Update();
+		}
+	}
+
+	void Application::LoadScene()
+	{
+		if (NULL == m_pScene)
+		{
+			Scene::CreateInfo oSCInfo = { "data/scenes/test00.scene" };
+			m_pScene = new Scene(*this);
+			if (false == m_pScene->Create(boost::any(&oSCInfo)))
+			{
+				m_pScene->Release();
+				delete m_pScene;
+				m_pScene = NULL;
+			}
+			else
+			{
+				m_pDisplay->GetCurrentCamera()->GetPosition() = Vector3(0.0f, 2.0f, -0.0f);
+				m_pUpdateFunction = boost::bind(&Application::RenderScene, this);
+			}
+		}
+	}
+
+	void Application::RenderScene()
+	{
+		float fElapsedTime;
+		if (m_pTime->ResetTimer(m_uRLTimerID, fElapsedTime))
+		{
+			fElapsedTime /= 1000.0f;
+			m_fRelativeTime += fElapsedTime;
+			m_pInput->Update();
+			UpdateSpectatorCamera(fElapsedTime);
+			m_pScene->Update();
 			m_pDisplay->Update();
 		}
 	}
