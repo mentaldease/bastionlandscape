@@ -85,9 +85,9 @@ namespace BastionGame
 		{
 			m_eStateMode = EStateMode_INITIALING_SHADERS;
 			DisplayEffectParamTIME::s_fTime = &m_fRelativeTime;
-			DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
-			bResult = pMaterialManager->LoadMaterial("basic00", "data/materials/basic00.material")
-				&& pMaterialManager->LoadMaterial("water00", "data/materials/water00.material");
+			//DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
+			//bResult = pMaterialManager->LoadMaterial("basic00", "data/materials/basic00.material")
+			//	&& pMaterialManager->LoadMaterial("water00", "data/materials/water00.material");
 		}
 
 		if (false != bResult)
