@@ -50,6 +50,7 @@ namespace ElixirEngine
 	public:
 		enum EVertexFormat
 		{
+			EFormat_UNKNOWN,
 			EFormat_DEFAULT,
 			EFormat_LIQUID,
 		};
@@ -107,6 +108,8 @@ namespace ElixirEngine
 	public:
 		Landscape(DisplayRef _rDisplay);
 		virtual ~Landscape();
+
+		static EVertexFormat StringToVertexFormat(const string& _strFormat);
 
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();

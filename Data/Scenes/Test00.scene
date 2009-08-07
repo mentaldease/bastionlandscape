@@ -11,6 +11,10 @@ scene =
 		{
 			name = "water00";
 			path = "data/materials/water00.material";
+		},
+		{
+			name = "basic00";
+			path = "data/materials/basic00.material";
 		}
 	);
 	landscapes =
@@ -18,10 +22,24 @@ scene =
 		{
 			name = "water";
 			vertex_format = "liquid";
-			material = "water00x";
+			material = "water00";
 			grid_width = 1;
 			grid_height = 1;
 			grid_chunk_size = 16;
+			position_x = 0.0;
+			position_y = 0.0;
+			position_z = 0.0;
+		},
+		{
+			name = "ground";
+			vertex_format = "default";
+			material = "basic00";
+			grid_width = 1;
+			grid_height = 1;
+			grid_chunk_size = 16;
+			position_x = -16.0;
+			position_y = 0.0;
+			position_z = 0.0;
 		}
 	);
 };

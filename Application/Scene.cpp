@@ -146,24 +146,14 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			string strType;
-			_rConfig.GetValue(pShortcut, "vertex_format", strType);
-			if ("liquid" == strType)
-			{
-				oLOInfo.m_eFormat = Landscape::EFormat_LIQUID;
-			}
-			else if ("default" == strType)
-			{
-				oLOInfo.m_eFormat = Landscape::EFormat_DEFAULT;
-			}
-			else
-			{
-				bResult = false;
-			}
+			string strFormat;
+			_rConfig.GetValue(pShortcut, "vertex_format", strFormat);
+			oLOInfo.m_eFormat = Landscape::StringToVertexFormat(strFormat);
+			bResult = (Landscape::EFormat_UNKNOWN != oLOInfo.m_eFormat);
 		}
 		if (false != bResult)
 		{
-			bResult = pLandscape->Create(boost::any(&oLOInfo));
+			bResult = pLandscape->Open(oLOInfo);
 		}
 		if (false != bResult)
 		{
@@ -177,6 +167,18 @@ namespace BastionGame
 			}
 			bResult = (NULL != pMaterial);
 			pLandscape->SetMaterial(pMaterial);
+		}
+
+		if (false != bResult)
+		{
+			Vector3 oPos;
+			bResult = _rConfig.GetValue(pShortcut, "position_x", oPos.x)
+				&& _rConfig.GetValue(pShortcut, "position_y", oPos.y)
+				&& _rConfig.GetValue(pShortcut, "position_z", oPos.z);
+			if (false != bResult)
+			{
+				D3DXMatrixTranslation(pLandscape->GetWorldMatrix(), oPos.x, oPos.y, oPos.z);
+			}
 		}
 
 		if (false != bResult)

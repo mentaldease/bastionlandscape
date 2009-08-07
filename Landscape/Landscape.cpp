@@ -127,6 +127,22 @@ namespace ElixirEngine
 
 	}
 
+	Landscape::EVertexFormat Landscape::StringToVertexFormat(const string& _strFormat)
+	{
+		EVertexFormat eFormat = EFormat_UNKNOWN;
+
+		if ("liquid" == _strFormat)
+		{
+			eFormat = EFormat_LIQUID;
+		}
+		else if ("default" == _strFormat)
+		{
+			eFormat = EFormat_DEFAULT;
+		}
+
+		return eFormat;
+	}
+
 	bool Landscape::Create(const boost::any& _rConfig)
 	{
 		bool bResult = true;
@@ -286,15 +302,17 @@ namespace ElixirEngine
 		bool bResult = (NULL != m_pVertexBuffer);
 		if (false != bResult)
 		{
+			const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRawCount - 1) / 2.0f;
+			const float fZOffset = float(m_oGlobalInfo.m_uRawCount - 1) / 2.0f;
 			m_pVertexes = new VertexDefault[m_oGlobalInfo.m_uVertexCount];
 			VertexDefaultPtr pVertex = (VertexDefaultPtr)m_pVertexes;
 			for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; ++j)
 			{
 				for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; ++i)
 				{
-					pVertex->m_oPosition.x = float(i);
+					pVertex->m_oPosition.x = float(i) - fXOffset;
 					pVertex->m_oPosition.y = 0.0f;
-					pVertex->m_oPosition.z = -float(j);
+					pVertex->m_oPosition.z = -float(j) + fZOffset;
 					pVertex->m_oNormal.x = 0.0f;
 					pVertex->m_oNormal.y = 1.0f;
 					pVertex->m_oNormal.z = 0.0f;
@@ -317,15 +335,17 @@ namespace ElixirEngine
 		bool bResult = (NULL != m_pVertexBuffer);
 		if (false != bResult)
 		{
+			const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRawCount - 1) / 2.0f;
+			const float fZOffset = float(m_oGlobalInfo.m_uRawCount - 1) / 2.0f;
 			m_pVertexes = new VertexLiquid[m_oGlobalInfo.m_uVertexCount];
 			VertexLiquidPtr pVertex = (VertexLiquidPtr)m_pVertexes;
 			for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; ++j)
 			{
 				for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; ++i)
 				{
-					pVertex->m_oPosition.x = float(i);
+					pVertex->m_oPosition.x = float(i) - fXOffset;
 					pVertex->m_oPosition.y = 0.0f;
-					pVertex->m_oPosition.z = -float(j);
+					pVertex->m_oPosition.z = -float(j) + fZOffset;
 					pVertex->m_oNormal.x = 0.0f;
 					pVertex->m_oNormal.y = 1.0f;
 					pVertex->m_oNormal.z = 0.0f;
