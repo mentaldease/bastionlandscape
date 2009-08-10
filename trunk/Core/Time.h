@@ -53,7 +53,7 @@ namespace ElixirEngine
 			void Release();
 			bool GetElapsedTime(float& _fElapsedMilliseconds);
 
-			TimerRef operator = (TimerRef _rTimer);
+			TimerRef operator = (Timer _oTimer);
 
 			LARGE_INTEGER&	m_rTicksPerSeconds;
 			LARGE_INTEGER	m_lStart;

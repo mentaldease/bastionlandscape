@@ -104,6 +104,7 @@ namespace ElixirEngine
 			unsigned int	m_uLODQuadSize;
 		};
 		typedef LODInfo* LODInfoPtr;
+		typedef LODInfo& LODInfoRef;
 
 		struct GlobalInfo
 		{

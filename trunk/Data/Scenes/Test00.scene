@@ -26,14 +26,14 @@ scene =
 			grid_size = 2;			// must be power of 2
 			grid_chunk_size = 8;	// must be power of 2
 			position_x = 0.0;
-			position_y = 1.0;
+			position_y = 4.0;
 			position_z = 0.0;
 		},
 		{
 			name = "ground";
 			vertex_format = "default";
 			material = "basic00";
-			grid_size = 4;
+			grid_size = 1;
 			grid_chunk_size = 16;
 			position_x = 0.0;
 			position_y = 0.0;

@@ -96,15 +96,15 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	Time::TimerRef Time::Timer::operator = (Time::TimerRef _rTimer)
+	Time::TimerRef Time::Timer::operator = (Time::Timer _oTimer)
 	{
-		m_rTicksPerSeconds	= _rTimer.m_rTicksPerSeconds;
-		m_lStart			= _rTimer.m_lStart;
-		m_lLastPause		= _rTimer.m_lLastPause;
-		m_lTotalPause		= _rTimer.m_lTotalPause;
-		m_lCurrentCounter	= _rTimer.m_lCurrentCounter;
-		m_bIsPaused			= _rTimer.m_bIsPaused;
-		m_bIsActive			= _rTimer.m_bIsActive;
+		m_rTicksPerSeconds	= _oTimer.m_rTicksPerSeconds;
+		m_lStart			= _oTimer.m_lStart;
+		m_lLastPause		= _oTimer.m_lLastPause;
+		m_lTotalPause		= _oTimer.m_lTotalPause;
+		m_lCurrentCounter	= _oTimer.m_lCurrentCounter;
+		m_bIsPaused			= _oTimer.m_bIsPaused;
+		m_bIsActive			= _oTimer.m_bIsActive;
 		return *this;
 	}
 
