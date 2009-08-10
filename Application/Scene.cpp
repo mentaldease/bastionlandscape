@@ -140,8 +140,7 @@ namespace BastionGame
 		bool bResult = (false != pLandscape->Create(boost::any(0)))
 			&& _rConfig.GetValue(pShortcut, "name", oLOInfo.m_strName)
 			&& (m_mLandscapes.end() == m_mLandscapes.find(MakeKey(oLOInfo.m_strName))) // <== check that there is NOT another landscape with the same name
-			&& _rConfig.GetValue(pShortcut, "grid_width", oLOInfo.m_uGridWidth)
-			&& _rConfig.GetValue(pShortcut, "grid_height", oLOInfo.m_uGridDepth)
+			&& _rConfig.GetValue(pShortcut, "grid_size", oLOInfo.m_uGridSize)
 			&& _rConfig.GetValue(pShortcut, "grid_chunk_size", oLOInfo.m_uQuadSize);
 
 		if (false != bResult)
