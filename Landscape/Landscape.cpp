@@ -51,12 +51,11 @@ namespace ElixirEngine
 	bool LandscapeChunk::Create(const boost::any& _rConfig)
 	{
 		bool bResult = true;
-#if 1
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		Landscape::LODInfoPtr pLODInfo = &(rGlobalInfo.m_pLODs[m_uLOD]);
-		const unsigned int IndexX = pInfo->m_uX * pLODInfo->m_uLODQuadSize;
-		const unsigned int IndexZ = pInfo->m_uZ * pLODInfo->m_uLODQuadSize;
+		Landscape::LODInfoRef rLODInfo = rGlobalInfo.m_pLODs[m_uLOD];
+		const unsigned int IndexX = pInfo->m_uX * rLODInfo.m_uLODQuadSize;
+		const unsigned int IndexZ = pInfo->m_uZ * rLODInfo.m_uLODQuadSize;
 		m_uStartVertexIndex = IndexX + IndexZ * rGlobalInfo.m_uVertexPerRawCount;
 
 		if (0 < m_uLOD)
@@ -73,16 +72,14 @@ namespace ElixirEngine
 					bResult = pLandscapeChunk->Create(boost::any(&oLCCInfo));
 					if (false == bResult)
 					{
-						bResult;
+						break;
 					}
 					m_pChildren[uChild] = pLandscapeChunk;
 					++uChild;
 				}
 			}
 		}
-#else
-		m_uStartVertexIndex = boost::any_cast<const unsigned int>(_rConfig);
-#endif
+
 		return bResult;
 	}
 
@@ -100,7 +97,6 @@ namespace ElixirEngine
 	{
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
 		const unsigned int uVertexCount = rGlobalInfo.m_uVertexPerRawCount * (rGlobalInfo.m_uQuadSize + 1);
-		//m_rDisplay.GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, m_uStartVertexIndex, 0, uVertexCount, 0, rGlobalInfo.m_uStripSize - 2);
 		const unsigned int uStartIndex = rGlobalInfo.m_pLODs[m_uLOD].m_uStartIndex;
 		const unsigned int uStripSize = rGlobalInfo.m_pLODs[m_uLOD].m_uStripSize - 2;
 		m_rDisplay.GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, m_uStartVertexIndex, 0, uVertexCount, uStartIndex, uStripSize);
@@ -109,7 +105,8 @@ namespace ElixirEngine
 	void LandscapeChunk::Traverse(LandscapeChunkPtrVecRef _rRenderList)
 	{
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		if ((rGlobalInfo.m_uLODCount - 1) == m_uLOD)
+		//if ((rGlobalInfo.m_uLODCount - 1) == m_uLOD)
+		if (0 == m_uLOD)
 		{
 			_rRenderList.push_back(this);
 		}
@@ -168,7 +165,7 @@ namespace ElixirEngine
 				pLODInfo->m_uStripSize = m_uStripSize;
 				pLODInfo->m_uStartIndex = m_uTotalLODStripSize;
 				pLODInfo->m_uLODGridSize = m_uGridSize >> i;
-				pLODInfo->m_uLODQuadSize = m_uGridSize << i;
+				pLODInfo->m_uLODQuadSize = m_uQuadSize << i;
 				m_uTotalLODStripSize += m_uStripSize;
 				pLODInfo++;
 			}
@@ -446,7 +443,7 @@ namespace ElixirEngine
 				const unsigned int uLODQuadSize = (m_oGlobalInfo.m_uQuadSize << k);
 				for (unsigned int j = 0 ; uLODQuadSize > j ; j += uLODIncrement)
 				{
-					for (unsigned int i = 0 ; (uLODQuadSize + 1) > i ; i += uLODIncrement)
+					for (unsigned int i = 0 ; (uLODQuadSize + uLODIncrement) > i ; i += uLODIncrement)
 					{
 						*pIndexes = i + j * m_oGlobalInfo.m_uVertexPerRawCount;
 						++pIndexes;
@@ -489,9 +486,9 @@ namespace ElixirEngine
 		}
 		bool bResult = (0 < m_oGlobalInfo.m_uChunkCount);
 
+		// create chunk recursively
 		if (false != bResult)
 		{
-#if 1
 			LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(*this, m_rDisplay, m_oGlobalInfo.m_uLODCount - 1);
 			LandscapeChunk::CreateInfo oLCCInfo = { 0, 0 };
 			bResult = pLandscapeChunk->Create(boost::any(&oLCCInfo));
@@ -499,37 +496,6 @@ namespace ElixirEngine
 			{
 				m_vGrid.push_back(pLandscapeChunk);
 			}
-#else
-			m_vGrid.reserve(m_oGlobalInfo.m_uChunkCount);
-			// alloc all chunks
-			for (unsigned int uLOD = m_oGlobalInfo.m_uLODCount ; 0 < uLOD ; --uLOD)
-			{
-				const unsigned int uTrueLOD = uLOD - 1;
-				const unsigned int uLODGridSize = m_oGlobalInfo.m_uGridSize >> uTrueLOD;
-				const unsigned int uLODQuadSize = m_oGlobalInfo.m_uGridSize << uTrueLOD;
-				for (unsigned int j = 0 ; uLODGridSize > j ; ++j)
-				{
-					for (unsigned int i = 0 ; uLODGridSize > i ; ++i)
-					{
-						LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(*this, m_rDisplay, uTrueLOD);
-						const unsigned int IndexX = i * uLODQuadSize;
-						const unsigned int IndexZ = j * uLODQuadSize;
-						const unsigned int Index = IndexX + IndexZ * m_oGlobalInfo.m_uVertexPerRawCount;
-						bResult = pLandscapeChunk->Create(boost::any(Index));
-						if (false == bResult)
-						{
-							break;
-						}
-						m_vGrid.push_back(pLandscapeChunk);
-					}
-				}
-			}
-#endif
-		}
-		// link chunks in parent/child relationship
-		if (false != bResult)
-		{
-
 		}
 
 		return bResult;
