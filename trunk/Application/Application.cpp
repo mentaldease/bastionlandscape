@@ -215,7 +215,7 @@ namespace BastionGame
 		if (NULL == m_pLandscape)
 		{
 			//Landscape::OpenInfo oLOInfo = { 8, 16, 4, Landscape::EFormat_LIQUID };
-			Landscape::OpenInfo oLOInfo = { "Landscape00", 16, 1, 1, Landscape::EFormat_LIQUID, "" };
+			Landscape::OpenInfo oLOInfo = { "Landscape00", 16, 1, Landscape::EFormat_LIQUID, "" };
 			m_pLandscape = new Landscape(*m_pDisplay);
 			if ((false == m_pLandscape->Create(boost::any(0)))
 				|| (false == m_pLandscape->Open(oLOInfo)))

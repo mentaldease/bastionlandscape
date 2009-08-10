@@ -60,6 +60,7 @@ technique RenderScene
     pass P0
     {          
 		Lighting = FALSE;
+		FillMode = wireframe;
 
         VertexShader = compile vs_2_0 RenderSceneVS();
         PixelShader  = compile ps_2_0 RenderScenePS();

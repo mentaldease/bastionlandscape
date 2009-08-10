@@ -3,6 +3,7 @@
 
 #include "../Core/Core.h"
 #include "../Display/Display.h"
+#include "../Landscape/LandscapeTypes.h"
 
 namespace ElixirEngine
 {
@@ -10,20 +11,26 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class Landscape;
-	typedef Landscape* LandscapePtr;
-	typedef Landscape& LandscapeRef;
-	typedef vector<LandscapePtr> LandscapePtrVec;
-	typedef map<Key, LandscapePtr> LandscapePtrMap;
-
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-
 	class LandscapeChunk : public CoreObject
 	{
 	public:
-		LandscapeChunk(LandscapeRef _rLandscape, DisplayRef _rDisplay);
+		enum ESubChild
+		{
+			ESubChild_NORTHWEST,
+			ESubChild_NORTHEAST,
+			ESubChild_SOUTHWEST,
+			ESubChild_SOUTHEAST,
+			ESubChild_COUNT // last enum member
+		};
+
+		struct CreateInfo
+		{
+			unsigned int	m_uX;
+			unsigned int	m_uZ;
+		};
+
+	public:
+		LandscapeChunk(LandscapeRef _rLandscape, DisplayRef _rDisplay, const unsigned int& _uLOD);
 		virtual ~LandscapeChunk();
 
 		virtual bool Create(const boost::any& _rConfig);
@@ -31,15 +38,18 @@ namespace ElixirEngine
 		virtual void Release();
 		virtual void Render();
 
+		void Traverse(LandscapeChunkPtrVecRef _rRenderList);
+
 	protected:
-		DisplayRef		m_rDisplay;
-		LandscapeRef	m_rLandscape;
-		unsigned int	m_uStartVertexIndex;
+		DisplayRef				m_rDisplay;
+		LandscapeRef			m_rLandscape;
+		unsigned int			m_uStartVertexIndex;
+		unsigned int			m_uLOD;
+		LandscapeChunkPtr		m_pParent;
+		LandscapeChunkPtr		m_pChildren[ESubChild_COUNT];
 
 	private:
 	};
-	typedef LandscapeChunk*				LandscapeChunkPtr;
-	typedef vector<LandscapeChunkPtr>	LandscapeChunkPtrVec;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -59,8 +69,7 @@ namespace ElixirEngine
 		{
 			string			m_strName;
 			unsigned int	m_uQuadSize;
-			unsigned int	m_uGridWidth;
-			unsigned int	m_uGridDepth;
+			unsigned int	m_uGridSize;
 			EVertexFormat	m_eFormat;
 			string			m_strHeightmap;
 		};
@@ -87,22 +96,34 @@ namespace ElixirEngine
 		};
 		typedef VertexLiquid* VertexLiquidPtr;
 
+		struct LODInfo
+		{
+			unsigned int	m_uStartIndex;
+			unsigned int	m_uStripSize;
+			unsigned int	m_uLODGridSize;
+			unsigned int	m_uLODQuadSize;
+		};
+		typedef LODInfo* LODInfoPtr;
+
 		struct GlobalInfo
 		{
 			GlobalInfo();
 
 			bool Create(const OpenInfo& _rOpenInfo);
 			void Release();
+			bool IsPowerOf2(const unsigned int& _uValue, unsigned int* _pPowerLevel = NULL);
 
 			string			m_strName;
 			unsigned int	m_uQuadSize;
-			unsigned int	m_uGridWidth;
-			unsigned int	m_uGridDepth;
+			unsigned int	m_uGridSize;
 			unsigned int	m_uChunkCount;
 			unsigned int	m_uVertexCount;
 			unsigned int	m_uVertexPerRawCount;
 			unsigned int	m_uRawCount;
 			unsigned int	m_uStripSize;
+			unsigned int	m_uLODCount;
+			unsigned int	m_uTotalLODStripSize;
+			LODInfoPtr	m_pLODs;
 		};
 
 	public:
@@ -124,10 +145,13 @@ namespace ElixirEngine
 	protected:
 		bool CreateVertexBufferDefault();
 		bool CreateVertexBufferLiquid();
+		bool CreateIndexBuffer();
+		bool CreateChunks();
 
 	protected:
 		GlobalInfo				m_oGlobalInfo;
 		LandscapeChunkPtrVec	m_vGrid;
+		LandscapeChunkPtrVec	m_vRenderList;
 		DisplayVertexBufferPtr	m_pVertexBuffer;
 		DisplayIndexBufferPtr	m_pIndexBuffer;
 		VoidPtr					m_pVertexes;
