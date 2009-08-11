@@ -51,8 +51,12 @@ namespace ElixirEngine
 		Vector3& GetPosition();
 		Vector3& GetRotation();
 		void GetDirs(Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir, const bool _bInv = false);
-
 		MatrixPtr GetMatrix(const EMatrix& _eMatrix);
+
+		const float& GetPixelSize() const;
+
+	protected:
+		void UpdatePixelSize();
 
 	protected:
 		DisplayRef	m_rDisplay;
@@ -68,6 +72,8 @@ namespace ElixirEngine
 
 		float		m_fFovy;
 		float		m_fAspectRatio;
+		float		m_fPixelSize;
+		Viewport	m_oViewport;
 
 	private:
 	};

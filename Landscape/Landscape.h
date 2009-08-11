@@ -11,50 +11,6 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class LandscapeChunk : public CoreObject
-	{
-	public:
-		enum ESubChild
-		{
-			ESubChild_NORTHWEST,
-			ESubChild_NORTHEAST,
-			ESubChild_SOUTHWEST,
-			ESubChild_SOUTHEAST,
-			ESubChild_COUNT // last enum member
-		};
-
-		struct CreateInfo
-		{
-			unsigned int	m_uX;
-			unsigned int	m_uZ;
-		};
-
-	public:
-		LandscapeChunk(LandscapeRef _rLandscape, DisplayRef _rDisplay, const unsigned int& _uLOD);
-		virtual ~LandscapeChunk();
-
-		virtual bool Create(const boost::any& _rConfig);
-		virtual void Update();
-		virtual void Release();
-		virtual void Render();
-
-		void Traverse(LandscapeChunkPtrVecRef _rRenderList);
-
-	protected:
-		DisplayRef				m_rDisplay;
-		LandscapeRef			m_rLandscape;
-		unsigned int			m_uStartVertexIndex;
-		unsigned int			m_uLOD;
-		LandscapeChunkPtr		m_pParent;
-		LandscapeChunkPtr		m_pChildren[ESubChild_COUNT];
-
-	private:
-	};
-
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-
 	class Landscape : public DisplayObject
 	{
 	public:
@@ -102,6 +58,7 @@ namespace ElixirEngine
 			unsigned int	m_uStripSize;
 			unsigned int	m_uLODGridSize;
 			unsigned int	m_uLODQuadSize;
+			unsigned int	m_uGeometricError;
 		};
 		typedef LODInfo* LODInfoPtr;
 		typedef LODInfo& LODInfoRef;
@@ -142,6 +99,7 @@ namespace ElixirEngine
 		void Close();
 
 		const GlobalInfo& GetGlobalInfo() const;
+		void GetVertexPosition(unsigned int IndexBufferIndex, Vector3& _rPosition);
 
 	protected:
 		bool CreateVertexBufferDefault();
@@ -158,6 +116,52 @@ namespace ElixirEngine
 		VoidPtr					m_pVertexes;
 		UIntPtr					m_pIndexes;
 		EVertexFormat			m_eFormat;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class LandscapeChunk : public CoreObject
+	{
+	public:
+		enum ESubChild
+		{
+			ESubChild_NORTHWEST,
+			ESubChild_NORTHEAST,
+			ESubChild_SOUTHWEST,
+			ESubChild_SOUTHEAST,
+			ESubChild_COUNT // last enum member
+		};
+
+		struct CreateInfo
+		{
+			unsigned int	m_uX;
+			unsigned int	m_uZ;
+		};
+
+	public:
+		LandscapeChunk(LandscapeRef _rLandscape, DisplayRef _rDisplay, const unsigned int& _uLOD);
+		virtual ~LandscapeChunk();
+
+		virtual bool Create(const boost::any& _rConfig);
+		virtual void Update();
+		virtual void Release();
+		virtual void Render();
+
+		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
+
+	protected:
+		DisplayRef				m_rDisplay;
+		LandscapeRef			m_rLandscape;
+		unsigned int			m_uStartVertexIndex;
+		unsigned int			m_uLOD;
+		LandscapeChunkPtr		m_pParent;
+		LandscapeChunkPtr		m_pChildren[ESubChild_COUNT];
+		Vector3					m_oCenter;
+		Landscape::LODInfoPtr	m_pLODInfo;
 
 	private:
 	};

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Landscape.h"
+#include "../Display/Camera.h"
 
 namespace ElixirEngine
 {
@@ -35,7 +36,8 @@ namespace ElixirEngine
 		m_rDisplay(_rDisplay),
 		m_uStartVertexIndex(0),
 		m_uLOD(_uLOD),
-		m_pParent(NULL)
+		m_pParent(NULL),
+		m_pLODInfo(NULL)
 	{
 		m_pChildren[ESubChild_NORTHWEST] =
 		m_pChildren[ESubChild_NORTHEAST] =
@@ -53,10 +55,18 @@ namespace ElixirEngine
 		bool bResult = true;
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		Landscape::LODInfoRef rLODInfo = rGlobalInfo.m_pLODs[m_uLOD];
-		const unsigned int IndexX = pInfo->m_uX * rLODInfo.m_uLODQuadSize;
-		const unsigned int IndexZ = pInfo->m_uZ * rLODInfo.m_uLODQuadSize;
+		m_pLODInfo = &(rGlobalInfo.m_pLODs[m_uLOD]);
+		const unsigned int IndexX = pInfo->m_uX * m_pLODInfo->m_uLODQuadSize;
+		const unsigned int IndexZ = pInfo->m_uZ * m_pLODInfo->m_uLODQuadSize;
 		m_uStartVertexIndex = IndexX + IndexZ * rGlobalInfo.m_uVertexPerRawCount;
+
+		// center
+		const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
+		const unsigned int uStripSize = m_pLODInfo->m_uStripSize;
+		Vector3 oTemp[2];
+		m_rLandscape.GetVertexPosition(uStartIndex, oTemp[0]);
+		m_rLandscape.GetVertexPosition(uStartIndex + uStripSize - 1, oTemp[1]);
+		m_oCenter = oTemp[0] + ((oTemp[0] - oTemp[1]) / 2.0f);
 
 		if (0 < m_uLOD)
 		{
@@ -96,17 +106,21 @@ namespace ElixirEngine
 	void LandscapeChunk::Render()
 	{
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		const unsigned int uVertexCount = rGlobalInfo.m_uVertexPerRawCount * (rGlobalInfo.m_uQuadSize + 1);
-		const unsigned int uStartIndex = rGlobalInfo.m_pLODs[m_uLOD].m_uStartIndex;
-		const unsigned int uStripSize = rGlobalInfo.m_pLODs[m_uLOD].m_uStripSize - 2;
+		const unsigned int uVertexCount = rGlobalInfo.m_uVertexCount;
+		const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
+		const unsigned int uStripSize = m_pLODInfo->m_uStripSize - 2;
 		m_rDisplay.GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, m_uStartVertexIndex, 0, uVertexCount, uStartIndex, uStripSize);
 	}
 
-	void LandscapeChunk::Traverse(LandscapeChunkPtrVecRef _rRenderList)
+	void LandscapeChunk::Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize)
 	{
+		const Vector3 oDelta = m_oCenter - _rCamPos;
+		const float fDistance = D3DXVec3Length(&oDelta);
+		const float fVertexErrorLevel = m_pLODInfo->m_uGeometricError / fDistance * _fPixelSize;
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
 		//if ((rGlobalInfo.m_uLODCount - 1) == m_uLOD)
 		if (0 == m_uLOD)
+		//if (2.5f <= fVertexErrorLevel)
 		{
 			_rRenderList.push_back(this);
 		}
@@ -114,7 +128,7 @@ namespace ElixirEngine
 		{
 			for (unsigned int i = 0 ; ESubChild_COUNT > i ; ++i)
 			{
-				m_pChildren[i]->Traverse(_rRenderList);
+				m_pChildren[i]->Traverse(_rRenderList, _rCamPos, _fPixelSize);
 			}
 		}
 	}
@@ -166,6 +180,7 @@ namespace ElixirEngine
 				pLODInfo->m_uStartIndex = m_uTotalLODStripSize;
 				pLODInfo->m_uLODGridSize = m_uGridSize >> i;
 				pLODInfo->m_uLODQuadSize = m_uQuadSize << i;
+				pLODInfo->m_uGeometricError = 0x00000001 << i;
 				m_uTotalLODStripSize += m_uStripSize;
 				pLODInfo++;
 			}
@@ -260,8 +275,9 @@ namespace ElixirEngine
 	void Landscape::Update()
 	{
 		m_rDisplay.RenderRequest(this);
-		//m_vRenderList.push_back(m_vGrid.back()); // test : render lowest LOD chunk
-		m_vGrid.back()->Traverse(m_vRenderList);
+		const float fPixelSize = m_rDisplay.GetCurrentCamera()->GetPixelSize();
+		const Vector3& rCamPos = m_rDisplay.GetCurrentCamera()->GetPosition();
+		m_vGrid.back()->Traverse(m_vRenderList, rCamPos, fPixelSize);
 	}
 
 	void Landscape::Release()
@@ -356,6 +372,26 @@ namespace ElixirEngine
 	const Landscape::GlobalInfo& Landscape::GetGlobalInfo() const
 	{
 		return m_oGlobalInfo;
+	}
+
+	void Landscape::GetVertexPosition(unsigned int IndexBufferIndex, Vector3& _rPosition)
+	{
+		const unsigned int uVertexIndex = m_pIndexes[IndexBufferIndex];
+		switch (m_eFormat)
+		{
+			case Landscape::EFormat_DEFAULT:
+			{
+				VertexDefaultPtr pBuffer = static_cast<VertexDefaultPtr>(m_pVertexes);
+				_rPosition = pBuffer[uVertexIndex].m_oPosition;
+				break;
+			}
+			case Landscape::EFormat_LIQUID:
+			{
+				VertexLiquidPtr pBuffer = static_cast<VertexLiquidPtr>(m_pVertexes);
+				_rPosition = pBuffer[uVertexIndex].m_oPosition;
+				break;
+			}
+		}
 	}
 
 	bool Landscape::CreateVertexBufferDefault()
