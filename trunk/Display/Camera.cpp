@@ -34,7 +34,9 @@ namespace ElixirEngine
 		m_oVPosition(0.0f, 0.0f, 0.0f),
 		m_oVRotation(0.0f, 0.0f, 0.0f),
 		m_fFovy(0.0f),
-		m_fAspectRatio(0.0f)
+		m_fAspectRatio(0.0f),
+		m_fPixelSize(0.0f),
+		m_oViewport()
 	{
 
 	}
@@ -52,21 +54,21 @@ namespace ElixirEngine
 		unsigned int uTemp[2];
 		m_rDisplay.GetResolution(uTemp[0], uTemp[1]);
 
-		Viewport oViewport;
-		oViewport.X = (unsigned int)(pInfo->m_fX * uTemp[0]);
-		oViewport.Y = (unsigned int)(pInfo->m_fY * uTemp[1]);
-		oViewport.Width = (unsigned int)(pInfo->m_fWidth * uTemp[0]);
-		oViewport.Height = (unsigned int)(pInfo->m_fHeight * uTemp[1]);
-		oViewport.MinZ = 0.0f;
-		oViewport.MaxZ = 1.0f;
-		HRESULT hResult = m_rDisplay.GetDevicePtr()->SetViewport(&oViewport);
+		m_oViewport.X = (unsigned int)(pInfo->m_fX * uTemp[0]);
+		m_oViewport.Y = (unsigned int)(pInfo->m_fY * uTemp[1]);
+		m_oViewport.Width = (unsigned int)(pInfo->m_fWidth * uTemp[0]);
+		m_oViewport.Height = (unsigned int)(pInfo->m_fHeight * uTemp[1]);
+		m_oViewport.MinZ = 0.0f;
+		m_oViewport.MaxZ = 1.0f;
+		HRESULT hResult = m_rDisplay.GetDevicePtr()->SetViewport(&m_oViewport);
 		bResult = SUCCEEDED(hResult);
 
 		if (false != bResult)
 		{
 			m_fFovy = pInfo->m_fDegreeFovy * (D3DX_PI / 180.0f);
-			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : (float)oViewport.Width / (float)oViewport.Height;
+			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : (float)m_oViewport.Width / (float)m_oViewport.Height;
 			D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, 0.0f, 10000.0f);
+			UpdatePixelSize();
 		}
 
 		return bResult;
@@ -160,4 +162,16 @@ namespace ElixirEngine
 		return &m_oMPosition;
 	}
 
+	const float& DisplayCamera::GetPixelSize() const
+	{
+		return m_fPixelSize;
+	}
+
+	void DisplayCamera::UpdatePixelSize()
+	{
+		const float fFovx = m_fFovy * m_fAspectRatio;
+		m_fPixelSize = float(m_oViewport.Width) / (2.0f * float(tan(fFovx / 2.0f)));
+		//m_fPixelSize = 2.0f * float(tan(m_fFovy / 2.0f)) / float(m_oViewport.Height);
+		//m_fPixelSize = float(m_oViewport.Height) / (2.0f * float(tan(m_fFovy / 2.0f)));
+	}
 }

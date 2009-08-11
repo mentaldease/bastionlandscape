@@ -28,7 +28,7 @@ scene =
 			position_x = 0.0;
 			position_y = 4.0;
 			position_z = 0.0;
-		},
+		}/*,
 		{
 			name = "ground";
 			vertex_format = "default";
@@ -38,6 +38,6 @@ scene =
 			position_x = 0.0;
 			position_y = 0.0;
 			position_z = 0.0;
-		}
+		}*/
 	);
 };
