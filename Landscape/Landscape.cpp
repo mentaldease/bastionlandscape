@@ -64,9 +64,13 @@ namespace ElixirEngine
 		const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
 		const unsigned int uStripSize = m_pLODInfo->m_uStripSize;
 		Vector3 oTemp[2];
-		m_rLandscape.GetVertexPosition(uStartIndex, oTemp[0]);
-		m_rLandscape.GetVertexPosition(uStartIndex + uStripSize - 1, oTemp[1]);
-		m_oCenter = oTemp[0] + ((oTemp[0] - oTemp[1]) / 2.0f);
+		m_rLandscape.GetVertexPosition(uStartIndex, m_uStartVertexIndex, oTemp[0]);
+		m_rLandscape.GetVertexPosition(uStartIndex + uStripSize - 1, m_uStartVertexIndex, oTemp[1]);
+		//m_oCenter = oTemp[0] + ((oTemp[0] - oTemp[1]) / 2.0f);
+		//m_oCenter = (oTemp[0] + oTemp[1]) / 2.0f;
+		m_oCenter.x = oTemp[0].x + (oTemp[1].x - oTemp[0].x) / 2.0f;
+		m_oCenter.y = 0.0f;
+		m_oCenter.z = oTemp[1].z + (oTemp[0].z - oTemp[1].z) / 2.0f;
 
 		if (0 < m_uLOD)
 		{
@@ -119,8 +123,9 @@ namespace ElixirEngine
 		const float fVertexErrorLevel = m_pLODInfo->m_uGeometricError / fDistance * _fPixelSize;
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
 		//if ((rGlobalInfo.m_uLODCount - 1) == m_uLOD)
-		if (0 == m_uLOD)
-		//if (2.5f <= fVertexErrorLevel)
+		//if (0 == m_uLOD)
+		//if (fVertexErrorLevel <= 2.5f)
+		if (fVertexErrorLevel <= rGlobalInfo.m_fPixelErrorMax)
 		{
 			_rRenderList.push_back(this);
 		}
@@ -149,23 +154,25 @@ namespace ElixirEngine
 		m_uStripSize(0),
 		m_uLODCount(0),
 		m_uTotalLODStripSize(0),
-		m_pLODs(NULL)
+		m_pLODs(NULL),
+		m_fPixelErrorMax(0.0f)
 	{
 
 	}
 
 	bool Landscape::GlobalInfo::Create(const Landscape::OpenInfo& _rOpenInfo)
 	{
+		m_strName = _rOpenInfo.m_strName;
 		m_uQuadSize = _rOpenInfo.m_uQuadSize;
 		m_uGridSize = _rOpenInfo.m_uGridSize;
 		m_uVertexPerRawCount = _rOpenInfo.m_uQuadSize * _rOpenInfo.m_uGridSize + 1;
 		m_uRawCount = _rOpenInfo.m_uQuadSize * _rOpenInfo.m_uGridSize + 1;
 		m_uVertexCount = m_uVertexPerRawCount * m_uRawCount;
+		m_fPixelErrorMax = _rOpenInfo.m_fPixelErrorMax;
 		const unsigned int uBandCount = m_uQuadSize;
 		const unsigned int uVertexPerBand = (m_uQuadSize + 1) * 2;
 		const unsigned int uBandJunctionVertexCount = 2 * (m_uQuadSize - 1);
 		m_uStripSize = uBandCount * uVertexPerBand + uBandJunctionVertexCount;
-		m_strName = _rOpenInfo.m_strName;
 
 		bool bResult = IsPowerOf2(m_uGridSize, &m_uLODCount) && IsPowerOf2(m_uQuadSize);
 
@@ -240,7 +247,8 @@ namespace ElixirEngine
 		m_pVertexBuffer(NULL),
 		m_pIndexBuffer(NULL),
 		m_pVertexes(NULL),
-		m_pIndexes(NULL)
+		m_pIndexes(NULL),
+		m_eFormat(EFormat_UNKNOWN)
 	{
 
 	}
@@ -374,9 +382,9 @@ namespace ElixirEngine
 		return m_oGlobalInfo;
 	}
 
-	void Landscape::GetVertexPosition(unsigned int IndexBufferIndex, Vector3& _rPosition)
+	void Landscape::GetVertexPosition(const unsigned int& _uIndexBufferIndex, const unsigned int& _uVertexStartIndex, Vector3& _rPosition)
 	{
-		const unsigned int uVertexIndex = m_pIndexes[IndexBufferIndex];
+		const unsigned int uVertexIndex = _uVertexStartIndex + m_pIndexes[_uIndexBufferIndex];
 		switch (m_eFormat)
 		{
 			case Landscape::EFormat_DEFAULT:

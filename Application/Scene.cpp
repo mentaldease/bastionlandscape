@@ -141,7 +141,8 @@ namespace BastionGame
 			&& _rConfig.GetValue(pShortcut, "name", oLOInfo.m_strName)
 			&& (m_mLandscapes.end() == m_mLandscapes.find(MakeKey(oLOInfo.m_strName))) // <== check that there is NOT another landscape with the same name
 			&& _rConfig.GetValue(pShortcut, "grid_size", oLOInfo.m_uGridSize)
-			&& _rConfig.GetValue(pShortcut, "grid_chunk_size", oLOInfo.m_uQuadSize);
+			&& _rConfig.GetValue(pShortcut, "grid_chunk_size", oLOInfo.m_uQuadSize)
+			&& _rConfig.GetValue(pShortcut, "pixel_error_max", oLOInfo.m_fPixelErrorMax);
 
 		if (false != bResult)
 		{
