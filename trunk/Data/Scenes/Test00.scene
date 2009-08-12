@@ -19,6 +19,7 @@ scene =
 	);
 	landscapes =
 	(
+		/*
 		{
 			name = "water";
 			vertex_format = "liquid";
@@ -28,16 +29,19 @@ scene =
 			position_x = 0.0;
 			position_y = 4.0;
 			position_z = 0.0;
-		}/*,
+			pixel_error_max = 100.0;
+		},
+		*/
 		{
 			name = "ground";
 			vertex_format = "default";
 			material = "basic00";
-			grid_size = 1;
-			grid_chunk_size = 16;
+			grid_size = 16;
+			grid_chunk_size = 4;
 			position_x = 0.0;
 			position_y = 0.0;
 			position_z = 0.0;
-		}*/
+			pixel_error_max = 60.0;
+		}
 	);
 };

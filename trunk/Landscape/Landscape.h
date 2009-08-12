@@ -28,6 +28,7 @@ namespace ElixirEngine
 			unsigned int	m_uGridSize;
 			EVertexFormat	m_eFormat;
 			string			m_strHeightmap;
+			float			m_fPixelErrorMax;
 		};
 
 		struct VertexDefault
@@ -81,7 +82,8 @@ namespace ElixirEngine
 			unsigned int	m_uStripSize;
 			unsigned int	m_uLODCount;
 			unsigned int	m_uTotalLODStripSize;
-			LODInfoPtr	m_pLODs;
+			LODInfoPtr		m_pLODs;
+			float			m_fPixelErrorMax;
 		};
 
 	public:
@@ -99,7 +101,7 @@ namespace ElixirEngine
 		void Close();
 
 		const GlobalInfo& GetGlobalInfo() const;
-		void GetVertexPosition(unsigned int IndexBufferIndex, Vector3& _rPosition);
+		void GetVertexPosition(const unsigned int& _uIndexBufferIndex, const unsigned int& _uVertexStartIndex, Vector3& _rPosition);
 
 	protected:
 		bool CreateVertexBufferDefault();
