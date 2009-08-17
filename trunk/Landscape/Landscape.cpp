@@ -68,9 +68,12 @@ namespace ElixirEngine
 		m_rLandscape.GetVertexPosition(uStartIndex + uStripSize - 1, m_uStartVertexIndex, oTemp[1]);
 		//m_oCenter = oTemp[0] + ((oTemp[0] - oTemp[1]) / 2.0f);
 		//m_oCenter = (oTemp[0] + oTemp[1]) / 2.0f;
-		m_oCenter.x = oTemp[0].x + (oTemp[1].x - oTemp[0].x) / 2.0f;
+		m_oExtends.x = (oTemp[1].x - oTemp[0].x) / 2.0f;
+		m_oExtends.y = 0.0f;
+		m_oExtends.z = (oTemp[0].z - oTemp[1].z) / 2.0f;
+		m_oCenter.x = oTemp[0].x + m_oExtends.x;
 		m_oCenter.y = 0.0f;
-		m_oCenter.z = oTemp[1].z + (oTemp[0].z - oTemp[1].z) / 2.0f;
+		m_oCenter.z = oTemp[1].z + m_oExtends.z;
 
 		if (0 < m_uLOD)
 		{
@@ -118,13 +121,13 @@ namespace ElixirEngine
 
 	void LandscapeChunk::Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize)
 	{
-		const Vector3 oDelta = m_oCenter - _rCamPos;
-		const float fDistance = D3DXVec3Length(&oDelta);
+		MatrixPtr pWorld = m_rLandscape.GetWorldMatrix();
+		const Vector3 oWorld(pWorld->_41, pWorld->_42, pWorld->_43);
+		const Vector3 oDelta = oWorld + m_oCenter - _rCamPos;
+		const float fDistance0 = D3DXVec3Length(&oDelta) - D3DXVec3Length(&m_oExtends);
+		const float fDistance = (0.0f < fDistance0) ? fDistance0 : 1.0f;
 		const float fVertexErrorLevel = m_pLODInfo->m_uGeometricError / fDistance * _fPixelSize;
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		//if ((rGlobalInfo.m_uLODCount - 1) == m_uLOD)
-		//if (0 == m_uLOD)
-		//if (fVertexErrorLevel <= 2.5f)
 		if (fVertexErrorLevel <= rGlobalInfo.m_fPixelErrorMax)
 		{
 			_rRenderList.push_back(this);
@@ -187,7 +190,8 @@ namespace ElixirEngine
 				pLODInfo->m_uStartIndex = m_uTotalLODStripSize;
 				pLODInfo->m_uLODGridSize = m_uGridSize >> i;
 				pLODInfo->m_uLODQuadSize = m_uQuadSize << i;
-				pLODInfo->m_uGeometricError = 0x00000001 << i;
+				pLODInfo->m_uGeometricError = (0 != i) ? (0x00000001 << (i - 1)) : 0;
+				//pLODInfo->m_uGeometricError = 0x00000001 << ((m_uLODCount - 1) - i);
 				m_uTotalLODStripSize += m_uStripSize;
 				pLODInfo++;
 			}
