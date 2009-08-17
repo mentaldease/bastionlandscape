@@ -163,6 +163,7 @@ namespace ElixirEngine
 		LandscapeChunkPtr		m_pParent;
 		LandscapeChunkPtr		m_pChildren[ESubChild_COUNT];
 		Vector3					m_oCenter;
+		Vector3					m_oExtends;
 		Landscape::LODInfoPtr	m_pLODInfo;
 
 	private:
