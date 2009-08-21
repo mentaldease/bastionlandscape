@@ -162,7 +162,7 @@ namespace ElixirEngine
 		if (m_pVertexBuffer->Use())
 		{
 			const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-			m_rDisplay.GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, 0, 0, rGlobalInfo.m_uVertexCount, 0, rGlobalInfo.m_uStripSize - 2);
+			m_rDisplay.GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, 0, 0, m_uVertexCount, 0, rGlobalInfo.m_uStripSize - 2);
 		}
 #else // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
@@ -220,6 +220,8 @@ namespace ElixirEngine
 			{
 				for (unsigned int x = 0 ; uQuadRawVertexesCount > x ; ++x)
 				{
+					#pragma message(__FUNCTION__" [TODO]: implement a independent vertex format for landscape class and let chunk class create specific vertex format (default, liquid, etc.)")
+					#pragma message(__FUNCTION__" [TODO]: an independent vertex will need to know all the dependent vertexes(and theirs chunks parent).")
 					const unsigned int uSrcIndex = m_uStartVertexIndex + x * uLODIncrement + z * uLODIncrement * rGlobalInfo.m_uVertexPerRawCount;
 					memcpy(pDstVertex, &pSrcVertex[uSrcIndex], sizeof(T));
 					++pDstVertex;

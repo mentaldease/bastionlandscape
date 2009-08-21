@@ -19,6 +19,7 @@ scene =
 	);
 	landscapes =
 	(
+		/*
 		{
 			name = "water";
 			vertex_format = "liquid";
@@ -31,8 +32,7 @@ scene =
 			pixel_error_max = 2.5;
 			floor_scale = 5.0;
 			height_scale = 1.0;
-		}
-		/*
+		},
 		{
 			name = "ground";
 			vertex_format = "default";
@@ -45,7 +45,8 @@ scene =
 			pixel_error_max = 2.5;
 			floor_scale = 5.0;
 			height_scale = 1.0;
-		}
+		},
+		*/
 		{
 			name = "ground2";
 			vertex_format = "default";
@@ -59,6 +60,5 @@ scene =
 			floor_scale = 10.0;
 			height_scale = 1.0;
 		}
-		*/
 	);
 };
