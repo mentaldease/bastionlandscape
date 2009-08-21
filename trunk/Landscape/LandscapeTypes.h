@@ -17,6 +17,12 @@ namespace ElixirEngine
 	typedef LandscapeChunk*				LandscapeChunkPtr;
 	typedef vector<LandscapeChunkPtr>	LandscapeChunkPtrVec;
 	typedef LandscapeChunkPtrVec&		LandscapeChunkPtrVecRef;
+
+	struct VertexDefault;
+	typedef VertexDefault* VertexDefaultPtr;
+
+	struct VertexLiquid;
+	typedef VertexLiquid* VertexLiquidPtr;
 }
 
 #endif // __LANDSCAPETYPES_H__

@@ -214,8 +214,7 @@ namespace BastionGame
 	{
 		if (NULL == m_pLandscape)
 		{
-			//Landscape::OpenInfo oLOInfo = { 8, 16, 4, Landscape::EFormat_LIQUID };
-			Landscape::OpenInfo oLOInfo = { "Landscape00", 16, 1, Landscape::EFormat_LIQUID, "" };
+			Landscape::OpenInfo oLOInfo = { "Landscape00", 16, 1, ELandscapeVertexFormat_LIQUID, "" };
 			m_pLandscape = new Landscape(*m_pDisplay);
 			if ((false == m_pLandscape->Create(boost::any(0)))
 				|| (false == m_pLandscape->Open(oLOInfo)))
@@ -261,7 +260,7 @@ namespace BastionGame
 			}
 			else
 			{
-				m_pDisplay->GetCurrentCamera()->GetPosition() = Vector3(0.0f, 2.0f, -0.0f);
+				m_pDisplay->GetCurrentCamera()->GetPosition() = Vector3(0.0f, 2.0f, -10.0f);
 				m_pUpdateFunction = boost::bind(&Application::RenderScene, this);
 			}
 		}
@@ -295,7 +294,7 @@ namespace BastionGame
 		Vector3 oCamFrontDir;
 		Vector3 oCamRightDir;
 		Vector3 oCamUpDir;
-		const float fCameraMoveSpeed = 10.0f * _fElapsedTime;
+		const float fCameraMoveSpeed = 100.0f * _fElapsedTime;
 		const float fCameraRotSpeed = 10.0f * _fElapsedTime;
 
 		if ( ( 0 != oMouseInfo.rgbButtons[0] ) || ( 0 != oMouseInfo.rgbButtons[1] ) || ( 0 != oMouseInfo.rgbButtons[2] ) )
