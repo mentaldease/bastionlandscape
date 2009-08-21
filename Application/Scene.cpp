@@ -142,14 +142,16 @@ namespace BastionGame
 			&& (m_mLandscapes.end() == m_mLandscapes.find(MakeKey(oLOInfo.m_strName))) // <== check that there is NOT another landscape with the same name
 			&& _rConfig.GetValue(pShortcut, "grid_size", oLOInfo.m_uGridSize)
 			&& _rConfig.GetValue(pShortcut, "grid_chunk_size", oLOInfo.m_uQuadSize)
-			&& _rConfig.GetValue(pShortcut, "pixel_error_max", oLOInfo.m_fPixelErrorMax);
+			&& _rConfig.GetValue(pShortcut, "pixel_error_max", oLOInfo.m_fPixelErrorMax)
+			&& _rConfig.GetValue(pShortcut, "floor_scale", oLOInfo.m_fFloorScale)
+			&& _rConfig.GetValue(pShortcut, "height_scale", oLOInfo.m_fHeightScale);
 
 		if (false != bResult)
 		{
 			string strFormat;
 			_rConfig.GetValue(pShortcut, "vertex_format", strFormat);
 			oLOInfo.m_eFormat = Landscape::StringToVertexFormat(strFormat);
-			bResult = (Landscape::EFormat_UNKNOWN != oLOInfo.m_eFormat);
+			bResult = (ELandscapeVertexFormat_UNKNOWN != oLOInfo.m_eFormat);
 		}
 		if (false != bResult)
 		{

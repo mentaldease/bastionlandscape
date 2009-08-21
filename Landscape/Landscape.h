@@ -11,47 +11,57 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	#define LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER	1
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	enum ELandscapeVertexFormat
+	{
+		ELandscapeVertexFormat_UNKNOWN,
+		ELandscapeVertexFormat_DEFAULT,
+		ELandscapeVertexFormat_LIQUID,
+	};
+
+	struct VertexDefault
+	{
+		static VertexElement s_VertexElement[4];
+
+		Vector3	m_oPosition;
+		Vector3	m_oNormal;
+		Vector4	m_oColor;
+	};
+
+	struct VertexLiquid
+	{
+		static VertexElement s_VertexElement[6];
+
+		Vector3	m_oPosition;
+		Vector3	m_oNormal;
+		Vector3	m_oBiNormal;
+		Vector3	m_oTangent;
+		Vector2	m_oUV;
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class Landscape : public DisplayObject
 	{
 	public:
-		enum EVertexFormat
-		{
-			EFormat_UNKNOWN,
-			EFormat_DEFAULT,
-			EFormat_LIQUID,
-		};
-
 		struct OpenInfo
 		{
-			string			m_strName;
-			unsigned int	m_uQuadSize;
-			unsigned int	m_uGridSize;
-			EVertexFormat	m_eFormat;
-			string			m_strHeightmap;
-			float			m_fPixelErrorMax;
+			string					m_strName;
+			unsigned int			m_uQuadSize;
+			unsigned int			m_uGridSize;
+			ELandscapeVertexFormat	m_eFormat;
+			string					m_strHeightmap;
+			float					m_fPixelErrorMax;
+			float					m_fFloorScale;
+			float					m_fHeightScale;
 		};
-
-		struct VertexDefault
-		{
-			static VertexElement s_VertexElement[4];
-
-			Vector3	m_oPosition;
-			Vector3	m_oNormal;
-			Vector4	m_oColor;
-		};
-		typedef VertexDefault* VertexDefaultPtr;
-
-		struct VertexLiquid
-		{
-			static VertexElement s_VertexElement[6];
-
-			Vector3	m_oPosition;
-			Vector3	m_oNormal;
-			Vector3	m_oBiNormal;
-			Vector3	m_oTangent;
-			Vector2	m_oUV;
-		};
-		typedef VertexLiquid* VertexLiquidPtr;
 
 		struct LODInfo
 		{
@@ -72,25 +82,28 @@ namespace ElixirEngine
 			void Release();
 			bool IsPowerOf2(const unsigned int& _uValue, unsigned int* _pPowerLevel = NULL);
 
-			string			m_strName;
-			unsigned int	m_uQuadSize;
-			unsigned int	m_uGridSize;
-			unsigned int	m_uChunkCount;
-			unsigned int	m_uVertexCount;
-			unsigned int	m_uVertexPerRawCount;
-			unsigned int	m_uRawCount;
-			unsigned int	m_uStripSize;
-			unsigned int	m_uLODCount;
-			unsigned int	m_uTotalLODStripSize;
-			LODInfoPtr		m_pLODs;
-			float			m_fPixelErrorMax;
+			string					m_strName;
+			unsigned int			m_uQuadSize;
+			unsigned int			m_uGridSize;
+			unsigned int			m_uChunkCount;
+			unsigned int			m_uVertexCount;
+			unsigned int			m_uVertexPerRawCount;
+			unsigned int			m_uRawCount;
+			unsigned int			m_uStripSize;
+			unsigned int			m_uLODCount;
+			unsigned int			m_uTotalLODStripSize;
+			LODInfoPtr				m_pLODs;
+			float					m_fPixelErrorMax;
+			float					m_fFloorScale;
+			float					m_fHeightScale;
+			ELandscapeVertexFormat	m_eFormat;
 		};
 
 	public:
 		Landscape(DisplayRef _rDisplay);
 		virtual ~Landscape();
 
-		static EVertexFormat StringToVertexFormat(const string& _strFormat);
+		static ELandscapeVertexFormat StringToVertexFormat(const string& _strFormat);
 
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
@@ -117,7 +130,9 @@ namespace ElixirEngine
 		DisplayIndexBufferPtr	m_pIndexBuffer;
 		VoidPtr					m_pVertexes;
 		UIntPtr					m_pIndexes;
-		EVertexFormat			m_eFormat;
+#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+		UIntPtr					m_pIndexesShadow;
+#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
 
 	private:
 	};
@@ -142,6 +157,10 @@ namespace ElixirEngine
 		{
 			unsigned int	m_uX;
 			unsigned int	m_uZ;
+#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+			unsigned int	m_uLOD;
+			VoidPtr			m_pVertexes;
+#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
 		};
 
 	public:
@@ -155,6 +174,12 @@ namespace ElixirEngine
 
 		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
 
+#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+	protected:
+		template<typename T>
+		bool CreateVertexBuffer(const CreateInfo& _rInfo);
+#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+
 	protected:
 		DisplayRef				m_rDisplay;
 		LandscapeRef			m_rLandscape;
@@ -165,6 +190,11 @@ namespace ElixirEngine
 		Vector3					m_oCenter;
 		Vector3					m_oExtends;
 		Landscape::LODInfoPtr	m_pLODInfo;
+#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+		DisplayVertexBufferPtr	m_pVertexBuffer;
+		VoidPtr					m_pVertexes;
+		unsigned int			m_uVertexCount;
+#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
 
 	private:
 	};

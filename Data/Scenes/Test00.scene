@@ -19,7 +19,6 @@ scene =
 	);
 	landscapes =
 	(
-		/*
 		{
 			name = "water";
 			vertex_format = "liquid";
@@ -27,10 +26,13 @@ scene =
 			grid_size = 2;			// must be power of 2
 			grid_chunk_size = 8;	// must be power of 2
 			position_x = 0.0;
-			position_y = 2.0;
+			position_y = 5.0;
 			position_z = 0.0;
-			pixel_error_max = 50.0;
-		},
+			pixel_error_max = 2.5;
+			floor_scale = 5.0;
+			height_scale = 1.0;
+		}
+		/*
 		{
 			name = "ground";
 			vertex_format = "default";
@@ -40,19 +42,23 @@ scene =
 			position_x = 0.0;
 			position_y = 0.0;
 			position_z = 0.0;
-			pixel_error_max = 25.0;
-		},
-		*/
+			pixel_error_max = 2.5;
+			floor_scale = 5.0;
+			height_scale = 1.0;
+		}
 		{
 			name = "ground2";
 			vertex_format = "default";
 			material = "basic00";
-			grid_size = 8;
-			grid_chunk_size = 4;
+			grid_size = 32;
+			grid_chunk_size = 8;
 			position_x = 0.0;
-			position_y = 1.0;
+			position_y = -5.0;
 			position_z = 0.0;
-			pixel_error_max = 25.0;
+			pixel_error_max = 2.5;
+			floor_scale = 10.0;
+			height_scale = 1.0;
 		}
+		*/
 	);
 };
