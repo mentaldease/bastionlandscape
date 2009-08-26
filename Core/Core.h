@@ -34,6 +34,7 @@ namespace ElixirEngine
 	typedef map<Key, CoreObjectPtr> CoreObjectPtrMap;
 
 	typedef void*			VoidPtr;
+	typedef vector<VoidPtr>	VoidPtrVec;
 	typedef unsigned int*	UIntPtr;
 
 	//-----------------------------------------------------------------------------------------------

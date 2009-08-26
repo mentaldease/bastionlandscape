@@ -304,8 +304,7 @@ namespace ElixirEngine
 	{
 	public:
 		DisplayEffectParamTIME(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
-			m_pWorld(NULL)
+		:	DisplayEffectParam(_rDisplayMaterial)
 		{
 
 		}
@@ -356,7 +355,6 @@ namespace ElixirEngine
 		static float* s_fTime;
 
 	protected:
-		MatrixPtr	m_pWorld;
 
 	private:
 	};
@@ -520,6 +518,68 @@ namespace ElixirEngine
 		string				m_strName;
 		string				m_strPath;
 
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamMORPHFACTOR : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamMORPHFACTOR(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamMORPHFACTOR()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			if (NULL != s_fMorphFactor)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetFloat(m_hData, *s_fMorphFactor);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamMORPHFACTOR(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+		static float* s_fMorphFactor;
+
+	protected:
 	private:
 	};
 }

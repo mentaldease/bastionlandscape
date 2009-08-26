@@ -101,7 +101,9 @@ namespace ElixirEngine
 		virtual void SetMaterial(DisplayMaterialPtr _pMaterial);
 		virtual DisplayMaterialPtr GetMaterial();
 
+		virtual void RenderBegin() {};
 		virtual void Render() = 0;
+		virtual void RenderEnd() {};
 
 	protected:
 		DisplayRef			m_rDisplay;

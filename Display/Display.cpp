@@ -87,10 +87,22 @@ namespace ElixirEngine
 
 	bool DisplayVertexBuffer::Use()
 	{
-		HRESULT hResult = m_rDisplay.GetDevicePtr()->SetStreamSource(0, m_pVertexBuffer, 0, m_uVertexSize);
+		VertexBufferPtr pCurrentVertexBuffer;
+		unsigned int uOffset;
+		unsigned int uStride;
+		HRESULT hResult = m_rDisplay.GetDevicePtr()->GetStreamSource(0, &pCurrentVertexBuffer, &uOffset, &uStride);
+		if ((SUCCEEDED(hResult)) && (pCurrentVertexBuffer != m_pVertexBuffer))
+		{
+			hResult = m_rDisplay.GetDevicePtr()->SetStreamSource(0, m_pVertexBuffer, 0, m_uVertexSize);
+		}
 		if (SUCCEEDED(hResult))
 		{
-			hResult = m_rDisplay.GetDevicePtr()->SetVertexDeclaration(m_pVertexDecl);
+			VertexDeclPtr pCurrentVertexDecl;
+			m_rDisplay.GetDevicePtr()->GetVertexDeclaration(&pCurrentVertexDecl);
+			if ((SUCCEEDED(hResult)) && (pCurrentVertexDecl != m_pVertexDecl))
+			{
+				hResult = m_rDisplay.GetDevicePtr()->SetVertexDeclaration(m_pVertexDecl);
+			}
 		}
 		return (SUCCEEDED(hResult));
 	}
@@ -164,7 +176,12 @@ namespace ElixirEngine
 
 	bool DisplayIndexBuffer::Use()
 	{
-		HRESULT hResult = m_rDisplay.GetDevicePtr()->SetIndices(m_pIndexBuffer);
+		IndexBufferPtr pCurrentIndexBuffer;
+		HRESULT hResult = m_rDisplay.GetDevicePtr()->GetIndices(&pCurrentIndexBuffer);
+		if ((SUCCEEDED(hResult)) && (pCurrentIndexBuffer != m_pIndexBuffer))
+		{
+			hResult = m_rDisplay.GetDevicePtr()->SetIndices(m_pIndexBuffer);
+		}
 		return (SUCCEEDED(hResult));
 	}
 
@@ -249,7 +266,8 @@ namespace ElixirEngine
 		if (NULL != m_pDevice)
 		{
 			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(64, 0, 128), 1.0f, 0);
-			m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
+			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
+			m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 			m_pDevice->BeginScene();
 			m_pCamera->Update();
 			Render();
@@ -286,6 +304,7 @@ namespace ElixirEngine
 			oD3DPP.BackBufferHeight = _rWindowData.m_oClientRect.bottom;
 			oD3DPP.BackBufferFormat = _rWindowData.m_bFullScreen ? D3DFMT_X8R8G8B8 : D3DFMT_UNKNOWN;
 			oD3DPP.SwapEffect = D3DSWAPEFFECT_DISCARD;
+			oD3DPP.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
 
 			m_uWidth = _rWindowData.m_oClientRect.right;
 			m_uHeight = _rWindowData.m_oClientRect.bottom;

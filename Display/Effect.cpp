@@ -11,6 +11,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	float* DisplayEffectParamTIME::s_fTime = NULL;
+	float* DisplayEffectParamMORPHFACTOR::s_fMorphFactor = NULL;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -237,8 +238,10 @@ namespace ElixirEngine
 				for (unsigned int iPass = 0 ; iPass < uPassCount ; ++iPass)
 				{
 					pEffect->BeginPass(iPass);
+					_pDisplayObject->RenderBegin();
 					pEffect->CommitChanges();
 					_pDisplayObject->Render();
+					_pDisplayObject->RenderEnd();
 					pEffect->EndPass();
 				}
 				pEffect->End();
@@ -306,6 +309,7 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("TIME"))] = boost::bind(&DisplayEffectParamTIME::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ENVIRONMENTTEX"))] = boost::bind(&DisplayEffectParamENVIRONMENTTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NORMALTEX"))] = boost::bind(&DisplayEffectParamNORMALTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("MORPHFACTOR"))] = boost::bind(&DisplayEffectParamMORPHFACTOR::CreateParam, _1);
 
 		return bResult;
 	}

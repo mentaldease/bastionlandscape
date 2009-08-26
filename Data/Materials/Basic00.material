@@ -12,6 +12,9 @@ material =
 	(
 		{
 			semantic = "WORLDVIEWPROJ";
+		},
+		{
+			semantic = "MORPHFACTOR";
 		}
 	);
 };
