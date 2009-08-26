@@ -56,10 +56,12 @@ namespace ElixirEngine
 	class DisplayVertexBuffer;
 	typedef DisplayVertexBuffer* DisplayVertexBufferPtr;
 	typedef DisplayVertexBuffer& DisplayVertexBufferRef;
+	typedef vector<DisplayVertexBufferPtr> DisplayVertexBufferPtrVec;
 
 	class DisplayIndexBuffer;
 	typedef DisplayIndexBuffer* DisplayIndexBufferPtr;
 	typedef DisplayIndexBuffer& DisplayIndexBufferRef;
+	typedef vector<DisplayIndexBufferPtr> DisplayIndexBufferPtrVec;
 
 	class DisplayCamera;
 	typedef DisplayCamera* DisplayCameraPtr;

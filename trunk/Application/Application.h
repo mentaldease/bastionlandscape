@@ -65,6 +65,11 @@ namespace BastionGame
 		TimePtr			m_pTime;
 		unsigned int	m_uRLTimerID;
 		float			m_fRelativeTime;
+		float			m_fCameraMoveSpeed;
+		unsigned char	m_aKeysInfo[256];
+		unsigned char	m_aKeysInfoOld[256];
+		DIMouseState	m_oMouseInfo;
+		DIMouseState	m_oMouseInfoOld;
 
 	private:
 	};

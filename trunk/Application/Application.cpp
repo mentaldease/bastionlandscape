@@ -29,7 +29,8 @@ namespace BastionGame
 		m_pKeyboard(NULL),
 		m_pMouse(NULL),
 		m_uRLTimerID(0xffffffff),
-		m_fRelativeTime(0.0f)
+		m_fRelativeTime(0.0f),
+		m_fCameraMoveSpeed(100.0f)
 	{
 
 	}
@@ -111,8 +112,16 @@ namespace BastionGame
 		{
 			m_pKeyboard = m_pInput->GetDevice(MakeKey(string("DIKEYBOARD")));
 			m_pMouse = m_pInput->GetDevice(MakeKey(string("DIMOUSE")));
-			//m_pUpdateFunction = boost::bind(&Application::LoadLandscape, this);
-			m_pUpdateFunction = boost::bind(&Application::LoadScene, this);
+			bResult = (NULL != m_pKeyboard) && (NULL != m_pMouse);
+			if (false != bResult)
+			{
+				memset(m_aKeysInfoOld, 0, sizeof(unsigned char) * 256);
+				memset(m_aKeysInfo, 0, sizeof(unsigned char) * 256);
+				memset(&m_oMouseInfoOld, 0, sizeof(DIMouseState));
+				memset(&m_oMouseInfo, 0, sizeof(DIMouseState));
+				//m_pUpdateFunction = boost::bind(&Application::LoadLandscape, this);
+				m_pUpdateFunction = boost::bind(&Application::LoadScene, this);
+			}
 		}
 
 		if (false != bResult)
@@ -282,32 +291,43 @@ namespace BastionGame
 
 	void Application::UpdateSpectatorCamera(const float& _fElapsedTime)
 	{
-		unsigned char aKeysInfo[256];
-		m_pKeyboard->GetInfo(aKeysInfo);
+		memcpy(m_aKeysInfoOld, m_aKeysInfo, sizeof(unsigned char) * 256);
+		m_pKeyboard->GetInfo(m_aKeysInfo);
+		memcpy(&m_oMouseInfoOld, &m_oMouseInfo, sizeof(DIMouseState));
+		m_pMouse->GetInfo(&m_oMouseInfo);
 
-		DIMouseState oMouseInfo;
-		m_pMouse->GetInfo(&oMouseInfo);
-
+		if ((m_aKeysInfoOld[DIK_MULTIPLY]) && (!m_aKeysInfo[DIK_MULTIPLY]))
+		{
+			m_fCameraMoveSpeed *= 2.0f;
+		}
+		if ((m_aKeysInfoOld[DIK_DIVIDE]) && (!m_aKeysInfo[DIK_DIVIDE]))
+		{
+			m_fCameraMoveSpeed /= 2.0f;
+			if (1.0f > m_fCameraMoveSpeed)
+			{
+				m_fCameraMoveSpeed = 1.0f;
+			}
+		}
 
 		Vector3& rCamPos = m_pDisplay->GetCurrentCamera()->GetPosition();
 		Vector3& rCamRot = m_pDisplay->GetCurrentCamera()->GetRotation();
 		Vector3 oCamFrontDir;
 		Vector3 oCamRightDir;
 		Vector3 oCamUpDir;
-		const float fCameraMoveSpeed = 100.0f * _fElapsedTime;
+		const float fCameraMoveSpeed = m_fCameraMoveSpeed * _fElapsedTime;
 		const float fCameraRotSpeed = 10.0f * _fElapsedTime;
 
-		if ( ( 0 != oMouseInfo.rgbButtons[0] ) || ( 0 != oMouseInfo.rgbButtons[1] ) || ( 0 != oMouseInfo.rgbButtons[2] ) )
+		if ( ( 0 != m_oMouseInfo.rgbButtons[0] ) || ( 0 != m_oMouseInfo.rgbButtons[1] ) || ( 0 != m_oMouseInfo.rgbButtons[2] ) )
 		{
-			rCamRot.y += oMouseInfo.lX * fCameraRotSpeed;
-			rCamRot.x += oMouseInfo.lY * fCameraRotSpeed;
+			rCamRot.y += m_oMouseInfo.lX * fCameraRotSpeed;
+			rCamRot.x += m_oMouseInfo.lY * fCameraRotSpeed;
 		}
 
 		m_pDisplay->GetCurrentCamera()->GetDirs( oCamFrontDir, oCamRightDir, oCamUpDir, true );
-		rCamPos += oCamFrontDir * ( aKeysInfo[DIK_UP] | aKeysInfo[DIK_W] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
-		rCamPos -= oCamFrontDir * ( aKeysInfo[DIK_DOWN] | aKeysInfo[DIK_S] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
-		rCamPos += oCamRightDir * ( aKeysInfo[DIK_RIGHT] | aKeysInfo[DIK_D] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
-		rCamPos -= oCamRightDir * ( aKeysInfo[DIK_LEFT] | aKeysInfo[DIK_A] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
-		rCamPos.y += ( aKeysInfo[DIK_SPACE] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
+		rCamPos += oCamFrontDir * ( m_aKeysInfo[DIK_UP] | m_aKeysInfo[DIK_W] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
+		rCamPos -= oCamFrontDir * ( m_aKeysInfo[DIK_DOWN] | m_aKeysInfo[DIK_S] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
+		rCamPos += oCamRightDir * ( m_aKeysInfo[DIK_RIGHT] | m_aKeysInfo[DIK_D] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
+		rCamPos -= oCamRightDir * ( m_aKeysInfo[DIK_LEFT] | m_aKeysInfo[DIK_A] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
+		rCamPos.y += ( m_aKeysInfo[DIK_SPACE] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
 	}
 }

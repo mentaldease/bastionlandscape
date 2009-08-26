@@ -169,7 +169,8 @@ namespace ElixirEngine
 
 	void DisplayCamera::UpdatePixelSize()
 	{
-		const float fFovx = m_fFovy * m_fAspectRatio;
+		//const float fFovx = m_fFovy * m_fAspectRatio;
+		const float fFovx = 2.0f * atan(tan(m_fFovy * 0.5f) * m_fAspectRatio);
 		m_fPixelSize = float(m_oViewport.Width) / (2.0f * float(tan(fFovx / 2.0f)));
 		//m_fPixelSize = 2.0f * float(tan(m_fFovy / 2.0f)) / float(m_oViewport.Height);
 		//m_fPixelSize = float(m_oViewport.Height) / (2.0f * float(tan(m_fFovy / 2.0f)));

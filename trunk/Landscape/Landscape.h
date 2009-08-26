@@ -11,12 +11,6 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	#define LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER	1
-
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-
 	enum ELandscapeVertexFormat
 	{
 		ELandscapeVertexFormat_UNKNOWN,
@@ -26,9 +20,10 @@ namespace ElixirEngine
 
 	struct VertexDefault
 	{
-		static VertexElement s_VertexElement[4];
+		static VertexElement s_VertexElement[5];
 
 		Vector3	m_oPosition;
+		Vector3	m_oPosition2;
 		Vector3	m_oNormal;
 		Vector4	m_oColor;
 	};
@@ -72,11 +67,16 @@ namespace ElixirEngine
 
 		struct LODInfo
 		{
-			unsigned int	m_uStartIndex;
-			unsigned int	m_uStripSize;
-			unsigned int	m_uLODGridSize;
-			unsigned int	m_uLODQuadSize;
-			unsigned int	m_uGeometricError;
+			unsigned int			m_uStartIndex;
+			unsigned int			m_uStripSize;
+			unsigned int			m_uGridSize;
+			unsigned int			m_uQuadSize;
+			unsigned int			m_uGeometricError;
+			unsigned int			m_uVertexPerRawCount;
+			unsigned int			m_uVertexCount;
+			unsigned int			m_uNumVertices;
+			DisplayVertexBufferPtr	m_pVertexBuffer;
+			VoidPtr					m_pVertexes;
 		};
 		typedef LODInfo* LODInfoPtr;
 		typedef LODInfo& LODInfoRef;
@@ -121,7 +121,9 @@ namespace ElixirEngine
 		void Close();
 
 		const GlobalInfo& GetGlobalInfo() const;
-		void GetVertexPosition(const unsigned int& _uIndexBufferIndex, const unsigned int& _uVertexStartIndex, Vector3& _rPosition);
+		void GetVertexPosition(const LODInfo& _rLODInfo, const unsigned int& _uIndexBufferIndex, const unsigned int& _uVertexStartIndex, Vector3& _rPosition);
+		bool SetIndices();
+		bool UseLODVertexBuffer(const unsigned int& _uLOD);
 
 	protected:
 		bool CreateVertexBufferDefault();
@@ -130,16 +132,14 @@ namespace ElixirEngine
 		bool CreateChunks();
 
 	protected:
-		GlobalInfo				m_oGlobalInfo;
-		LandscapeChunkPtrVec	m_vGrid;
-		LandscapeChunkPtrVec	m_vRenderList;
-		DisplayVertexBufferPtr	m_pVertexBuffer;
-		DisplayIndexBufferPtr	m_pIndexBuffer;
-		VoidPtr					m_pVertexes;
-		UIntPtr					m_pIndexes;
-#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
-		UIntPtr					m_pIndexesShadow;
-#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+		GlobalInfo					m_oGlobalInfo;
+		LandscapeChunkPtrVec		m_vGrid;
+		LandscapeChunkPtrVec		m_vRenderList;
+		DisplayVertexBufferPtrVec	m_vVertexBuffers;
+		VoidPtrVec					m_vVertexes;
+		DisplayVertexBufferPtr		m_pCurrentVertexBuffer;
+		DisplayIndexBufferPtr		m_pIndexBuffer;
+		UIntPtr						m_pIndexes;
 
 	private:
 	};
@@ -148,7 +148,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class LandscapeChunk : public CoreObject
+	class LandscapeChunk : public DisplayObject
 	{
 	public:
 		enum ESubChild
@@ -164,10 +164,6 @@ namespace ElixirEngine
 		{
 			unsigned int	m_uX;
 			unsigned int	m_uZ;
-#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
-			unsigned int	m_uLOD;
-			VoidPtr			m_pVertexes;
-#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
 		};
 
 	public:
@@ -177,18 +173,15 @@ namespace ElixirEngine
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
+
+		virtual void RenderBegin();
 		virtual void Render();
 
 		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
-
-#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
-	protected:
-		template<typename T>
-		bool CreateVertexBuffer(const CreateInfo& _rInfo);
-#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+		unsigned int GetLODID() const;
 
 	protected:
-		DisplayRef				m_rDisplay;
+		//DisplayRef				m_rDisplay;
 		LandscapeRef			m_rLandscape;
 		unsigned int			m_uStartVertexIndex;
 		unsigned int			m_uLOD;
@@ -197,11 +190,7 @@ namespace ElixirEngine
 		Vector3					m_oCenter;
 		Vector3					m_oExtends;
 		Landscape::LODInfoPtr	m_pLODInfo;
-#if LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
-		DisplayVertexBufferPtr	m_pVertexBuffer;
-		VoidPtr					m_pVertexes;
-		unsigned int			m_uVertexCount;
-#endif // LANDSCAPE_CHUNK_VERTEXANDINDEXBUFFER
+		float					m_fMorphFactor;
 
 	private:
 	};
