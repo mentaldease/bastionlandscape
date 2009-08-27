@@ -10,6 +10,16 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	static const float s_fDegToRad = D3DX_PI / 180.0f;
+	static const unsigned int s_uCameraFrustumPlanesCount = 6;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	struct AABB
+	{
+		Vector3	m_aCorners[8];
+	};
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -28,6 +38,8 @@ namespace ElixirEngine
 			float	m_fHeight;
 			float	m_fDegreeFovy;
 			float	m_fAspectRatio;
+			float	m_fZNear;
+			float	m_fZFar;
 		};
 
 		enum EMatrix
@@ -38,6 +50,31 @@ namespace ElixirEngine
 			EMatrix_VIEWPROJ,
 			EMatrix_POSITION,
 			EMatrix_ROTATION,
+		};
+
+		enum EFrustumPlane
+		{
+			EFrustumPlane_LEFT,
+			EFrustumPlane_RIGHT,
+			EFrustumPlane_TOP,
+			EFrustumPlane_BOTTOM,
+			EFrustumPlane_NEAR,
+			EFrustumPlane_FAR,
+			EFrustumPlane_COUNT // last enum member
+		};
+
+		enum ECollision
+		{
+			ECollision_OUT,
+			ECollision_IN,
+			ECollision_INTERSECT,
+		};
+
+		enum EHalfSpace
+		{
+			EHalfSpace_NEGATIVE = -1,
+			EHalfSpace_ON_PLANE = 0,
+			EHalfSpace_POSITIVE = 1,
 		};
 
 	public:
@@ -54,9 +91,14 @@ namespace ElixirEngine
 		MatrixPtr GetMatrix(const EMatrix& _eMatrix);
 
 		const float& GetPixelSize() const;
+		ECollision CollisionWithSphere(const Vector3& _rCenter, const float& _fRadius);
+		ECollision CollisionWithAABB(const AABBRef _rAABB);
 
 	protected:
 		void UpdatePixelSize();
+		void ExtractFrustumPlanes();
+		float DistanceToPoint(const Plane &_rPlane, const Vector3& _rPoint);
+		EHalfSpace PointSideOfPlane(const Plane &_rPlane, const Vector3& _rPoint);
 
 	protected:
 		DisplayRef	m_rDisplay;
@@ -74,6 +116,10 @@ namespace ElixirEngine
 		float		m_fAspectRatio;
 		float		m_fPixelSize;
 		Viewport	m_oViewport;
+
+		Plane		m_aFrustumPlanes[EFrustumPlane_COUNT];
+		Plane		m_aFrustumNormals[EFrustumPlane_COUNT];
+		float		m_aFrustumDistances[EFrustumPlane_COUNT];
 
 	private:
 	};

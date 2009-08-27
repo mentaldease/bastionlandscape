@@ -11,6 +11,12 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	#define LANDSCAPE_USE_HIGHEST_LOD_ONLY	1
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	enum ELandscapeVertexFormat
 	{
 		ELandscapeVertexFormat_UNKNOWN,
@@ -125,6 +131,8 @@ namespace ElixirEngine
 		bool SetIndices();
 		bool UseLODVertexBuffer(const unsigned int& _uLOD);
 
+		unsigned int m_uOutOfFrustum;
+
 	protected:
 		bool CreateVertexBufferDefault();
 		bool CreateVertexBufferLiquid();
@@ -181,7 +189,6 @@ namespace ElixirEngine
 		unsigned int GetLODID() const;
 
 	protected:
-		//DisplayRef				m_rDisplay;
 		LandscapeRef			m_rLandscape;
 		unsigned int			m_uStartVertexIndex;
 		unsigned int			m_uLOD;
