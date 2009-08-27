@@ -39,6 +39,8 @@ namespace ElixirEngine
 	typedef IDirect3DCubeTexture9			CubeTexture;
 	typedef CubeTexture*					CubeTexturePtr;
 	typedef LPDIRECT3DBASETEXTURE9			BaseTexturePtr;
+	typedef D3DXPLANE						Plane;
+	typedef Plane*							PlanePtr;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -66,6 +68,10 @@ namespace ElixirEngine
 	class DisplayCamera;
 	typedef DisplayCamera* DisplayCameraPtr;
 	typedef DisplayCamera& DisplayCameraRef;
+
+	struct AABB;
+	typedef AABB* AABBPtr;
+	typedef AABB& AABBRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

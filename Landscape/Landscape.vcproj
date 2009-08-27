@@ -157,6 +157,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LandscapeChunk.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
