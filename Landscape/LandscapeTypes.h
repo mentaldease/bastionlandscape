@@ -8,10 +8,10 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	class Landscape;
-	typedef Landscape* LandscapePtr;
-	typedef Landscape& LandscapeRef;
-	typedef vector<LandscapePtr> LandscapePtrVec;
-	typedef map<Key, LandscapePtr> LandscapePtrMap;
+	typedef Landscape*				LandscapePtr;
+	typedef Landscape&				LandscapeRef;
+	typedef vector<LandscapePtr>	LandscapePtrVec;
+	typedef map<Key, LandscapePtr>	LandscapePtrMap;
 
 	class LandscapeChunk;
 	typedef LandscapeChunk*				LandscapeChunkPtr;
@@ -19,10 +19,17 @@ namespace ElixirEngine
 	typedef LandscapeChunkPtrVec&		LandscapeChunkPtrVecRef;
 
 	struct VertexDefault;
-	typedef VertexDefault* VertexDefaultPtr;
+	typedef VertexDefault*	VertexDefaultPtr;
+	typedef VertexDefault&	VertexDefaultRef;
 
 	struct VertexLiquid;
-	typedef VertexLiquid* VertexLiquidPtr;
+	typedef VertexLiquid*	VertexLiquidPtr;
+	typedef VertexLiquid&	VertexLiquidRef;
+
+	struct VertexIndependent;
+	typedef VertexIndependent*				VertexIndependentPtr;
+	typedef VertexIndependent&				VertexIndependentRef;
+	typedef vector<VertexIndependentPtr>	VertexIndependentPtrVec;
 }
 
 #endif // __LANDSCAPETYPES_H__

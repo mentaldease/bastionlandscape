@@ -142,6 +142,7 @@ namespace ElixirEngine
 		void GetResolution(unsigned int& _uWidth, unsigned int& _uHeight) const;
 		DisplayMaterialManagerPtr GetMaterialManager();
 		DisplayTextureManagerPtr GetTextureManager();
+		DisplaySurfaceManagerPtr GetSurfaceManager();
 		DisplayCameraPtr GetCurrentCamera();
 
 		void SetCurrentWorldMatrix(MatrixPtr _pMatrix);
@@ -155,6 +156,7 @@ namespace ElixirEngine
 		DisplayCameraPtr			m_pCamera;
 		DisplayMaterialManagerPtr	m_pMaterialManager;
 		DisplayTextureManagerPtr	m_pTextureManager;
+		DisplaySurfaceManagerPtr	m_pSurfaceManager;
 		MatrixPtr					m_pWorldMatrix;
 		Matrix						m_oWorldInvTransposeMatrix;
 		unsigned int				m_uWidth;

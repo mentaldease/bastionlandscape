@@ -3,6 +3,7 @@
 #include "../Display/Camera.h"
 #include "../Display/Effect.h"
 #include "../Display/Texture.h"
+#include "../Display/Surface.h"
 
 namespace ElixirEngine
 {
@@ -230,6 +231,7 @@ namespace ElixirEngine
 		m_pCamera(NULL),
 		m_pMaterialManager(NULL),
 		m_pTextureManager(NULL),
+		m_pSurfaceManager(NULL),
 		m_pWorldMatrix(NULL),
 		m_oWorldInvTransposeMatrix(),
 		m_uWidth(0),
@@ -345,11 +347,23 @@ namespace ElixirEngine
 			bResult = m_pTextureManager->Create(boost::any(0));
 		}
 
+		if (false != bResult)
+		{
+			m_pSurfaceManager = new DisplaySurfaceManager(*this);
+			bResult = m_pSurfaceManager->Create(boost::any(0));
+		}
+
 		return bResult;
 	}
 
 	void Display::CloseVideo()
 	{
+		if (NULL != m_pSurfaceManager)
+		{
+			m_pSurfaceManager->Release();
+			delete m_pSurfaceManager;
+			m_pSurfaceManager = NULL;
+		}
 		if (NULL != m_pTextureManager)
 		{
 			m_pTextureManager->Release();
@@ -455,6 +469,11 @@ namespace ElixirEngine
 	DisplayTextureManagerPtr Display::GetTextureManager()
 	{
 		return m_pTextureManager;
+	}
+
+	DisplaySurfaceManagerPtr Display::GetSurfaceManager()
+	{
+		return m_pSurfaceManager;
 	}
 
 	DisplayCameraPtr Display::GetCurrentCamera()

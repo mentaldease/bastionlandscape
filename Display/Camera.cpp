@@ -200,7 +200,7 @@ namespace ElixirEngine
 		return eResult;
 	}
 
-	DisplayCamera::ECollision DisplayCamera::CollisionWithAABB(const AABBRef _rAABB)
+	DisplayCamera::ECollision DisplayCamera::CollisionWithAABB(AABBRef _rAABB)
 	{
 		ECollision eResult = ECollision_INTERSECT;
 		int sTotalIn = 0;

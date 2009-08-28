@@ -41,6 +41,12 @@ namespace ElixirEngine
 	typedef LPDIRECT3DBASETEXTURE9			BaseTexturePtr;
 	typedef D3DXPLANE						Plane;
 	typedef Plane*							PlanePtr;
+	typedef IDirect3DSurface9				Surface;
+	typedef Surface*						SurfacePtr;
+	typedef Surface&						SurfaceRef;
+	typedef D3DXIMAGE_INFO					ImageInfo;
+	typedef ImageInfo*						ImageInfoPtr;
+	typedef ImageInfo&						ImageInfoRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -113,6 +119,19 @@ namespace ElixirEngine
 	typedef DisplayTexture* DisplayTexturePtr;
 	typedef DisplayTexture& DisplayTextureRef;
 	typedef map<Key, DisplayTexturePtr> DisplayTexturePtrMap;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplaySurfaceManager;
+	typedef DisplaySurfaceManager* DisplaySurfaceManagerPtr;
+	typedef DisplaySurfaceManager& DisplaySurfaceManagerRef;
+
+	class DisplaySurface;
+	typedef DisplaySurface* DisplaySurfacePtr;
+	typedef DisplaySurface& DisplaySurfaceRef;
+	typedef map<Key, DisplaySurfacePtr> DisplaySurfacePtrMap;
 }
 
 #endif // __DISPLAYTYPES_H__

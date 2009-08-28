@@ -92,7 +92,7 @@ namespace ElixirEngine
 
 		const float& GetPixelSize() const;
 		ECollision CollisionWithSphere(const Vector3& _rCenter, const float& _fRadius);
-		ECollision CollisionWithAABB(const AABBRef _rAABB);
+		ECollision CollisionWithAABB(AABBRef _rAABB);
 
 	protected:
 		void UpdatePixelSize();

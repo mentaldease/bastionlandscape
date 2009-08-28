@@ -28,6 +28,8 @@ namespace ElixirEngine
 	{
 		static VertexElement s_VertexElement[5];
 
+		VertexDefaultRef operator = (VertexIndependentRef _rVertexIndependent);
+
 		Vector3	m_oPosition;
 		Vector3	m_oPosition2;
 		Vector3	m_oNormal;
@@ -38,6 +40,8 @@ namespace ElixirEngine
 	{
 		static VertexElement s_VertexElement[6];
 
+		VertexLiquidRef operator = (VertexIndependentRef _rVertexIndependent);
+
 		Vector3	m_oPosition;
 		Vector3	m_oNormal;
 		Vector3	m_oBiNormal;
@@ -47,9 +51,20 @@ namespace ElixirEngine
 
 	struct VertexIndependent
 	{
-		Vector3	m_oPosition;
-		Vector3	m_oNormal;
-		Vector2	m_oUV;
+		struct LODVertexLink
+		{
+			unsigned int	m_uLOD;
+			unsigned int	m_uIndex;
+		};
+		typedef vector<LODVertexLink> LODVertexLinkVec;
+
+		void AddLink(const unsigned int& _uLOD, const unsigned int& _uIndex);
+
+		Vector3				m_oPosition;
+		Vector3				m_oPosition2;
+		Vector3				m_oNormal;
+		Vector2				m_oUV;
+		LODVertexLinkVec	m_vLinks;
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -83,6 +98,7 @@ namespace ElixirEngine
 			unsigned int			m_uNumVertices;
 			DisplayVertexBufferPtr	m_pVertexBuffer;
 			VoidPtr					m_pVertexes;
+			VertexIndependentPtr	m_pVertexesIndependent;
 		};
 		typedef LODInfo* LODInfoPtr;
 		typedef LODInfo& LODInfoRef;
@@ -134,6 +150,7 @@ namespace ElixirEngine
 		unsigned int m_uOutOfFrustum;
 
 	protected:
+		bool CreateVertexBufferIndependent();
 		bool CreateVertexBufferDefault();
 		bool CreateVertexBufferLiquid();
 		bool CreateIndexBuffer();
@@ -148,6 +165,7 @@ namespace ElixirEngine
 		DisplayVertexBufferPtr		m_pCurrentVertexBuffer;
 		DisplayIndexBufferPtr		m_pIndexBuffer;
 		UIntPtr						m_pIndexes;
+		VertexIndependentPtrVec		m_vVertexesIndependent;
 
 	private:
 	};
