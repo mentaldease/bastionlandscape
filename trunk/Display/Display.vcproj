@@ -183,6 +183,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Surface.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Texture.cpp"
 				>
 			</File>
@@ -214,6 +218,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Surface.h"
 				>
 			</File>
 			<File

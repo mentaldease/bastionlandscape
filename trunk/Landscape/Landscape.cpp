@@ -241,6 +241,11 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
+			bResult = CreateVertexBufferIndependent();
+		}
+
+		if (false != bResult)
+		{
 			switch (m_oGlobalInfo.m_eFormat)
 			{
 				case ELandscapeVertexFormat_DEFAULT:
@@ -282,6 +287,7 @@ namespace ElixirEngine
 			m_rDisplay.ReleaseVertexBuffer(m_vVertexBuffers.back());
 			m_vVertexBuffers.pop_back();
 		}
+
 		while (false == m_vVertexes.empty())
 		{
 			delete[] m_vVertexes.back();
