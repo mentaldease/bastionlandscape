@@ -47,6 +47,9 @@ namespace ElixirEngine
 	typedef D3DXIMAGE_INFO					ImageInfo;
 	typedef ImageInfo*						ImageInfoPtr;
 	typedef ImageInfo&						ImageInfoRef;
+	typedef D3DLOCKED_RECT					LockedRect;
+	typedef LockedRect*						LockedRectPtr;
+	typedef LockedRect&						LockedRectRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

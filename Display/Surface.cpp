@@ -10,10 +10,12 @@ namespace ElixirEngine
 
 	DisplaySurface::DisplaySurface(DisplayRef _rDisplay)
 	:	CoreObject(),
+		m_oInfo(),
+		m_oLockedRect(),
 		m_rDisplay(_rDisplay),
 		m_pSurface(NULL)
 	{
-
+		memset(&m_oLockedRect, 0, sizeof(LockedRect));
 	}
 
 	DisplaySurface::~DisplaySurface()
@@ -63,6 +65,46 @@ namespace ElixirEngine
 		{
 			m_pSurface->Release();
 			m_pSurface = NULL;
+		}
+	}
+
+	ImageInfoRef DisplaySurface::GetInfo()
+	{
+		return m_oInfo;
+	}
+
+	VoidPtr DisplaySurface::Lock(const bool& _bReadOnly)
+	{
+		VoidPtr pResult = NULL;
+
+		if ((NULL != m_pSurface) && (SUCCEEDED(m_pSurface->LockRect(&m_oLockedRect, NULL, _bReadOnly ? D3DLOCK_READONLY : 0))))
+		{
+			pResult = m_oLockedRect.pBits;
+		}
+
+		return pResult;
+	}
+
+	VoidPtr DisplaySurface::GetDataXY(const unsigned int& _uX, const unsigned int& _uY)
+	{
+		VoidPtr pResult = NULL;
+
+		if ((NULL != m_pSurface) && (NULL != m_oLockedRect.pBits))
+		{
+			D3DFORMAT
+			//m_oInfo.Depth
+			pResult = m_oLockedRect.pBits;
+		}
+
+		return pResult;
+	}
+
+	void DisplaySurface::Unlock()
+	{
+		if ((NULL != m_pSurface) && (NULL != m_oLockedRect.pBits))
+		{
+			m_pSurface->UnlockRect();
+			memset(&m_oLockedRect, 0, sizeof(LockedRect));
 		}
 	}
 
