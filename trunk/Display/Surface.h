@@ -28,10 +28,14 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		ImageInfoRef GetInfo() const;
+		ImageInfoRef GetInfo();
+		VoidPtr Lock(const bool& _bReadOnly);
+		VoidPtr GetDataXY(const unsigned int& _uX, const unsigned int& _uY);
+		void Unlock();
 
 	protected:
 		ImageInfo		m_oInfo;
+		LockedRect		m_oLockedRect;
 		DisplayRef		m_rDisplay;
 		SurfacePtr		m_pSurface;
 	};

@@ -149,6 +149,8 @@ namespace ElixirEngine
 		MatrixPtr GetCurrentWorldMatrix();
 		MatrixPtr GetCurrentWorldInvTransposeMatrix();
 
+		unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
+
 	protected:
 		Direct3DPtr					m_pDirect3D;
 		DevicePtr					m_pDevice;
