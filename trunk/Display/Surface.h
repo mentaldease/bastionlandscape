@@ -38,6 +38,7 @@ namespace ElixirEngine
 		LockedRect		m_oLockedRect;
 		DisplayRef		m_rDisplay;
 		SurfacePtr		m_pSurface;
+		unsigned int	m_uBPP;
 	};
 
 	//-----------------------------------------------------------------------------------------------

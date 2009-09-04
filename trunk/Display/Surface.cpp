@@ -47,6 +47,12 @@ namespace ElixirEngine
 				bResult = SUCCEEDED(D3DXLoadSurfaceFromFileInMemory(m_pSurface, NULL, NULL, pBuffer, sSize, NULL, D3DX_DEFAULT, 0xff000000, NULL));
 			}
 
+			if (false != bResult)
+			{
+				m_uBPP = m_rDisplay.GetFormatBitsPerPixel(m_oInfo.Format);
+				bResult = (0 != m_uBPP);
+			}
+
 			delete[] pBuffer;
 			FS::GetRoot()->CloseFile(pFile);
 		}
@@ -91,9 +97,8 @@ namespace ElixirEngine
 
 		if ((NULL != m_pSurface) && (NULL != m_oLockedRect.pBits))
 		{
-			D3DFORMAT
-			//m_oInfo.Depth
-			pResult = m_oLockedRect.pBits;
+			const unsigned int uOffset = _uX * m_uBPP + _uY * m_oLockedRect.Pitch;
+			pResult = &((BytePtr)m_oLockedRect.pBits)[uOffset];
 		}
 
 		return pResult;
