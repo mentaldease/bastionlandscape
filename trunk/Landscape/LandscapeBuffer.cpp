@@ -50,65 +50,103 @@ namespace ElixirEngine
 			const unsigned int uLODVertexPerRawCount = (m_oGlobalInfo.m_uVertexPerRawCount >> k) | 0x00000001;
 			const unsigned int uLODRawCount = (m_oGlobalInfo.m_uRawCount >> k) | 0x00000001;
 			const unsigned int uLODVertexCount = uLODVertexPerRawCount * uLODRawCount;
+			const unsigned int uLODIncrement = 0x00000001 << k;
+			const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+			const float fZOffset = float(m_oGlobalInfo.m_uRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+			VertexIndependentPtr pVertexes = new VertexIndependent[uLODVertexCount];
+			VertexIndependentPtr pVertex = pVertexes;
+			for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += uLODIncrement)
 			{
-				const unsigned int uLODIncrement = 0x00000001 << k;
-				const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-				const float fZOffset = float(m_oGlobalInfo.m_uRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-				VertexIndependentPtr pVertexes = new VertexIndependent[uLODVertexCount];
-				VertexIndependentPtr pVertex = (VertexIndependentPtr)pVertexes;
-				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += uLODIncrement)
+				for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += uLODIncrement)
 				{
-					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += uLODIncrement)
-					{
-						pVertex->m_oPosition.x = float(i) * m_oGlobalInfo.m_fFloorScale - fXOffset;
-						pVertex->m_oPosition.y = 0.0f;
-						pVertex->m_oPosition.z = -float(j) * m_oGlobalInfo.m_fFloorScale + fZOffset;
-						pVertex->m_oPosition2 = pVertex->m_oPosition;
-						pVertex->m_oNormal.x = 0.0f;
-						pVertex->m_oNormal.y = 1.0f;
-						pVertex->m_oNormal.z = 0.0f;
-						++pVertex;
-					}
+					pVertex->m_oPosition.x = float(i) * m_oGlobalInfo.m_fFloorScale - fXOffset;
+					pVertex->m_oPosition.y = 0.0f;
+					pVertex->m_oPosition.z = -float(j) * m_oGlobalInfo.m_fFloorScale + fZOffset;
+					pVertex->m_oPosition2 = pVertex->m_oPosition;
+					pVertex->m_oNormal.x = 0.0f;
+					pVertex->m_oNormal.y = 1.0f;
+					pVertex->m_oNormal.z = 0.0f;
+					++pVertex;
 				}
-				pVertex = (VertexIndependentPtr)pVertexes;
-				VertexIndependentPtr pPrevVertex = NULL;
-				int sVertexIndex = 0;
-				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += uLODIncrement)
-				{
-					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += uLODIncrement, ++sVertexIndex)
-					{
-						if (0 != (j % 2))
-						{
-							if (0 != (i % 2))
-							{
-								const int sPrevRawIndex = -int(uLODVertexPerRawCount) + 1;
-								const int sNextRawIndex = int(uLODVertexPerRawCount) - 1;
-								pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
-							}
-							else
-							{
-								const int sPrevRawIndex = -int(uLODVertexPerRawCount);
-								const int sNextRawIndex = int(uLODVertexPerRawCount);
-								pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
-							}
-						}
-						else if (0 != (i % 2))
-						{
-							pVertex[0].m_oPosition2 = pVertex[-1].m_oPosition + (pVertex[1].m_oPosition - pVertex[-1].m_oPosition) / 2.0f;
-							//pVertex[0].m_oPosition2.y += 50.0f; // for test only
-						}
-						pPrevVertex = pVertex;
-						++pVertex;
-					}
-				}
-				m_vVertexesIndependent.push_back(pVertexes);
-				m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent = pVertexes;
-				m_oGlobalInfo.m_pLODs[k].m_uVertexCount = uLODVertexCount;
-				m_oGlobalInfo.m_pLODs[k].m_uVertexPerRawCount = uLODVertexPerRawCount;
-				m_oGlobalInfo.m_pLODs[k].m_uNumVertices = uLODVertexPerRawCount * (m_oGlobalInfo.m_uQuadSize + 1);
 			}
+			ComputeVertexIndependentMorph(pVertexes, uLODIncrement, uLODVertexPerRawCount);
+			//pVertex = (VertexIndependentPtr)pVertexes;
+			//VertexIndependentPtr pPrevVertex = NULL;
+			//int sVertexIndex = 0;
+			//for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += uLODIncrement)
+			//{
+			//	for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += uLODIncrement, ++sVertexIndex)
+			//	{
+			//		if (0 != (j % 2))
+			//		{
+			//			if (0 != (i % 2))
+			//			{
+			//				const int sPrevRawIndex = -int(uLODVertexPerRawCount) + 1;
+			//				const int sNextRawIndex = int(uLODVertexPerRawCount) - 1;
+			//				pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
+			//			}
+			//			else
+			//			{
+			//				const int sPrevRawIndex = -int(uLODVertexPerRawCount);
+			//				const int sNextRawIndex = int(uLODVertexPerRawCount);
+			//				pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
+			//			}
+			//		}
+			//		else if (0 != (i % 2))
+			//		{
+			//			pVertex[0].m_oPosition2 = pVertex[-1].m_oPosition + (pVertex[1].m_oPosition - pVertex[-1].m_oPosition) / 2.0f;
+			//			//pVertex[0].m_oPosition2.y += 50.0f; // for test only
+			//		}
+			//		pPrevVertex = pVertex;
+			//		++pVertex;
+			//	}
+			//}
+			m_vVertexesIndependent.push_back(pVertexes);
+			m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent = pVertexes;
+			m_oGlobalInfo.m_pLODs[k].m_uVertexCount = uLODVertexCount;
+			m_oGlobalInfo.m_pLODs[k].m_uVertexPerRawCount = uLODVertexPerRawCount;
+			m_oGlobalInfo.m_pLODs[k].m_uNumVertices = uLODVertexPerRawCount * (m_oGlobalInfo.m_uQuadSize + 1);
 		}
 		return bResult;
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	void Landscape::ComputeVertexIndependentMorph(VertexIndependentPtr _pVertexes, const unsigned int _uLODIncrement, const unsigned int _uLODVertexPerRawCount)
+	{
+		VertexIndependentPtr pVertex = _pVertexes;
+		VertexIndependentPtr pPrevVertex = NULL;
+		int sVertexIndex = 0;
+		for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += _uLODIncrement)
+		{
+			for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += _uLODIncrement, ++sVertexIndex)
+			{
+				if (0 != (j % 2))
+				{
+					if (0 != (i % 2))
+					{
+						const int sPrevRawIndex = -int(_uLODVertexPerRawCount) + 1;
+						const int sNextRawIndex = int(_uLODVertexPerRawCount) - 1;
+						pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
+					}
+					else
+					{
+						const int sPrevRawIndex = -int(_uLODVertexPerRawCount);
+						const int sNextRawIndex = int(_uLODVertexPerRawCount);
+						pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
+					}
+				}
+				else if (0 != (i % 2))
+				{
+					pVertex[0].m_oPosition2 = pVertex[-1].m_oPosition + (pVertex[1].m_oPosition - pVertex[-1].m_oPosition) / 2.0f;
+					//pVertex[0].m_oPosition2.y += 50.0f; // for test only
+				}
+				pPrevVertex = pVertex;
+				++pVertex;
+			}
+		}
 	}
 
 	//-----------------------------------------------------------------------------------------------

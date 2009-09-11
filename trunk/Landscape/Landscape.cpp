@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Landscape.h"
 #include "../Display/Camera.h"
+#include "../Display/Surface.h"
 
 namespace ElixirEngine
 {
@@ -129,7 +130,7 @@ namespace ElixirEngine
 			}
 		}
 
-		bResult = (1 == uBitsCount); // is it a poser of 2 number ??
+		bResult = (1 == uBitsCount); // is it a power of 2 number ??
 
 		return bResult;
 	}
@@ -242,6 +243,11 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			bResult = CreateVertexBufferIndependent();
+		}
+
+		if ((false != bResult) && (false == _rOpenInfo.m_strHeightmap.empty()))
+		{
+			bResult = LoadHeightmap(_rOpenInfo.m_strHeightmap);
 		}
 
 		if (false != bResult)
@@ -423,5 +429,90 @@ namespace ElixirEngine
 		}
 
 		return bResult;
+	}
+
+	bool Landscape::LoadHeightmap(const string& _strFileName)
+	{
+		bool bResult = m_rDisplay.GetSurfaceManager()->Load(_strFileName, _strFileName);
+		DisplaySurfacePtr pSurface = m_rDisplay.GetSurfaceManager()->Get(_strFileName);
+
+		// load heightmap through a surface
+		if ((false != bResult) && (NULL != pSurface) && (pSurface->Lock(false)))
+		{
+			// get surface info
+			ImageInfoRef rSurfaceInfo = pSurface->GetInfo();
+			// foe each LOD
+			for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
+			{
+				const unsigned int uLODVertexPerRawCount = m_oGlobalInfo.m_pLODs[k].m_uVertexPerRawCount;
+				const unsigned int uLODRawCount = (m_oGlobalInfo.m_uRawCount >> k) | 0x00000001;
+				const unsigned int uLODIncrement = 0x00000001 << k;
+				const float fVStep = 1.0f / float(uLODRawCount);
+				const float fUStep = 1.0f / float(uLODVertexPerRawCount);
+				VertexIndependentPtr pVertexes = m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent;
+				VertexIndependentPtr pVertex = pVertexes;
+				DisplaySurface::UVInfo oUVInfo;
+				Byte aRGBA[4];
+				// for landscape heigth
+				for (float v = 0.0f ; 1.0f > v ; v += fVStep)
+				{
+					// for lanfscape width
+					for (float u = 0.0f ; 1.0f > u ; u += fUStep)
+					{
+						// translate vertex (x, z) as texture coords (u, v)
+						// get pixel data from surface GetDataUV(u, v, info)
+						bResult = pSurface->GetDataUV(u, v, oUVInfo);
+						if (false == bResult)
+						{
+							break;
+						}
+						// compute the interpolated pixel value based on data info and surface info
+						switch (rSurfaceInfo.Format)
+						{
+							case D3DFMT_A8R8G8B8:
+							{
+								InterpolatePixelA8R8G8B8(oUVInfo, aRGBA[0], aRGBA[1], aRGBA[2], aRGBA[3]);
+								break;
+							}
+						}
+						// update vertex y with interpolated pixel value based on surface info
+						pVertex->m_oPosition.y = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f * m_oGlobalInfo.m_fHeightScale;
+						++pVertex;
+					}
+				}
+				// update morph info
+				ComputeVertexIndependentMorph(pVertexes, uLODIncrement, uLODVertexPerRawCount);
+			}
+			// release heightmap surface
+			pSurface->Unlock();
+			m_rDisplay.GetSurfaceManager()->Unload(_strFileName);
+		}
+
+		return bResult;
+	}
+
+	void Landscape::InterpolatePixelA8R8G8B8(const DisplaySurface::UVInfo& _rUVInfo, ByteRef _uRed, ByteRef _uGreen, ByteRef _uBlue, ByteRef _uAlpha)
+	{
+		BytePtr ppPixels[DisplaySurface::EUVInfoData_COUNT] =
+		{
+			static_cast<BytePtr>(_rUVInfo.m_aData[DisplaySurface::EUVInfoData_TOPLEFT]),
+			static_cast<BytePtr>(_rUVInfo.m_aData[DisplaySurface::EUVInfoData_TOPRIGHT]),
+			static_cast<BytePtr>(_rUVInfo.m_aData[DisplaySurface::EUVInfoData_BOTTOMLEFT]),
+			static_cast<BytePtr>(_rUVInfo.m_aData[DisplaySurface::EUVInfoData_BOTTOMRIGHT])
+		};
+		Vector4 aPixels[4];
+		aPixels[DisplaySurface::EUVInfoData_TOPLEFT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][1], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][2], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][3], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][0]);
+		aPixels[DisplaySurface::EUVInfoData_TOPRIGHT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][1], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][2], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][3], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][0]);
+		aPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][1], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][2], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][3], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][0]);
+		aPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][1], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][2], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][3], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][0]);
+
+		const Vector4 oTop = aPixels[DisplaySurface::EUVInfoData_TOPLEFT] * (1.0f - _rUVInfo.m_fLocalU) + aPixels[DisplaySurface::EUVInfoData_TOPRIGHT] * _rUVInfo.m_fLocalU;
+		const Vector4 oBottom = aPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT] * (1.0f - _rUVInfo.m_fLocalU) + aPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT] * _rUVInfo.m_fLocalU;
+		const Vector4 oFinal = oTop * (1.0f - _rUVInfo.m_fLocalV) + oBottom * _rUVInfo.m_fLocalV;
+
+		_uRed = Byte(oFinal.x);
+		_uGreen = Byte(oFinal.y);
+		_uBlue = Byte(oFinal.z);
+		_uAlpha = Byte(oFinal.w);
 	}
 }

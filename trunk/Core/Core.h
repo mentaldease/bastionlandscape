@@ -35,8 +35,12 @@ namespace ElixirEngine
 
 	typedef void*			VoidPtr;
 	typedef vector<VoidPtr>	VoidPtrVec;
-	typedef unsigned int*	UIntPtr;
-	typedef unsigned char*	BytePtr;
+	typedef unsigned int	UInt;
+	typedef UInt*			UIntPtr;
+	typedef UInt&			UIntRef;
+	typedef unsigned char	Byte;
+	typedef Byte*			BytePtr;
+	typedef Byte&			ByteRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
