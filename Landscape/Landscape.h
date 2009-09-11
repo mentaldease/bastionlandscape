@@ -3,6 +3,7 @@
 
 #include "../Core/Core.h"
 #include "../Display/Display.h"
+#include "../Display/Surface.h"
 #include "../Landscape/LandscapeTypes.h"
 
 namespace ElixirEngine
@@ -151,10 +152,14 @@ namespace ElixirEngine
 
 	protected:
 		bool CreateVertexBufferIndependent();
+		void ComputeVertexIndependentMorph(VertexIndependentPtr _pVertexes, const unsigned int _uLODIncrement, const unsigned int _uLODVertexPerRawCount);
 		bool CreateVertexBufferDefault();
 		bool CreateVertexBufferLiquid();
 		bool CreateIndexBuffer();
 		bool CreateChunks();
+		bool LoadHeightmap(const string& _strFileName);
+
+		void InterpolatePixelA8R8G8B8(const DisplaySurface::UVInfo& _rUVInfo, ByteRef _uRed, ByteRef _uGreen, ByteRef _uBlue, ByteRef _uAlpha);
 
 	protected:
 		GlobalInfo					m_oGlobalInfo;

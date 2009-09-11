@@ -148,13 +148,15 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			string strFormat;
+			string strFormat = "";
 			_rConfig.GetValue(pShortcut, "vertex_format", strFormat);
 			oLOInfo.m_eFormat = Landscape::StringToVertexFormat(strFormat);
 			bResult = (ELandscapeVertexFormat_UNKNOWN != oLOInfo.m_eFormat);
 		}
 		if (false != bResult)
 		{
+			oLOInfo.m_strHeightmap.clear();
+			_rConfig.GetValue(pShortcut, "heightmap", oLOInfo.m_strHeightmap);
 			bResult = pLandscape->Open(oLOInfo);
 		}
 		if (false != bResult)

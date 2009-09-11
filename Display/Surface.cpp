@@ -39,12 +39,13 @@ namespace ElixirEngine
 
 			if (false != bResult)
 			{
+				#pragma message(__FUNCTION__" : for better support some image formats must be converted into supported surface format. For example luminance image should be translated into paletted surface.")
 				bResult = SUCCEEDED(m_rDisplay.GetDevicePtr()->CreateOffscreenPlainSurface(m_oInfo.Width, m_oInfo.Height, m_oInfo.Format, D3DPOOL_DEFAULT, &m_pSurface, NULL));
 			}
 
 			if (false != bResult)
 			{
-				bResult = SUCCEEDED(D3DXLoadSurfaceFromFileInMemory(m_pSurface, NULL, NULL, pBuffer, sSize, NULL, D3DX_DEFAULT, 0xff000000, NULL));
+				bResult = SUCCEEDED(D3DXLoadSurfaceFromFileInMemory(m_pSurface, NULL, NULL, pBuffer, sSize, NULL, D3DX_FILTER_NONE, 0xff000000, NULL));
 			}
 
 			if (false != bResult)
@@ -97,11 +98,58 @@ namespace ElixirEngine
 
 		if ((NULL != m_pSurface) && (NULL != m_oLockedRect.pBits))
 		{
-			const unsigned int uOffset = _uX * m_uBPP + _uY * m_oLockedRect.Pitch;
+			const unsigned int uBPPByte = m_uBPP / 8;
+			const unsigned int uOffset = _uX * uBPPByte + _uY * m_oLockedRect.Pitch;
 			pResult = &((BytePtr)m_oLockedRect.pBits)[uOffset];
 		}
 
 		return pResult;
+	}
+
+	VoidPtr DisplaySurface::GetDataUV(const float& _fU, const float& _fV)
+	{
+		VoidPtr pResult = NULL;
+
+		if ((NULL != m_pSurface) && (NULL != m_oLockedRect.pBits)
+			&& (0.0f <= _fU) && (1.0f >= _fU)
+			&& (0.0f <= _fV) && (1.0f >= _fV))
+		{
+			const unsigned int uBPPByte = m_uBPP / 8;
+			const float fX = (m_oInfo.Width - 1) * _fU;
+			const float fY = (m_oInfo.Height - 1) * _fV;
+			const unsigned int uMinX = static_cast<unsigned int>(fX);
+			const unsigned int uMinY = static_cast<unsigned int>(fY);
+			const unsigned int uOffset = uMinX * uBPPByte + uMinY * m_oLockedRect.Pitch;
+			pResult = &((BytePtr)m_oLockedRect.pBits)[uOffset];
+		}
+
+		return pResult;
+	}
+
+	bool DisplaySurface::GetDataUV(const float& _fU, const float& _fV, UVInfo& _rInfo)
+	{
+		bool bResult = false;
+
+		if ((NULL != m_pSurface) && (NULL != m_oLockedRect.pBits)
+			&& (0.0f <= _fU) && (1.0f >= _fU)
+			&& (0.0f <= _fV) && (1.0f >= _fV))
+		{
+			const unsigned int uBPPByte = m_uBPP / 8;
+			const float fX = (m_oInfo.Width - 1) * _fU;
+			const float fY = (m_oInfo.Height - 1) * _fV;
+			const unsigned int uMinX = static_cast<unsigned int>(fX);
+			const unsigned int uMinY = static_cast<unsigned int>(fY);
+			const unsigned int uOffset = uMinX * uBPPByte + uMinY * m_oLockedRect.Pitch;
+			_rInfo.m_aData[EUVInfoData_TOPLEFT] = &((BytePtr)m_oLockedRect.pBits)[uOffset];
+			_rInfo.m_aData[EUVInfoData_TOPRIGHT] = (1.0f != _fU) ? &((BytePtr)m_oLockedRect.pBits)[uOffset + uBPPByte] : _rInfo.m_aData[EUVInfoData_TOPLEFT];
+			_rInfo.m_aData[EUVInfoData_BOTTOMLEFT] = (1.0f != _fV) ? &((BytePtr)m_oLockedRect.pBits)[uOffset + m_oLockedRect.Pitch] : _rInfo.m_aData[EUVInfoData_TOPLEFT];
+			_rInfo.m_aData[EUVInfoData_BOTTOMRIGHT] = ((1.0f != _fV) && (1.0f != _fV)) ? &((BytePtr)m_oLockedRect.pBits)[uOffset + uBPPByte + m_oLockedRect.Pitch] : _rInfo.m_aData[EUVInfoData_BOTTOMLEFT];
+			_rInfo.m_fLocalU = fX - uMinX;
+			_rInfo.m_fLocalV = fY - uMinY;
+			bResult = true;
+		}
+
+		return bResult;
 	}
 
 	void DisplaySurface::Unlock()

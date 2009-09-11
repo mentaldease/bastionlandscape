@@ -20,6 +20,22 @@ namespace ElixirEngine
 			string	m_strPath;
 		};
 
+		enum EUVInfoData
+		{
+			EUVInfoData_TOPLEFT,
+			EUVInfoData_TOPRIGHT,
+			EUVInfoData_BOTTOMLEFT,
+			EUVInfoData_BOTTOMRIGHT,
+			EUVInfoData_COUNT // last enum member
+		};
+
+		struct UVInfo
+		{
+			VoidPtr	m_aData[EUVInfoData_COUNT];
+			float	m_fLocalU;
+			float	m_fLocalV;
+		};
+
 	public:
 		DisplaySurface(DisplayRef _rDisplay);
 		virtual ~DisplaySurface();
@@ -31,6 +47,8 @@ namespace ElixirEngine
 		ImageInfoRef GetInfo();
 		VoidPtr Lock(const bool& _bReadOnly);
 		VoidPtr GetDataXY(const unsigned int& _uX, const unsigned int& _uY);
+		VoidPtr GetDataUV(const float& _fU, const float& _fV);
+		bool GetDataUV(const float& _fU, const float& _fV, UVInfo& _rInfo);
 		void Unlock();
 
 	protected:
