@@ -9,14 +9,26 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	VertexElement VertexDefault::s_VertexElement[5] =
+#if LANDSCAPE_USE_MORPHING
+	VertexElement VertexDefault::s_VertexElement[6] =
 	{
 		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
 		{ 0,	1 * sizeof(Vector3),	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	1 },
 		{ 0,	2 * sizeof(Vector3),	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
 		{ 0,	3 * sizeof(Vector3),	D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,		0 },
+		{ 0,	3 * sizeof(Vector3) + sizeof(Vector4),	D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
 		D3DDECL_END()
 	};
+#else // LANDSCAPE_USE_MORPHING
+	VertexElement VertexDefault::s_VertexElement[5] =
+	{
+		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
+		{ 0,	1 * sizeof(Vector3),	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
+		{ 0,	2 * sizeof(Vector3),	D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,		0 },
+		{ 0,	2 * sizeof(Vector3) + sizeof(Vector4),	D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
+		D3DDECL_END()
+	};
+#endif // LANDSCAPE_USE_MORPHING
 
 	VertexElement VertexLiquid::s_VertexElement[6] =
 	{
@@ -481,7 +493,10 @@ namespace ElixirEngine
 					}
 				}
 				// update morph info
-				ComputeVertexIndependentMorph(pVertexes, uLODIncrement, uLODVertexPerRawCount);
+#if LANDSCAPE_USE_MORPHING
+				ComputeVertexIndependentMorphs(m_oGlobalInfo.m_pLODs[k]);
+#endif // LANDSCAPE_USE_MORPHING
+				ComputeVertexIndependentNormals(m_oGlobalInfo.m_pLODs[k]);
 			}
 			// release heightmap surface
 			pSurface->Unlock();

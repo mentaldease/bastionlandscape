@@ -1,0 +1,31 @@
+# libconfig formatted file
+# Basic based material
+
+version = "1.0";
+
+material =
+{
+	name = "terrain00";
+	effect = "data/effects/terrain.fx";
+	technique = "RenderScene";
+	params =
+	(
+		{
+			semantic = "WORLDVIEWPROJ";
+		},
+		{
+			semantic = "WORLDINVTRANSPOSE";
+		},
+		{
+			semantic = "LIGHTDIR";
+		},
+		{
+			semantic = "DIFFUSETEX";
+			name = "diffuse00";
+			value = "data/landscapes/land01.tga";
+		},
+		{
+			semantic = "MORPHFACTOR";
+		}
+	);
+};

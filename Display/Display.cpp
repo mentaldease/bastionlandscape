@@ -99,7 +99,7 @@ namespace ElixirEngine
 		if (SUCCEEDED(hResult))
 		{
 			VertexDeclPtr pCurrentVertexDecl;
-			m_rDisplay.GetDevicePtr()->GetVertexDeclaration(&pCurrentVertexDecl);
+			hResult = m_rDisplay.GetDevicePtr()->GetVertexDeclaration(&pCurrentVertexDecl);
 			if ((SUCCEEDED(hResult)) && (pCurrentVertexDecl != m_pVertexDecl))
 			{
 				hResult = m_rDisplay.GetDevicePtr()->SetVertexDeclaration(m_pVertexDecl);
@@ -484,7 +484,7 @@ namespace ElixirEngine
 	void Display::SetCurrentWorldMatrix(MatrixPtr _pMatrix)
 	{
 		m_pWorldMatrix = _pMatrix;
-		D3DXMatrixInverse(&m_oWorldInvTransposeMatrix, NULL, &m_oWorldInvTransposeMatrix);
+		D3DXMatrixInverse(&m_oWorldInvTransposeMatrix, NULL, m_pWorldMatrix);
 		D3DXMatrixTranspose(&m_oWorldInvTransposeMatrix, &m_oWorldInvTransposeMatrix);
 	}
 

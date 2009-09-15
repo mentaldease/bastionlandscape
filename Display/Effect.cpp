@@ -12,6 +12,7 @@ namespace ElixirEngine
 
 	float* DisplayEffectParamTIME::s_fTime = NULL;
 	float* DisplayEffectParamMORPHFACTOR::s_fMorphFactor = NULL;
+	Vector4* DisplayEffectParamLIGHTDIR::s_pLightDir = NULL;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -234,11 +235,11 @@ namespace ElixirEngine
 				unsigned int uPassCount;
 				pEffect->Begin(&uPassCount, 0);
 				m_pMaterial->GetMaterialManager().GetDisplay().SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
-				m_pMaterial->UseParams();
 				for (unsigned int iPass = 0 ; iPass < uPassCount ; ++iPass)
 				{
 					pEffect->BeginPass(iPass);
 					_pDisplayObject->RenderBegin();
+					m_pMaterial->UseParams();
 					pEffect->CommitChanges();
 					_pDisplayObject->Render();
 					_pDisplayObject->RenderEnd();
@@ -310,6 +311,8 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("ENVIRONMENTTEX"))] = boost::bind(&DisplayEffectParamENVIRONMENTTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NORMALTEX"))] = boost::bind(&DisplayEffectParamNORMALTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("MORPHFACTOR"))] = boost::bind(&DisplayEffectParamMORPHFACTOR::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("LIGHTDIR"))] = boost::bind(&DisplayEffectParamLIGHTDIR::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("DIFFUSETEX"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 
 		return bResult;
 	}

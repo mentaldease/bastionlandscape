@@ -13,6 +13,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	#define LANDSCAPE_USE_HIGHEST_LOD_ONLY	1
+	#define LANDSCAPE_USE_MORPHING			0
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -27,14 +28,21 @@ namespace ElixirEngine
 
 	struct VertexDefault
 	{
+#if LANDSCAPE_USE_MORPHING
+		static VertexElement s_VertexElement[6];
+#else // LANDSCAPE_USE_MORPHING
 		static VertexElement s_VertexElement[5];
+#endif // LANDSCAPE_USE_MORPHING
 
 		VertexDefaultRef operator = (VertexIndependentRef _rVertexIndependent);
 
 		Vector3	m_oPosition;
+#if LANDSCAPE_USE_MORPHING
 		Vector3	m_oPosition2;
+#endif // LANDSCAPE_USE_MORPHING
 		Vector3	m_oNormal;
 		Vector4	m_oColor;
+		Vector2	m_oUV;
 	};
 
 	struct VertexLiquid
@@ -62,7 +70,9 @@ namespace ElixirEngine
 		void AddLink(const unsigned int& _uLOD, const unsigned int& _uIndex);
 
 		Vector3				m_oPosition;
+#if LANDSCAPE_USE_MORPHING
 		Vector3				m_oPosition2;
+#endif // LANDSCAPE_USE_MORPHING
 		Vector3				m_oNormal;
 		Vector2				m_oUV;
 		LODVertexLinkVec	m_vLinks;
@@ -95,8 +105,10 @@ namespace ElixirEngine
 			unsigned int			m_uQuadSize;
 			unsigned int			m_uGeometricError;
 			unsigned int			m_uVertexPerRawCount;
+			unsigned int			m_uRawCount;
 			unsigned int			m_uVertexCount;
 			unsigned int			m_uNumVertices;
+			unsigned int			m_uIncrement;
 			DisplayVertexBufferPtr	m_pVertexBuffer;
 			VoidPtr					m_pVertexes;
 			VertexIndependentPtr	m_pVertexesIndependent;
@@ -152,7 +164,8 @@ namespace ElixirEngine
 
 	protected:
 		bool CreateVertexBufferIndependent();
-		void ComputeVertexIndependentMorph(VertexIndependentPtr _pVertexes, const unsigned int _uLODIncrement, const unsigned int _uLODVertexPerRawCount);
+		void ComputeVertexIndependentMorphs(LODInfoRef _rLODInfo);
+		void ComputeVertexIndependentNormals(LODInfoRef _rLODInfo);
 		bool CreateVertexBufferDefault();
 		bool CreateVertexBufferLiquid();
 		bool CreateIndexBuffer();

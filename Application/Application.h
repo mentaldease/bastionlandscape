@@ -70,6 +70,7 @@ namespace BastionGame
 		unsigned char	m_aKeysInfoOld[256];
 		DIMouseState	m_oMouseInfo;
 		DIMouseState	m_oMouseInfoOld;
+		Vector4			m_oLightDir;
 
 	private:
 	};

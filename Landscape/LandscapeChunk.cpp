@@ -42,18 +42,27 @@ namespace ElixirEngine
 		const unsigned int IndexZ = pInfo->m_uZ * rGlobalInfo.m_uQuadSize;
 		m_uStartVertexIndex = IndexX + IndexZ * m_pLODInfo->m_uVertexPerRawCount;
 
-		// center
+		// center and extend
 		const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
 		const unsigned int uStripSize = m_pLODInfo->m_uStripSize;
-		Vector3 oTemp[2];
-		m_rLandscape.GetVertexPosition(*m_pLODInfo, 0, m_uStartVertexIndex, oTemp[0]);
-		m_rLandscape.GetVertexPosition(*m_pLODInfo, uStripSize - 1, m_uStartVertexIndex, oTemp[1]);
-		m_oExtends.x = (oTemp[1].x - oTemp[0].x) / 2.0f;
-		m_oExtends.y = 0.0f;
-		m_oExtends.z = (oTemp[0].z - oTemp[1].z) / 2.0f;
-		m_oCenter.x = oTemp[0].x + m_oExtends.x;
-		m_oCenter.y = 0.0f;
-		m_oCenter.z = oTemp[1].z + m_oExtends.z;
+		Vector3 oAABB[2] =
+		{
+			Vector3( FLT_MAX, FLT_MAX, FLT_MAX ),
+			Vector3( FLT_MIN, FLT_MIN, FLT_MIN )
+		};
+		Vector3 oTemp;
+		for (unsigned int i = 0 ; uStripSize > i ; ++i)
+		{
+			m_rLandscape.GetVertexPosition(*m_pLODInfo, i, m_uStartVertexIndex, oTemp);
+			if (oAABB[0].x > oTemp.x) oAABB[0].x = oTemp.x;
+			if (oAABB[0].y > oTemp.y) oAABB[0].y = oTemp.y;
+			if (oAABB[0].z > oTemp.z) oAABB[0].z = oTemp.z;
+			if (oAABB[1].x < oTemp.x) oAABB[1].x = oTemp.x;
+			if (oAABB[1].y < oTemp.y) oAABB[1].y = oTemp.y;
+			if (oAABB[1].z < oTemp.z) oAABB[1].z = oTemp.z;
+		}
+		m_oExtends = (oAABB[1] - oAABB[0]) / 2.0f;
+		m_oCenter = oAABB[0] + m_oExtends;
 
 		if (0 < m_uLOD)
 		{
@@ -108,8 +117,9 @@ namespace ElixirEngine
 	void LandscapeChunk::Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize)
 	{
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		MatrixPtr pWorld = m_rLandscape.GetWorldMatrix();
-		const Vector3 oWorld(pWorld->_41, pWorld->_42, pWorld->_43);
+		//MatrixPtr pWorld = m_rLandscape.GetWorldMatrix();
+		//const Vector3 oWorld(pWorld->_41, pWorld->_42, pWorld->_43);
+		const Vector3 oWorld(m_oWorld._41, m_oWorld._42, m_oWorld._43);
 		const Vector3 oDelta = oWorld + m_oCenter - _rCamPos;
 		const float fExtends = D3DXVec3Length(&m_oExtends);
 

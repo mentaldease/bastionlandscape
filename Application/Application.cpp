@@ -32,7 +32,9 @@ namespace BastionGame
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f)
 	{
-
+		m_oLightDir = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+		D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
+		DisplayEffectParamLIGHTDIR::s_pLightDir = &m_oLightDir;
 	}
 
 	Application::~Application()
