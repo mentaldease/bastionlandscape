@@ -15,6 +15,10 @@ scene =
 		{
 			name = "basic00";
 			path = "data/materials/basic00.material";
+		},
+		{
+			name = "terrain00";
+			path = "data/materials/terrain00.material";
 		}
 	);
 	landscapes =
@@ -37,7 +41,7 @@ scene =
 		{
 			name = "ground";
 			vertex_format = "default";
-			material = "basic00";
+			material = "terrain00";
 			grid_size = 16;
 			grid_chunk_size = 16;
 			position_x = 0.0;
@@ -52,7 +56,7 @@ scene =
 		{
 			name = "ground2";
 			vertex_format = "default";
-			material = "basic00";
+			material = "terrain00";
 			grid_size = 32;
 			grid_chunk_size = 8;
 			position_x = 0.0;

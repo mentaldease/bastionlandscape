@@ -75,20 +75,20 @@ namespace ElixirEngine
 				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
 				bResult = (NULL != m_hData);
 			}
-			if (false != bResult)
-			{
-				#pragma message(__FUNCTION__" : TODO implement a listener to detect camera switch in order to update m_pViewProj")
-				m_pViewProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
-			}
 
 			return bResult;
 		}
 
 		virtual bool Use()
 		{
+			m_pViewProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
 			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldMatrix();
-			HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, D3DXMatrixMultiply(&m_oWVP, m_pWorld, m_pViewProj));
-			return SUCCEEDED(hResult);
+			if ((NULL != m_pWorld) && (NULL != m_pViewProj))
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, D3DXMatrixMultiply(&m_oWVP, m_pWorld, m_pViewProj));
+				return SUCCEEDED(hResult);
+			}
+			return false;
 		}
 
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
@@ -149,8 +149,12 @@ namespace ElixirEngine
 		virtual bool Use()
 		{
 			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldMatrix();
-			HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pWorld);
-			return SUCCEEDED(hResult);
+			if (NULL != m_pWorld)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pWorld);
+				return SUCCEEDED(hResult);
+			}
+			return false;
 		}
 
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
@@ -202,19 +206,19 @@ namespace ElixirEngine
 				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
 				bResult = (NULL != m_hData);
 			}
-			if (false != bResult)
-			{
-				#pragma message(__FUNCTION__" : TODO implement a listener to detect camera switch in order to update m_pViewInv")
-				m_pViewInv = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
-			}
 
 			return bResult;
 		}
 
 		virtual bool Use()
 		{
-			HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pViewInv);
-			return SUCCEEDED(hResult);
+			m_pViewInv = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
+			if (NULL != m_pViewInv)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pViewInv);
+				return SUCCEEDED(hResult);
+			}
+			return false;
 		}
 
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
@@ -273,8 +277,12 @@ namespace ElixirEngine
 		virtual bool Use()
 		{
 			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldInvTransposeMatrix();
-			HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pWorld);
-			return SUCCEEDED(hResult);
+			if (NULL != m_pWorld)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pWorld);
+				return SUCCEEDED(hResult);
+			}
+			return false;
 		}
 
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
@@ -580,6 +588,149 @@ namespace ElixirEngine
 		static float* s_fMorphFactor;
 
 	protected:
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamLIGHTDIR : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamLIGHTDIR(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamLIGHTDIR()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			if (NULL != s_pLightDir)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, s_pLightDir);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamLIGHTDIR(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+		static Vector4* s_pLightDir;
+
+	protected:
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamDIFFUSETEX : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamDIFFUSETEX(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial),
+			m_pTexture(NULL)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamDIFFUSETEX()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+			if (false != bResult)
+			{
+				bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "name", m_strName);
+			}
+			if (false != bResult)
+			{
+				bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "value", m_strPath);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			if (NULL == m_pTexture)
+			{
+				DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
+				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D))
+				{
+					m_pTexture = pTextureManager->Get(m_strName);
+				}
+			}
+			if (NULL != m_pTexture)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetTexture(m_hData, m_pTexture->GetBase());
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamDIFFUSETEX(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		DisplayTexturePtr	m_pTexture;
+		string				m_strName;
+		string				m_strPath;
+
 	private:
 	};
 }
