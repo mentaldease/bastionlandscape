@@ -18,6 +18,15 @@ namespace ElixirEngine
 	typedef vector<LandscapeChunkPtr>	LandscapeChunkPtrVec;
 	typedef LandscapeChunkPtrVec&		LandscapeChunkPtrVecRef;
 
+	class LandscapeLayering;
+	typedef LandscapeLayering*				LandscapeLayeringPtr;
+	typedef LandscapeLayering&				LandscapeLayeringRef;
+	typedef map<Key, LandscapeLayeringPtr>	LandscapeLayeringPtrMap;
+
+	class LandscapeLayerManager;
+	typedef LandscapeLayerManager*	LandscapeLayerManagerPtr;
+	typedef LandscapeLayerManager&	LandscapeLayerManagerRef;
+
 	struct VertexDefault;
 	typedef VertexDefault*	VertexDefaultPtr;
 	typedef VertexDefault&	VertexDefaultRef;

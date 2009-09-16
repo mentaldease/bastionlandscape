@@ -44,11 +44,6 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-
 	Landscape::GlobalInfo::GlobalInfo()
 	:	m_strName(),
 		m_uQuadSize(0),
@@ -63,13 +58,38 @@ namespace ElixirEngine
 		m_pLODs(NULL),
 		m_fPixelErrorMax(0.0f),
 		m_fFloorScale(1.0f),
-		m_fHeightScale(1.0f)
+		m_fHeightScale(1.0f),
+		m_fMinHeight(FLT_MAX),
+		m_fMaxHeight(FLT_MIN),
+		m_eFormat(ELandscapeVertexFormat_UNKNOWN)
 	{
 
 	}
 
+	void Landscape::GlobalInfo::Reset()
+	{
+		m_strName.clear();
+		m_uQuadSize = 0;
+		m_uGridSize = 0;
+		m_uChunkCount = 0;
+		m_uVertexCount = 0;
+		m_uVertexPerRawCount = 0;
+		m_uRawCount = 0;
+		m_uStripSize = 0;
+		m_uLODCount = 0;
+		m_uTotalLODStripSize = 0;
+		m_pLODs = NULL;
+		m_fPixelErrorMax = 0.0f;
+		m_fFloorScale = 1.0f;
+		m_fHeightScale = 1.0f;
+		m_fMinHeight = FLT_MAX;
+		m_fMaxHeight = FLT_MIN;
+		m_eFormat = ELandscapeVertexFormat_UNKNOWN;
+	}
+
 	bool Landscape::GlobalInfo::Create(const Landscape::OpenInfo& _rOpenInfo)
 	{
+		Reset();
 		m_strName = _rOpenInfo.m_strName;
 		m_uQuadSize = _rOpenInfo.m_uQuadSize;
 		m_uGridSize = _rOpenInfo.m_uGridSize;
@@ -158,9 +178,11 @@ namespace ElixirEngine
 		m_vGrid(),
 		m_vVertexBuffers(),
 		m_vVertexes(),
+		m_vVertexesIndependent(),
 		m_pCurrentVertexBuffer(NULL),
 		m_pIndexBuffer(NULL),
-		m_pIndexes(NULL)
+		m_pIndexes(NULL),
+		m_pLayering(NULL)
 	{
 
 	}
@@ -223,6 +245,7 @@ namespace ElixirEngine
 
 	void Landscape::Release()
 	{
+		Close();
 	}
 
 	void Landscape::Render()
@@ -260,6 +283,12 @@ namespace ElixirEngine
 		if ((false != bResult) && (false == _rOpenInfo.m_strHeightmap.empty()))
 		{
 			bResult = LoadHeightmap(_rOpenInfo.m_strHeightmap);
+		}
+
+		if ((false != bResult) && (false == _rOpenInfo.m_strLayersConfig.empty()))
+		{
+			m_pLayering = LandscapeLayerManager::GetInstance()->Get(_rOpenInfo.m_strLayersConfig);
+			bResult = (NULL != m_pLayering);
 		}
 
 		if (false != bResult)
@@ -465,10 +494,10 @@ namespace ElixirEngine
 				VertexIndependentPtr pVertex = pVertexes;
 				DisplaySurface::UVInfo oUVInfo;
 				Byte aRGBA[4];
-				// for landscape heigth
+				// for landscape height
 				for (float v = 0.0f ; 1.0f > v ; v += fVStep)
 				{
-					// for lanfscape width
+					// for landscape width
 					for (float u = 0.0f ; 1.0f > u ; u += fUStep)
 					{
 						// translate vertex (x, z) as texture coords (u, v)
@@ -488,7 +517,17 @@ namespace ElixirEngine
 							}
 						}
 						// update vertex y with interpolated pixel value based on surface info
-						pVertex->m_oPosition.y = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f * m_oGlobalInfo.m_fHeightScale;
+						const float fRawHeight = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f;
+						pVertex->m_fNormalizedHeight = fRawHeight / 255.0f;
+						pVertex->m_oPosition.y = fRawHeight * m_oGlobalInfo.m_fHeightScale;
+						if (m_oGlobalInfo.m_fMinHeight > pVertex->m_oPosition.y)
+						{
+							m_oGlobalInfo.m_fMinHeight = pVertex->m_oPosition.y;
+						}
+						if (m_oGlobalInfo.m_fMaxHeight < pVertex->m_oPosition.y)
+						{
+							m_oGlobalInfo.m_fMaxHeight = pVertex->m_oPosition.y;
+						}
 						++pVertex;
 					}
 				}

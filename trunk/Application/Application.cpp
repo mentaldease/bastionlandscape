@@ -22,6 +22,7 @@ namespace BastionGame
 		m_pDisplay(NULL),
 		m_pScene(NULL),
 		m_pLandscape(NULL),
+		m_pLandscapeLayerManager(NULL),
 		m_pUpdateFunction(NULL),
 		m_pFSRoot(NULL),
 		m_pFSNative(NULL),
@@ -32,7 +33,7 @@ namespace BastionGame
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f)
 	{
-		m_oLightDir = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+		m_oLightDir = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
 		D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
 		DisplayEffectParamLIGHTDIR::s_pLightDir = &m_oLightDir;
 	}
@@ -107,7 +108,14 @@ namespace BastionGame
 			oICInfo.m_uDefaultKeyboardKey = MakeKey(string("DIKEYBOARD"));
 			oICInfo.m_uDefaultMouseKey = MakeKey(string("DIMOUSE"));
 			bResult = m_pInput->Create(boost::any(&oICInfo));
-			Input::SetRoot(m_pInput);
+			Input::SetRoot((false != bResult) ? m_pInput : NULL);
+		}
+
+		if (false != bResult)
+		{
+			m_pLandscapeLayerManager = new LandscapeLayerManager(*m_pDisplay);
+			bResult = m_pLandscapeLayerManager->Create(boost::any(0));
+			LandscapeLayerManager::SetInstance((false != bResult) ? m_pLandscapeLayerManager : NULL);
 		}
 
 		if (false != bResult)
@@ -157,6 +165,13 @@ namespace BastionGame
 
 	void Application::Release()
 	{
+		if (NULL != m_pLandscapeLayerManager)
+		{
+			LandscapeLayerManager::SetInstance(NULL);
+			m_pLandscapeLayerManager->Release();
+			delete m_pLandscapeLayerManager;
+			m_pLandscapeLayerManager = NULL;
+		}
 		if (NULL != m_pInput)
 		{
 			Input::SetRoot(NULL);

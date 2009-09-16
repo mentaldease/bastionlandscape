@@ -50,6 +50,9 @@ namespace ElixirEngine
 	typedef D3DLOCKED_RECT					LockedRect;
 	typedef LockedRect*						LockedRectPtr;
 	typedef LockedRect&						LockedRectRef;
+	typedef D3DSURFACE_DESC					SurfaceDesc;
+	typedef SurfaceDesc*					SurfaceDescPtr;
+	typedef SurfaceDesc&					SurfaceDescRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

@@ -73,6 +73,8 @@ namespace ElixirEngine
 					pVertex->m_oNormal.z = 0.0f;
 					pVertex->m_oUV.x = float(i) / float(m_oGlobalInfo.m_uVertexPerRawCount - 1);
 					pVertex->m_oUV.y = float(j) / float(m_oGlobalInfo.m_uRawCount - 1);
+					pVertex->m_fNormalizedHeight = 0.0f;
+					pVertex->m_fNormalizedSlope = 0.0f;
 					++pVertex;
 				}
 			}
@@ -150,6 +152,7 @@ namespace ElixirEngine
 			-1 + int(_rLODInfo.m_uVertexPerRawCount), 0 + int(_rLODInfo.m_uVertexPerRawCount),
 			0 + int(_rLODInfo.m_uVertexPerRawCount), 1
 		};
+		const Vector3 oUp(0.0f, 1.0f, 0.0f);
 		VertexIndependentPtr pVertex = _rLODInfo.m_pVertexesIndependent;
 		for (int j = 0 ; int(_rLODInfo.m_uRawCount) > j ; ++j)
 		{
@@ -169,6 +172,7 @@ namespace ElixirEngine
 					}
 				}
 				D3DXVec3Normalize(&pVertex->m_oNormal, &pVertex->m_oNormal);
+				pVertex->m_fNormalizedSlope = (1.0f + D3DXVec3Dot(&pVertex->m_oNormal, &oUp)) / 2.0f;
 				++pVertex;
 			}
 		}
