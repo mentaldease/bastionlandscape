@@ -56,6 +56,7 @@ namespace BastionGame
 
 	void Scene::Release()
 	{
+		LandscapeLayerManager::GetInstance()->UnloadAll();
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 		while (m_mMaterials.end() != m_mMaterials.begin())
 		{
@@ -157,6 +158,8 @@ namespace BastionGame
 		{
 			oLOInfo.m_strHeightmap.clear();
 			_rConfig.GetValue(pShortcut, "heightmap", oLOInfo.m_strHeightmap);
+			oLOInfo.m_strLayersConfig.clear();
+			_rConfig.GetValue(pShortcut, "layers_config", oLOInfo.m_strLayersConfig);
 			bResult = pLandscape->Open(oLOInfo);
 		}
 		if (false != bResult)

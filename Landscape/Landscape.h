@@ -5,6 +5,7 @@
 #include "../Display/Display.h"
 #include "../Display/Surface.h"
 #include "../Landscape/LandscapeTypes.h"
+#include "../Core/Config.h"
 
 namespace ElixirEngine
 {
@@ -69,13 +70,15 @@ namespace ElixirEngine
 
 		void AddLink(const unsigned int& _uLOD, const unsigned int& _uIndex);
 
+		LODVertexLinkVec	m_vLinks;
 		Vector3				m_oPosition;
 #if LANDSCAPE_USE_MORPHING
 		Vector3				m_oPosition2;
 #endif // LANDSCAPE_USE_MORPHING
 		Vector3				m_oNormal;
 		Vector2				m_oUV;
-		LODVertexLinkVec	m_vLinks;
+		float				m_fNormalizedSlope;
+		float				m_fNormalizedHeight;
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -92,6 +95,7 @@ namespace ElixirEngine
 			unsigned int			m_uGridSize;
 			ELandscapeVertexFormat	m_eFormat;
 			string					m_strHeightmap;
+			string					m_strLayersConfig;
 			float					m_fPixelErrorMax;
 			float					m_fFloorScale;
 			float					m_fHeightScale;
@@ -120,6 +124,7 @@ namespace ElixirEngine
 		{
 			GlobalInfo();
 
+			void Reset();
 			bool Create(const OpenInfo& _rOpenInfo);
 			void Release();
 			bool IsPowerOf2(const unsigned int& _uValue, unsigned int* _pPowerLevel = NULL);
@@ -138,6 +143,8 @@ namespace ElixirEngine
 			float					m_fPixelErrorMax;
 			float					m_fFloorScale;
 			float					m_fHeightScale;
+			float					m_fMinHeight;
+			float					m_fMaxHeight;
 			ELandscapeVertexFormat	m_eFormat;
 		};
 
@@ -180,10 +187,11 @@ namespace ElixirEngine
 		LandscapeChunkPtrVec		m_vRenderList;
 		DisplayVertexBufferPtrVec	m_vVertexBuffers;
 		VoidPtrVec					m_vVertexes;
+		VertexIndependentPtrVec		m_vVertexesIndependent;
 		DisplayVertexBufferPtr		m_pCurrentVertexBuffer;
 		DisplayIndexBufferPtr		m_pIndexBuffer;
 		UIntPtr						m_pIndexes;
-		VertexIndependentPtrVec		m_vVertexesIndependent;
+		LandscapeLayeringPtr		m_pLayering;
 
 	private:
 	};
@@ -234,6 +242,91 @@ namespace ElixirEngine
 		Vector3					m_oExtends;
 		Landscape::LODInfoPtr	m_pLODInfo;
 		float					m_fMorphFactor;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class LandscapeLayering : public CoreObject
+	{
+	public:
+		struct CreateInfo
+		{
+			string	m_strPath;
+		};
+
+		struct Layer
+		{
+			bool Evaluate(const float& _fHeight, const float& _fSlope);
+
+			unsigned int	m_uAtlasIndex;
+			float			m_fMinHeight;
+			float			m_fMaxHeight;
+			float			m_fMinSlope;
+			float			m_fMaxSlope;
+		};
+		typedef Layer*			LayerPtr;
+		typedef Layer&			LayerRef;
+		typedef vector<Layer>	LayerVec;
+
+	public:
+		LandscapeLayering(LandscapeLayerManagerRef _rLandscapeLayerManager);
+		virtual ~LandscapeLayering();
+
+		virtual bool Create(const boost::any& _rConfig);
+		virtual void Update();
+		virtual void Release();
+
+		bool CreateSlopeAndHeightLUT(ConfigRef _rConfig);
+		DisplayTexturePtr GetAtlas();
+		DisplayTexturePtr GetSlopeAndHeightLUT();
+		Vector4& GetShaderInfo();
+
+	protected:
+		LayerVec					m_vLayers;
+		LandscapeLayerManagerRef	m_rLandscapeLayerManager;
+		DisplayTexturePtr			m_pAtlas;
+		DisplayTexturePtr			m_pSlopeAndHeightLUT;
+		Vector4						m_oShaderInfo;
+		string						m_strAtlasName;
+		string						m_strSAHLUTName;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class LandscapeLayerManager : public CoreObject
+	{
+	public:
+		LandscapeLayerManager(DisplayRef _rDisplay);
+		virtual ~LandscapeLayerManager();
+
+		static void SetInstance(LandscapeLayerManagerPtr _pInstance);
+		static LandscapeLayerManagerPtr GetInstance();
+
+		virtual bool Create(const boost::any& _rConfig);
+		virtual void Update();
+		virtual void Release();
+
+		LandscapeLayeringPtr Get(const string& _strFileName);
+		void UnloadAll();
+
+		DisplayRef GetDisplay();
+
+	protected:
+		LandscapeLayeringPtr Load(const string& _strFileName);
+
+	protected:
+		static LandscapeLayerManagerPtr	s_pInstance;
+
+		DisplayRef				m_rDisplay;
+		LandscapeLayeringPtrMap	m_mConfigs;
 
 	private:
 	};

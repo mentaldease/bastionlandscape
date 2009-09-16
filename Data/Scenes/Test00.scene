@@ -19,12 +19,17 @@ scene =
 		{
 			name = "terrain00";
 			path = "data/materials/terrain00.material";
+		},
+		{
+			name = "terrain01";
+			path = "data/materials/terrain01.material";
 		}
 	);
 	landscapes =
 	(
 		/*
 		{
+			object_type = "landscape";
 			name = "water";
 			vertex_format = "liquid";
 			material = "water00";
@@ -39,9 +44,10 @@ scene =
 		},
 		*/
 		{
+			object_type = "landscape";
 			name = "ground";
 			vertex_format = "default";
-			material = "terrain00";
+			material = "terrain01";
 			grid_size = 16;
 			grid_chunk_size = 16;
 			position_x = 0.0;
@@ -51,9 +57,11 @@ scene =
 			floor_scale = 10.0;
 			height_scale = 1.0;
 			heightmap = "data/landscapes/land01.tga";
+			layers_config = "data/landscapes/layers00.layer";
 		}
 		/*
 		{
+			object_type = "landscape";
 			name = "ground2";
 			vertex_format = "default";
 			material = "terrain00";
