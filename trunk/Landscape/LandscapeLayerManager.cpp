@@ -2,6 +2,7 @@
 #include "Landscape.h"
 #include "../Display/Display.h"
 #include "../Display/Texture.h"
+#include "../Core/File.h"
 
 namespace ElixirEngine
 {
@@ -17,7 +18,10 @@ namespace ElixirEngine
 
 	bool LandscapeLayering::Layer::Evaluate(const float& _fHeight, const float& _fSlope)
 	{
-		bool bResult = false;
+		bool bResult = (m_fMinHeight <= _fHeight)
+			&& (m_fMaxHeight >= _fHeight)
+			&& (m_fMinSlope <= _fSlope)
+			&& (m_fMaxSlope >= _fSlope);
 		return bResult;
 	}
 
@@ -50,11 +54,13 @@ namespace ElixirEngine
 		Config oConfig;
 		bool bResult = oConfig.Create(boost::any(&oCCInfo));
 		int sAGS = 0;
+		bool bRebuildLookupTable = true;
 
 		if (false != bResult)
 		{
 			bResult = oConfig.GetValue("config.atlas_filename", m_strAtlasName)
-				&& oConfig.GetValue("config.atlas_grid_size", sAGS);
+				&& oConfig.GetValue("config.atlas_grid_size", sAGS)
+				&& oConfig.GetValue("config.rebuild_lookuptable", bRebuildLookupTable);
 		}
 
 		if (false != bResult)
@@ -70,9 +76,19 @@ namespace ElixirEngine
 		{
 			DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
 			m_strSAHLUTName = pInfo->m_strPath;
-			bResult = pTextureManager->New(m_strSAHLUTName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
-			m_pSlopeAndHeightLUT = (false != bResult) ? pTextureManager->Get(m_strSAHLUTName) : NULL;
-			bResult = (NULL != m_pSlopeAndHeightLUT) && CreateSlopeAndHeightLUT(oConfig);
+			m_strSAHLUTName = m_strSAHLUTName.substr(0, m_strSAHLUTName.find_last_of('.')) + string(".bmp");
+			bResult = pTextureManager->Load(m_strSAHLUTName, m_strSAHLUTName, DisplayTexture::EType_2D);
+			if ((false == bResult) || (false != bRebuildLookupTable))
+			{
+				if (false != bResult)
+				{
+					pTextureManager->Unload(m_strSAHLUTName);
+					m_pSlopeAndHeightLUT = NULL;
+				}
+				bResult = pTextureManager->New(m_strSAHLUTName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
+				m_pSlopeAndHeightLUT = (false != bResult) ? pTextureManager->Get(m_strSAHLUTName) : NULL;
+				bResult = (NULL != m_pSlopeAndHeightLUT) && CreateSlopeAndHeightLUT(oConfig);
+			}
 		}
 
 		return bResult;
@@ -169,8 +185,9 @@ namespace ElixirEngine
 				for (float v = 0.0f ; 1.0f > v ; v += fVStep)
 				{
 					UIntPtr pRaw = reinterpret_cast<UIntPtr>(&pData[sRawIndex * oLockRect.Pitch]);
-					for (float u = 0.0f ; 1.0f > u ; v += fUStep)
+					for (float u = 0.0f ; 1.0f > u ; u += fUStep)
 					{
+						*pRaw = D3DCOLOR_ARGB(255, 0, 255, 255);
 						LayerVec::iterator iLayer = m_vLayers.begin();
 						while (iEnd != iLayer)
 						{
@@ -185,6 +202,20 @@ namespace ElixirEngine
 					++sRawIndex;
 				}
 				bResult = SUCCEEDED(pTexture->UnlockRect(0));
+				if (false != bResult)
+				{
+					BufferPtr pBuffer;
+					bResult = SUCCEEDED(D3DXSaveTextureToFileInMemory(&pBuffer, D3DXIFF_BMP, m_pSlopeAndHeightLUT->GetBase(), NULL));
+					if (false != bResult)
+					{
+						FilePtr pFile = FS::GetRoot()->OpenFile(m_strSAHLUTName, FS::EOpenMode_CREATEBINARY);
+						if (NULL != pFile)
+						{
+							pFile->Write(pBuffer->GetBufferPointer(), pBuffer->GetBufferSize());
+							FS::GetRoot()->CloseFile(pFile);
+						}
+					}
+				}
 			}
 		}
 
