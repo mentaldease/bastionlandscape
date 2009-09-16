@@ -165,22 +165,6 @@ namespace BastionGame
 
 	void Application::Release()
 	{
-		if (NULL != m_pLandscapeLayerManager)
-		{
-			LandscapeLayerManager::SetInstance(NULL);
-			m_pLandscapeLayerManager->Release();
-			delete m_pLandscapeLayerManager;
-			m_pLandscapeLayerManager = NULL;
-		}
-		if (NULL != m_pInput)
-		{
-			Input::SetRoot(NULL);
-			m_pInput->Release();
-			delete m_pInput;
-			m_pInput = NULL;
-			m_pKeyboard = NULL;
-			m_pMouse = NULL;
-		}
 		if (NULL != m_pLandscape)
 		{
 			m_pLandscape->Close();
@@ -192,6 +176,22 @@ namespace BastionGame
 			m_pScene->Release();
 			delete m_pScene;
 			m_pScene = NULL;
+		}
+		if (NULL != m_pInput)
+		{
+			Input::SetRoot(NULL);
+			m_pInput->Release();
+			delete m_pInput;
+			m_pInput = NULL;
+			m_pKeyboard = NULL;
+			m_pMouse = NULL;
+		}
+		if (NULL != m_pLandscapeLayerManager)
+		{
+			m_pLandscapeLayerManager->Release();
+			delete m_pLandscapeLayerManager;
+			m_pLandscapeLayerManager = NULL;
+			LandscapeLayerManager::SetInstance(NULL);
 		}
 		if (NULL != m_pDisplay)
 		{
