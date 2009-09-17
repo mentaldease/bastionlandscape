@@ -30,9 +30,9 @@ namespace ElixirEngine
 	struct VertexDefault
 	{
 #if LANDSCAPE_USE_MORPHING
-		static VertexElement s_VertexElement[6];
+		static VertexElement s_VertexElement[7];
 #else // LANDSCAPE_USE_MORPHING
-		static VertexElement s_VertexElement[5];
+		static VertexElement s_VertexElement[6];
 #endif // LANDSCAPE_USE_MORPHING
 
 		VertexDefaultRef operator = (VertexIndependentRef _rVertexIndependent);
@@ -44,6 +44,7 @@ namespace ElixirEngine
 		Vector3	m_oNormal;
 		Vector4	m_oColor;
 		Vector2	m_oUV;
+		Vector2	m_oUV2;
 	};
 
 	struct VertexLiquid

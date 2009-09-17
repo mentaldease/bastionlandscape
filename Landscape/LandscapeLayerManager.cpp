@@ -174,7 +174,7 @@ namespace ElixirEngine
 			LockedRect oLockRect;
 			TexturePtr pTexture = static_cast<TexturePtr>(m_pSlopeAndHeightLUT->GetBase());
 			SurfaceDescPtr pDesc = m_pSlopeAndHeightLUT->GetDesc(D3DCUBEMAP_FACES(0));
-			bResult = (NULL != pTexture) && (NULL != pDesc) && SUCCEEDED(pTexture->LockRect(0, &oLockRect, NULL, D3DLOCK_DISCARD));
+			bResult = (NULL != pTexture) && (NULL != pDesc) && SUCCEEDED(pTexture->LockRect(0, &oLockRect, NULL, 0));
 			if (false != bResult)
 			{
 				const float fUStep = 1.0f / float(pDesc->Width);
