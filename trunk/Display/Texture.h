@@ -77,9 +77,13 @@ namespace ElixirEngine
 		DisplayTexturePtr Get(const string& _strName);
 		void UnloadAll();
 
+		DisplayTexturePtr GetBySemantic(const Key& _uSemanticKey);
+		void SetBySemantic(const Key& _uSemanticKey, DisplayTexturePtr _pTexture);
+
 	protected:
 		DisplayRef				m_rDisplay;
 		DisplayTexturePtrMap	m_mTextures;
+		DisplayTexturePtrMap	m_mSemanticTextures;
 	};
 
 }

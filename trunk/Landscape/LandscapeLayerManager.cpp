@@ -54,13 +54,13 @@ namespace ElixirEngine
 		Config oConfig;
 		bool bResult = oConfig.Create(boost::any(&oCCInfo));
 		int sAGS = 0;
-		bool bRebuildLookupTable = true;
+		int sRebuildLookupTable = 1;
 
 		if (false != bResult)
 		{
 			bResult = oConfig.GetValue("config.atlas_filename", m_strAtlasName)
 				&& oConfig.GetValue("config.atlas_grid_size", sAGS)
-				&& oConfig.GetValue("config.rebuild_lookuptable", bRebuildLookupTable);
+				&& oConfig.GetValue("config.rebuild_lookuptable", sRebuildLookupTable);
 		}
 
 		if (false != bResult)
@@ -78,7 +78,7 @@ namespace ElixirEngine
 			m_strSAHLUTName = pInfo->m_strPath;
 			m_strSAHLUTName = m_strSAHLUTName.substr(0, m_strSAHLUTName.find_last_of('.')) + string(".bmp");
 			bResult = pTextureManager->Load(m_strSAHLUTName, m_strSAHLUTName, DisplayTexture::EType_2D);
-			if ((false == bResult) || (false != bRebuildLookupTable))
+			if ((false == bResult) || (0 != sRebuildLookupTable))
 			{
 				if (false != bResult)
 				{
@@ -228,10 +228,12 @@ namespace ElixirEngine
 
 	LandscapeLayerManager::LandscapeLayerManager(DisplayRef _rDisplay)
 	:	CoreObject(),
+		m_mConfigs(),
 		m_rDisplay(_rDisplay),
-		m_mConfigs()
+		m_pCurrentLayering(NULL)
 	{
-
+		m_uAtlasDiffuseKey = MakeKey(string("ATLASDIFFUSETEX"));
+		m_uAtlasLUTKey = MakeKey(string("ATLASLUTTEX"));
 	}
 
 	LandscapeLayerManager::~LandscapeLayerManager()
@@ -263,6 +265,20 @@ namespace ElixirEngine
 	void LandscapeLayerManager::Release()
 	{
 		UnloadAll();
+	}
+
+	void LandscapeLayerManager::SetCurrentLayering(LandscapeLayeringPtr _pLayering)
+	{
+		if (m_pCurrentLayering != _pLayering)
+		{
+			m_pCurrentLayering = _pLayering;
+			if (NULL != m_pCurrentLayering)
+			{
+				DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
+				pTextureManager->SetBySemantic(m_uAtlasDiffuseKey, m_pCurrentLayering->GetAtlas());
+				pTextureManager->SetBySemantic(m_uAtlasLUTKey, m_pCurrentLayering->GetSlopeAndHeightLUT());
+			}
+		}
 	}
 
 	LandscapeLayeringPtr LandscapeLayerManager::Get(const string& _strFileName)

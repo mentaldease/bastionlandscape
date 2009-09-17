@@ -20,9 +20,10 @@ material =
 			semantic = "LIGHTDIR";
 		},
 		{
-			semantic = "DIFFUSETEX";
-			name = "diffuse00";
-			value = "data/landscapes/land01.tga";
+			semantic = "ATLASDIFFUSETEX";
+		},
+		{
+			semantic = "ATLASLUTTEX";
 		},
 		{
 			semantic = "MORPHFACTOR";

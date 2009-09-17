@@ -6,9 +6,19 @@ float4x4 g_mWorldInvTransp		: WORLDINVTRANSPOSE;
 float g_fMorphFactor			: MORPHFACTOR;
 float4 g_vLightDir				: LIGHTDIR;
 
-texture DiffuseTexture : DIFFUSETEX;
-sampler2D DiffuseSampler = sampler_state {
-    Texture = <DiffuseTexture>;
+texture AtlasDiffuseTexture : ATLASDIFFUSETEX;
+sampler2D AtlasDiffuseSampler = sampler_state {
+    Texture = <AtlasDiffuseTexture>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+
+texture AtlasLUTTexture : ATLASLUTTEX;
+sampler2D AtlasLUTSampler = sampler_state {
+    Texture = <AtlasLUTTexture>;
     MinFilter = Linear;
     MipFilter = Linear;
     MagFilter = Linear;
@@ -100,7 +110,10 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 { 
 	PS_OUTPUT Output;
 
-	Output.RGBColor = tex2D(DiffuseSampler, In.UV) * saturate(dot(In.Light, In.Normal));
+	float4 vTextureID = tex2D(AtlasLUTSampler, In.UV);
+	Output.RGBColor.r = vTextureID.x * 16.0;
+	Output.RGBColor.gb = Output.RGBColor.rr;
+	//Output.RGBColor = tex2D(AtlasDiffuseSampler, In.UV) * saturate(dot(In.Light, In.Normal));
 	Output.RGBColor.a = 1.0f;
 
 	return Output;
@@ -127,10 +140,7 @@ technique RenderScene
 {
     pass P0
     {          
-		//Lighting = TRUE;
 		//FillMode = wireframe;
-		//AlphaBlendEnable	= false;
-		//AlphaTestEnable		= false;
 
         VertexShader = compile vs_2_0 RenderSceneVS();
         PixelShader  = compile ps_2_0 RenderScenePS();

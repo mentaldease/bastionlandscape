@@ -313,6 +313,8 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("MORPHFACTOR"))] = boost::bind(&DisplayEffectParamMORPHFACTOR::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("LIGHTDIR"))] = boost::bind(&DisplayEffectParamLIGHTDIR::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("DIFFUSETEX"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ATLASDIFFUSETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ATLASLUTTEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 
 		return bResult;
 	}

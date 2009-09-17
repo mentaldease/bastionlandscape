@@ -1,0 +1,37 @@
+BASTION
+
+Description :
+RTS de bataille navale principalement.
+Pour chaque carte on controle un ensemble de navires afin de remplir un ou plusieurs objectifs principaux/secondaires.
+Types d'objectifs :
+	* destruction de bâtiments adverses (marins, terrestres ou aeriens).
+	* escorte de navires, camions, dirigeables, etc.
+	* défense de positions.
+
+Affichage :
+	* 3D, vue de dessus, isométique.
+	* la caméra peut être déplacée parallèlement au terrain.
+	* rotation de la caméra restreinte à l'axe vertical.
+	* la caméra peut aussi changer de hauteur. Avec ou sans pallier ??
+	* terrain affiché avec une grille régulière.
+	* texturing du terrain en splatting.
+
+Gameplay :
+	* solo contre l'ordinateur ou multijoueur contre ordinateur et/ou humains.
+	* plusieurs type de navires aux propriétés différentes :
+		- taille
+		- vitesse
+		- puissance de feu
+		- armure
+	* véhicules terrestres ou aériens disponibles aussi mais en moindre quantité aux fonctionnalités plus limitées :
+		- interventions de frappe aériennes sur une position donnée.
+		- avions ou camions radar pour détecter les bâtiments adverses.
+
+Network/communications :
+	* les interactions des joueurs(ordinateurs/humains) passent par un système de messages/événements.
+	* un message décrit précisément chage interaction de jeu :
+		- quand
+		- qui
+		- quoi
+		- paramètres
+	* communication des messages sur un modèle client/server même en mode solo afin que la gestion soit la même dans tous les cas.

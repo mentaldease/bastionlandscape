@@ -296,4 +296,15 @@ namespace ElixirEngine
 		m_mTextures.clear();
 	}
 
+	DisplayTexturePtr DisplayTextureManager::GetBySemantic(const Key& _uSemanticKey)
+	{
+		DisplayTexturePtrMap::iterator iPair = m_mSemanticTextures.find(_uSemanticKey);
+		DisplayTexturePtr pResult = (m_mSemanticTextures.end() != iPair) ? iPair->second : NULL;
+		return pResult;
+	}
+
+	void DisplayTextureManager::SetBySemantic(const Key& _uSemanticKey, DisplayTexturePtr _pTexture)
+	{
+		m_mSemanticTextures[_uSemanticKey] = _pTexture;
+	}
 }
