@@ -16,6 +16,8 @@ namespace ElixirEngine
 #endif // LANDSCAPE_USE_MORPHING
 		m_oNormal = _rVertexIndependent.m_oNormal;
 		m_oUV = _rVertexIndependent.m_oUV;
+		m_oUV2.x = _rVertexIndependent.m_fNormalizedSlope;
+		m_oUV2.y = _rVertexIndependent.m_fNormalizedHeight;
 		return *this;
 	}
 

@@ -138,9 +138,9 @@ namespace ElixirEngine
 						_rInfo.m_uWidth,
 						_rInfo.m_uHeight,
 						(false != _rInfo.m_bMipmap) ? D3DX_DEFAULT : 1,
-						((false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0 ) | D3DUSAGE_DYNAMIC,
+						(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0,
 						_rInfo.m_eFormat,
-						D3DPOOL_SYSTEMMEM,
+						D3DPOOL_MANAGED,
 						&m_pTexture));
 					if (false != bResult)
 					{
@@ -153,9 +153,9 @@ namespace ElixirEngine
 					bResult = (_rInfo.m_uWidth == _rInfo.m_uHeight) && SUCCEEDED(D3DXCreateCubeTexture(m_rDisplay.GetDevicePtr(),
 						_rInfo.m_uWidth,
 						(false != _rInfo.m_bMipmap) ? D3DX_DEFAULT : 1,
-						((false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0 ) | D3DUSAGE_DYNAMIC,
+						(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0,
 						_rInfo.m_eFormat,
-						D3DPOOL_SYSTEMMEM,
+						D3DPOOL_MANAGED,
 						&m_pCubeTexture));
 					if (false != bResult)
 					{

@@ -260,13 +260,12 @@ namespace ElixirEngine
 	{
 		struct ParamUseFunction
 		{
-			void Do(DisplayEffectParamPtr _pDisplayEffectParam)
+			void operator() (DisplayEffectParamPtr _pDisplayEffectParam)
 			{
 				_pDisplayEffectParam->Use();
 			}
 		};
-		static ParamUseFunction oPUF;
-		for_each(m_vParams.begin(), m_vParams.end(), boost::bind(&ParamUseFunction::Do, &oPUF, _1));
+		for_each(m_vParams.begin(), m_vParams.end(), ParamUseFunction());
 	}
 
 	DisplayEffectPtr DisplayMaterial::GetEffect()

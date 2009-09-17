@@ -1,10 +1,12 @@
 //--------------------------------------------------------------------------------------
 // Global variables
 //--------------------------------------------------------------------------------------
+
 float4x4 g_mWorldViewProjection	: WORLDVIEWPROJ;
 float4x4 g_mWorldInvTransp		: WORLDINVTRANSPOSE;
 float g_fMorphFactor			: MORPHFACTOR;
 float4 g_vLightDir				: LIGHTDIR;
+float4 g_vAtlasInfo				: ATLASINFO;
 
 texture AtlasDiffuseTexture : ATLASDIFFUSETEX;
 sampler2D AtlasDiffuseSampler = sampler_state {
@@ -26,12 +28,17 @@ sampler2D AtlasLUTSampler = sampler_state {
     AddressV = Wrap;
 };
 
+//--------------------------------------------------------------------------------------
+// Structs
+//--------------------------------------------------------------------------------------
+
 struct VS_INPUT
 {
 	float4 vPos		: POSITION;
 	float3 vNorm	: NORMAL;
 	float4 vDiffuse : COLOR0;
 	float2 vUV		: TEXCOORD0;
+	float2 vUV2		: TEXCOORD1;
 };
 
 struct VS_MORPHINPUT
@@ -41,11 +48,9 @@ struct VS_MORPHINPUT
 	float4 vPos2	: POSITION1;
 	float3 vNorm	: NORMAL;
 	float2 vUV		: TEXCOORD0;
+	float2 vUV2		: TEXCOORD1;
 };
 
-//--------------------------------------------------------------------------------------
-// VertexDefault shader output structure
-//--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {
 	float4 Position   : POSITION;   // vertex position
@@ -53,12 +58,18 @@ struct VS_OUTPUT
 	float2 UV         : TEXCOORD0;
 	float3 Light      : TEXCOORD1;
 	float3 Normal     : TEXCOORD2;  // vertex normal
+	float2 UV2        : TEXCOORD3;
 };
 
+struct PS_OUTPUT
+{
+	float4 RGBColor : COLOR0;  // Pixel color    
+};
 
 //--------------------------------------------------------------------------------------
-// This shader computes standard transform and lighting
+// Vertex functions
 //--------------------------------------------------------------------------------------
+
 VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 {
 	VS_OUTPUT Output = (VS_OUTPUT)0;
@@ -71,14 +82,11 @@ VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
 	Output.UV = In.vUV;
+	Output.UV2 = In.vUV2;
 
 	return Output;    
 }
-
-
-//--------------------------------------------------------------------------------------
-// This shader computes standard transform and lighting
-//--------------------------------------------------------------------------------------
+			
 VS_OUTPUT RenderSceneVS( VS_INPUT In )
 {
 	VS_OUTPUT Output = (VS_OUTPUT)0;
@@ -87,41 +95,68 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
-	Output.UV = In.vUV;
+	Output.UV = In.vUV * 20.0f;
+	Output.UV2 = In.vUV2;
 
 	return Output;    
 }
 
+//--------------------------------------------------------------------------------------
+// Pixel functions
+//--------------------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------------------
-// Pixel shader output structure
-//--------------------------------------------------------------------------------------
-struct PS_OUTPUT
+float GetMipmapLevel(float2 vUV, float2 vTileSize)
 {
-	float4 RGBColor : COLOR0;  // Pixel color    
-};
+	float2 dx = ddx(vUV * vTileSize.x);
+    float2 dy = ddy(vUV * vTileSize.y);
+    float d = max(dot(dx, dx), dot(dy, dy));
+    return 0.5 * log2(d);
+}
 
-
-//--------------------------------------------------------------------------------------
-// This shader outputs the pixel's color by modulating the texture's
-//       color with diffuse material color
-//--------------------------------------------------------------------------------------
 PS_OUTPUT RenderScenePS( VS_OUTPUT In ) 
 { 
 	PS_OUTPUT Output;
 
-	float4 vTextureID = tex2D(AtlasLUTSampler, In.UV);
-	Output.RGBColor.r = vTextureID.x * 16.0;
-	Output.RGBColor.gb = Output.RGBColor.rr;
+	//*
+	g_vAtlasInfo = float4(0.25, 0.25, 256.0, 8.0);
+
+	/// estimate mipmap/LOD level
+	float fLod = GetMipmapLevel(In.UV, float2(g_vAtlasInfo.z, g_vAtlasInfo.z));
+	fLod = clamp(fLod, 0.0, g_vAtlasInfo.w - 3.0);
+
+	/// get width/height of the whole pack texture for the current lod level
+	float fSize = pow(2.0, g_vAtlasInfo.w - fLod);
+	float fSizex = fSize / g_vAtlasInfo.x; // width in pixels
+	float fSizey = fSize / g_vAtlasInfo.y; // height in pixels
+
+	/// perform tiling
+	float2 vUV = frac(In.UV);
+
+	float4 vTexID = tex2D(AtlasLUTSampler, In.UV2);
+	int nbTiles = int(1.0 / g_vAtlasInfo.x);
+	int id0 = int(vTexID.x * 256.0);
+	float2 vTile = float2(modf(id0, nbTiles), id0 / nbTiles);
+	/// tweak pixels for correct bilinear filtering, and add offset for the wanted tile
+	vUV.x = vUV.x * ((fSizex * g_vAtlasInfo.x - 1.0) / fSizex) + 0.5 / fSizex + g_vAtlasInfo.x * vTile.x;
+	vUV.y = vUV.y * ((fSizey * g_vAtlasInfo.y - 1.0) / fSizey) + 0.5 / fSizey + g_vAtlasInfo.y * vTile.y;
+
+    Output.RGBColor = tex2Dlod(AtlasDiffuseSampler, float4(vUV, 0.0, fLod));
+	Output.RGBColor *= saturate(dot(In.Light, In.Normal));
+	//*/
+
+	/*
+	float4 vTextureID = tex2D(AtlasLUTSampler, In.UV2);
+	Output.RGBColor = vTextureID.xxxx * 16.0;
+	Output.RGBColor *= saturate(dot(In.Light, In.Normal));
 	//Output.RGBColor = tex2D(AtlasDiffuseSampler, In.UV) * saturate(dot(In.Light, In.Normal));
+	//*/
 	Output.RGBColor.a = 1.0f;
 
 	return Output;
 }
 
-
 //--------------------------------------------------------------------------------------
-// Renders scene to render target
+// Techniques
 //--------------------------------------------------------------------------------------
 
 technique RenderSceneMorph
@@ -131,8 +166,8 @@ technique RenderSceneMorph
 		Lighting = FALSE;
 		FillMode = wireframe;
 
-        VertexShader = compile vs_2_0 RenderSceneMorphVS();
-        PixelShader  = compile ps_2_0 RenderScenePS();
+        VertexShader = compile vs_3_0 RenderSceneMorphVS();
+        PixelShader  = compile ps_3_0 RenderScenePS();
     }
 }
 
@@ -142,7 +177,7 @@ technique RenderScene
     {          
 		//FillMode = wireframe;
 
-        VertexShader = compile vs_2_0 RenderSceneVS();
-        PixelShader  = compile ps_2_0 RenderScenePS();
+        VertexShader = compile vs_3_0 RenderSceneVS();
+        PixelShader  = compile ps_3_0 RenderScenePS();
     }
 }
