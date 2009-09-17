@@ -166,6 +166,7 @@ namespace ElixirEngine
 		void GetVertexPosition(const LODInfo& _rLODInfo, const unsigned int& _uIndexBufferIndex, const unsigned int& _uVertexStartIndex, Vector3& _rPosition);
 		bool SetIndices();
 		bool UseLODVertexBuffer(const unsigned int& _uLOD);
+		void UseLayering();
 
 		unsigned int m_uOutOfFrustum;
 
@@ -314,6 +315,7 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		void SetCurrentLayering(LandscapeLayeringPtr _pLayering);
 		LandscapeLayeringPtr Get(const string& _strFileName);
 		void UnloadAll();
 
@@ -325,8 +327,11 @@ namespace ElixirEngine
 	protected:
 		static LandscapeLayerManagerPtr	s_pInstance;
 
-		DisplayRef				m_rDisplay;
 		LandscapeLayeringPtrMap	m_mConfigs;
+		DisplayRef				m_rDisplay;
+		LandscapeLayeringPtr	m_pCurrentLayering;
+		Key						m_uAtlasDiffuseKey;
+		Key						m_uAtlasLUTKey;
 
 	private:
 	};

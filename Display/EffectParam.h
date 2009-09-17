@@ -733,6 +733,76 @@ namespace ElixirEngine
 
 	private:
 	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamSEMANTICTEX : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamSEMANTICTEX(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial),
+			m_pTexture(NULL)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamSEMANTICTEX()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+			if (false != bResult)
+			{
+				m_uSemanticKey = MakeKey(strSemanticName);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
+			m_pTexture = pTextureManager->GetBySemantic(m_uSemanticKey);
+			if (NULL != m_pTexture)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetTexture(m_hData, m_pTexture->GetBase());
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamSEMANTICTEX(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		DisplayTexturePtr	m_pTexture;
+		Key					m_uSemanticKey;
+
+	private:
+	};
 }
 
 #endif // __EFFECTPARAM_H__

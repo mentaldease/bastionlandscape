@@ -397,6 +397,11 @@ namespace ElixirEngine
 		return bResult;
 	}
 
+	void Landscape::UseLayering()
+	{
+		LandscapeLayerManager::GetInstance()->SetCurrentLayering(m_pLayering);
+	}
+
 	bool Landscape::CreateIndexBuffer()
 	{
 		bool bResult = false;

@@ -101,6 +101,7 @@ namespace ElixirEngine
 	void LandscapeChunk::RenderBegin()
 	{
 		DisplayEffectParamMORPHFACTOR::s_fMorphFactor = &m_fMorphFactor;
+		m_rLandscape.UseLayering();
 	}
 
 	void LandscapeChunk::Render()
