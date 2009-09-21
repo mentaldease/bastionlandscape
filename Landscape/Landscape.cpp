@@ -166,6 +166,7 @@ namespace ElixirEngine
 				uTemp >>= 1;
 				++(*_pPowerLevel);
 			}
+			//--(*_pPowerLevel);
 		}
 
 		bResult = (1 == uBitsCount); // is it a power of 2 number ??

@@ -35,7 +35,7 @@ namespace BastionGame
 	{
 		m_oLightDir = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
 		D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
-		DisplayEffectParamLIGHTDIR::s_pLightDir = &m_oLightDir;
+		DisplayEffectParamVECTOR4::s_pLightDir = &m_oLightDir;
 	}
 
 	Application::~Application()

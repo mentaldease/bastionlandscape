@@ -128,7 +128,7 @@ namespace ElixirEngine
 			void Reset();
 			bool Create(const OpenInfo& _rOpenInfo);
 			void Release();
-			bool IsPowerOf2(const unsigned int& _uValue, unsigned int* _pPowerLevel = NULL);
+			static bool IsPowerOf2(const unsigned int& _uValue, unsigned int* _pPowerLevel = NULL);
 
 			string					m_strName;
 			unsigned int			m_uQuadSize;
@@ -333,6 +333,7 @@ namespace ElixirEngine
 		LandscapeLayeringPtr	m_pCurrentLayering;
 		Key						m_uAtlasDiffuseKey;
 		Key						m_uAtlasLUTKey;
+		Key						m_uAtlasDiffuseInfoKey;
 
 	private:
 	};

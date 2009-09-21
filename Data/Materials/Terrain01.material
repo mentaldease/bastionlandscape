@@ -25,11 +25,9 @@ material =
 		{
 			semantic = "ATLASLUTTEX";
 		},
-		/*
 		{
 			semantic = "ATLASDIFFUSEINFO";
 		},
-		*/
 		{
 			semantic = "MORPHFACTOR";
 		}

@@ -120,8 +120,6 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 { 
 	PS_OUTPUT Output;
 
-	g_vAtlasInfo = float4(0.25, 0.25, 256.0, 8.0);
-
 	/// estimate mipmap/LOD level
 	float fLod = GetMipmapLevel(In.UV, float2(g_vAtlasInfo.z, g_vAtlasInfo.z));
 	fLod = clamp(fLod, 0.0, g_vAtlasInfo.w - 2.0); // "- 2.0" removes 1x1 and 2x2 LODs
