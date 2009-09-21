@@ -115,6 +115,7 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
+			++m_uLODCount;
 			m_uTotalLODStripSize = 0;
 			m_pLODs = new LODInfo[m_uLODCount];
 			LODInfoPtr pLODInfo = m_pLODs;
@@ -151,22 +152,23 @@ namespace ElixirEngine
 
 		if (NULL == _pPowerLevel)
 		{
-			while (0 != uTemp)
+			while (1 != uTemp)
 			{
 				uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
 				uTemp >>= 1;
 			}
+			uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
 		}
 		else
 		{
 			(*_pPowerLevel) = 0;
-			while (0 != uTemp)
+			while (1 != uTemp)
 			{
 				uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
 				uTemp >>= 1;
 				++(*_pPowerLevel);
 			}
-			//--(*_pPowerLevel);
+			uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
 		}
 
 		bResult = (1 == uBitsCount); // is it a power of 2 number ??
