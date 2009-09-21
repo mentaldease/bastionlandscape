@@ -463,7 +463,7 @@ technique Main <
 		ZFunc = LessEqual;
 		AlphaBlendEnable = false;
 		CullMode = cw;
-		FillMode = wireframe;
+		//FillMode = wireframe;
         PixelShader = compile ps_2_0 OceanPS(gEnvSampler,
 		    gKr,gKWater,gFresnelExp,gFresnelBias,gHDRMultiplier,
 		    gDeepColor,gShallowColor,gReflTint);

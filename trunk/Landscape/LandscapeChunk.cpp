@@ -10,6 +10,12 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	Key LandscapeChunk::s_uMorphFactorKey = MakeKey(string("MORPHFACTOR"));
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	LandscapeChunk::LandscapeChunk(Landscape& _rLandscape, DisplayRef _rDisplay, const unsigned int& _uLOD)
 	:	DisplayObject(_rDisplay),
 		m_rLandscape(_rLandscape),
@@ -100,7 +106,7 @@ namespace ElixirEngine
 
 	void LandscapeChunk::RenderBegin()
 	{
-		DisplayEffectParamMORPHFACTOR::s_fMorphFactor = &m_fMorphFactor;
+		m_rDisplay.GetMaterialManager()->SetFloatBySemantic(s_uMorphFactorKey, &m_fMorphFactor);
 		m_rLandscape.UseLayering();
 	}
 

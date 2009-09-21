@@ -235,6 +235,8 @@ namespace ElixirEngine
 		unsigned int GetLODID() const;
 
 	protected:
+		static Key				s_uMorphFactorKey;
+
 		LandscapeRef			m_rLandscape;
 		unsigned int			m_uStartVertexIndex;
 		unsigned int			m_uLOD;

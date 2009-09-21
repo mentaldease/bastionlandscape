@@ -33,9 +33,6 @@ namespace BastionGame
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f)
 	{
-		m_oLightDir = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
-		D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
-		DisplayEffectParamVECTOR4::s_pLightDir = &m_oLightDir;
 	}
 
 	Application::~Application()
@@ -88,8 +85,11 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			m_eStateMode = EStateMode_INITIALING_SHADERS;
-			DisplayEffectParamTIME::s_fTime = &m_fRelativeTime;
-			//DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
+			DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
+			m_oLightDir = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
+			D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
+			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
+			pMaterialManager->SetFloatBySemantic(MakeKey(string("TIME")), &m_fRelativeTime);
 			//bResult = pMaterialManager->LoadMaterial("basic00", "data/materials/basic00.material")
 			//	&& pMaterialManager->LoadMaterial("water00", "data/materials/water00.material");
 		}

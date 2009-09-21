@@ -27,20 +27,23 @@ namespace ElixirEngine
 	}
 
 	class CoreObject;
-	typedef CoreObject* CoreObjectPtr;
-	typedef CoreObject& CoreObjectRef;
-	typedef vector<CoreObjectPtr> CoreObjectPtrVec;
-	typedef map<CoreObjectPtr, int> CoreObjectPtrCounterMap;
-	typedef map<Key, CoreObjectPtr> CoreObjectPtrMap;
+	typedef CoreObject*				CoreObjectPtr;
+	typedef CoreObject&				CoreObjectRef;
+	typedef vector<CoreObjectPtr>	CoreObjectPtrVec;
+	typedef map<CoreObjectPtr, int>	CoreObjectPtrCounterMap;
+	typedef map<Key, CoreObjectPtr>	CoreObjectPtrMap;
 
-	typedef void*			VoidPtr;
-	typedef vector<VoidPtr>	VoidPtrVec;
-	typedef unsigned int	UInt;
-	typedef UInt*			UIntPtr;
-	typedef UInt&			UIntRef;
-	typedef unsigned char	Byte;
-	typedef Byte*			BytePtr;
-	typedef Byte&			ByteRef;
+	typedef void*				VoidPtr;
+	typedef vector<VoidPtr>		VoidPtrVec;
+	typedef unsigned int		UInt;
+	typedef UInt*				UIntPtr;
+	typedef UInt&				UIntRef;
+	typedef unsigned char		Byte;
+	typedef Byte*				BytePtr;
+	typedef Byte&				ByteRef;
+	typedef float*				FloatPtr;
+	typedef float&				FloatRef;
+	typedef map<Key, FloatPtr>	FloatPtrMap;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
