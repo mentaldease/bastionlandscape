@@ -100,7 +100,7 @@ namespace ElixirEngine
 			bResult = Landscape::GlobalInfo::IsPowerOf2(unsigned int(m_oShaderInfo.z), &uPowerLevel);
 			if (false != bResult)
 			{
-				m_oShaderInfo.w = float(uPowerLevel - 1);
+				m_oShaderInfo.w = float(uPowerLevel);
 			}
 		}
 
