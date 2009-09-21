@@ -595,16 +595,16 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class DisplayEffectParamLIGHTDIR : public DisplayEffectParam
+	class DisplayEffectParamVECTOR2 : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamLIGHTDIR(DisplayMaterialRef _rDisplayMaterial)
+		DisplayEffectParamVECTOR2(DisplayMaterialRef _rDisplayMaterial)
 		:	DisplayEffectParam(_rDisplayMaterial)
 		{
 
 		}
 
-		virtual ~DisplayEffectParamLIGHTDIR()
+		virtual ~DisplayEffectParamVECTOR2()
 		{
 
 		}
@@ -630,8 +630,156 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			//m_pLightDir = m_rDisplayMaterial.GetMaterialManager().GetVector4BySemantic(m_uSemanticKey);
-			if (NULL != s_pLightDir)
+			m_pData = m_rDisplayMaterial.GetMaterialManager().GetVector2BySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				m_oData.x = m_pData->x;
+				m_oData.y = m_pData->y;
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, &m_oData);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR2(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		Vector4		m_oData;
+		Vector2*	m_pData;
+		Key			m_uSemanticKey;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamVECTOR3 : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamVECTOR3(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamVECTOR3()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+			if (false != bResult)
+			{
+				m_uSemanticKey = MakeKey(strSemanticName);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			m_pData = m_rDisplayMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				m_oData.x = m_pData->x;
+				m_oData.y = m_pData->y;
+				m_oData.z = m_pData->z;
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, &m_oData);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR3(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		Vector4		m_oData;
+		Vector3*	m_pData;
+		Key			m_uSemanticKey;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamVECTOR4 : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamVECTOR4(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamVECTOR4()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+			if (false != bResult)
+			{
+				m_uSemanticKey = MakeKey(strSemanticName);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			m_pData = m_rDisplayMaterial.GetMaterialManager().GetVector4BySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, m_pData);
+				return SUCCEEDED(hResult);
+			}
+			else if (NULL != s_pLightDir)
 			{
 				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, s_pLightDir);
 				return SUCCEEDED(hResult);
@@ -642,7 +790,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamLIGHTDIR(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR4(*(pDEPCInfo->m_pDisplayMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -655,7 +803,77 @@ namespace ElixirEngine
 		static Vector4* s_pLightDir;
 
 	protected:
-		Vector4*	m_pLightDir;
+		Vector4*	m_pData;
+		Key			m_uSemanticKey;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamMATRIX : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamMATRIX(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamMATRIX()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+			if (false != bResult)
+			{
+				m_uSemanticKey = MakeKey(strSemanticName);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			m_pData = m_rDisplayMaterial.GetMaterialManager().GetMatrixBySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pData);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamMATRIX(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+		static Vector4* s_pLightDir;
+
+	protected:
+		MatrixPtr	m_pData;
 		Key			m_uSemanticKey;
 
 	private:

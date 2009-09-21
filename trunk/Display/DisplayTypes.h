@@ -18,9 +18,13 @@ namespace ElixirEngine
 	typedef D3DXVECTOR2						Vector2;
 	typedef D3DXVECTOR3						Vector3;
 	typedef D3DXVECTOR4						Vector4;
+	typedef map<Key, Vector2*>				Vector2PtrMap;
+	typedef map<Key, Vector3*>				Vector3PtrMap;
+	typedef map<Key, Vector4*>				Vector4PtrMap;
 	typedef D3DXMATRIX						Matrix;
 	typedef Matrix*							MatrixPtr;
 	typedef Matrix&							MatrixRef;
+	typedef map<Key, MatrixPtr>				MatrixPtrMap;
 	typedef D3DVERTEXELEMENT9				VertexElement;
 	typedef VertexElement*					VertexElementPtr;
 	typedef IDirect3DVertexBuffer9			VertexBuffer;

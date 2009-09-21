@@ -12,7 +12,7 @@ namespace ElixirEngine
 
 	float* DisplayEffectParamTIME::s_fTime = NULL;
 	float* DisplayEffectParamMORPHFACTOR::s_fMorphFactor = NULL;
-	Vector4* DisplayEffectParamLIGHTDIR::s_pLightDir = NULL;
+	Vector4* DisplayEffectParamVECTOR4::s_pLightDir = NULL;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -310,10 +310,11 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("ENVIRONMENTTEX"))] = boost::bind(&DisplayEffectParamENVIRONMENTTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NORMALTEX"))] = boost::bind(&DisplayEffectParamNORMALTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("MORPHFACTOR"))] = boost::bind(&DisplayEffectParamMORPHFACTOR::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("LIGHTDIR"))] = boost::bind(&DisplayEffectParamLIGHTDIR::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("LIGHTDIR"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("DIFFUSETEX"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ATLASDIFFUSETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ATLASLUTTEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ATLASDIFFUSEINFO"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 
 		return bResult;
 	}
@@ -507,5 +508,45 @@ namespace ElixirEngine
 	DisplayRef DisplayMaterialManager::GetDisplay()
 	{
 		return m_rDisplay;
+	}
+
+	void DisplayMaterialManager::SetVector2BySemantic(const Key& _uSemanticKey, Vector2* _pData)
+	{
+		m_mVector2Info[_uSemanticKey] = _pData;
+	}
+
+	Vector2* DisplayMaterialManager::GetVector2BySemantic(const Key& _uSemanticKey)
+	{
+		return m_mVector2Info[_uSemanticKey];
+	}
+
+	void DisplayMaterialManager::SetVector3BySemantic(const Key& _uSemanticKey, Vector3* _pData)
+	{
+		m_mVector3Info[_uSemanticKey] = _pData;
+	}
+
+	Vector3* DisplayMaterialManager::GetVector3BySemantic(const Key& _uSemanticKey)
+	{
+		return m_mVector3Info[_uSemanticKey];
+	}
+
+	void DisplayMaterialManager::SetVector4BySemantic(const Key& _uSemanticKey, Vector4* _pData)
+	{
+		m_mVector4Info[_uSemanticKey] = _pData;
+	}
+
+	Vector4* DisplayMaterialManager::GetVector4BySemantic(const Key& _uSemanticKey)
+	{
+		return m_mVector4Info[_uSemanticKey];
+	}
+
+	void DisplayMaterialManager::SetMatrixBySemantic(const Key& _uSemanticKey, MatrixPtr _pData)
+	{
+		m_mMatrixInfo[_uSemanticKey] = _pData;
+	}
+
+	MatrixPtr DisplayMaterialManager::GetMatrixBySemantic(const Key& _uSemanticKey)
+	{
+		return m_mMatrixInfo[_uSemanticKey];
 	}
 }

@@ -2,6 +2,7 @@
 #include "Landscape.h"
 #include "../Display/Display.h"
 #include "../Display/Texture.h"
+#include "../Display/Effect.h"
 #include "../Core/File.h"
 
 namespace ElixirEngine
@@ -65,7 +66,6 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			m_oShaderInfo.w = float(sAGS);
 			DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
 			bResult = pTextureManager->Load(m_strAtlasName, m_strAtlasName, DisplayTexture::EType_2D);
 			m_pAtlas = (false != bResult) ? pTextureManager->Get(m_strAtlasName) : NULL;
@@ -88,6 +88,19 @@ namespace ElixirEngine
 				bResult = pTextureManager->New(m_strSAHLUTName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
 				m_pSlopeAndHeightLUT = (false != bResult) ? pTextureManager->Get(m_strSAHLUTName) : NULL;
 				bResult = (NULL != m_pSlopeAndHeightLUT) && CreateSlopeAndHeightLUT(oConfig);
+			}
+		}
+
+		if (false != bResult)
+		{
+			m_oShaderInfo.x = 1.0f / float(sAGS);
+			m_oShaderInfo.y = 1.0f / float(sAGS);
+			m_oShaderInfo.z = m_pAtlas->GetDesc(D3DCUBEMAP_FACES(0))->Width / sAGS;
+			unsigned int uPowerLevel;
+			bResult = Landscape::GlobalInfo::IsPowerOf2(unsigned int(m_oShaderInfo.z), &uPowerLevel);
+			if (false != bResult)
+			{
+				m_oShaderInfo.w = float(uPowerLevel - 1);
 			}
 		}
 
@@ -236,6 +249,7 @@ namespace ElixirEngine
 	{
 		m_uAtlasDiffuseKey = MakeKey(string("ATLASDIFFUSETEX"));
 		m_uAtlasLUTKey = MakeKey(string("ATLASLUTTEX"));
+		m_uAtlasDiffuseInfoKey = MakeKey(string("ATLASDIFFUSEINFO"));
 	}
 
 	LandscapeLayerManager::~LandscapeLayerManager()
@@ -279,6 +293,8 @@ namespace ElixirEngine
 				DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
 				pTextureManager->SetBySemantic(m_uAtlasDiffuseKey, m_pCurrentLayering->GetAtlas());
 				pTextureManager->SetBySemantic(m_uAtlasLUTKey, m_pCurrentLayering->GetSlopeAndHeightLUT());
+				DisplayMaterialManagerPtr pMaterialManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetMaterialManager();
+				pMaterialManager->SetVector4BySemantic(m_uAtlasDiffuseInfoKey, &m_pCurrentLayering->GetShaderInfo());
 			}
 		}
 	}
