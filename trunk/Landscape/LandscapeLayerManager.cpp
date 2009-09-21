@@ -16,7 +16,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	bool LandscapeLayering::Layer::Evaluate(const float& _fHeight, const float& _fSlope)
+	bool LandscapeLayering::Layer::Evaluate(const float& _fSlope, const float& _fHeight)
 	{
 		bool bResult = (m_fMinHeight <= _fHeight)
 			&& (m_fMaxHeight >= _fHeight)
@@ -182,6 +182,7 @@ namespace ElixirEngine
 				LayerVec::iterator iEnd = m_vLayers.end();
 				BytePtr pData = static_cast<BytePtr>(oLockRect.pBits);
 				int sRawIndex = 0;
+				unsigned int uLastIndex = 0xff;
 				for (float v = 0.0f ; 1.0f > v ; v += fVStep)
 				{
 					UIntPtr pRaw = reinterpret_cast<UIntPtr>(&pData[sRawIndex * oLockRect.Pitch]);
@@ -191,9 +192,10 @@ namespace ElixirEngine
 						LayerVec::iterator iLayer = m_vLayers.begin();
 						while (iEnd != iLayer)
 						{
-							if (false != (*iLayer).Evaluate(v, u))
+							LayerRef rLayer = *iLayer;
+							if (false != rLayer.Evaluate(u, v))
 							{
-								*pRaw = D3DCOLOR_ARGB(255, (*iLayer).m_uAtlasIndex, 0, 0);
+								*pRaw = D3DCOLOR_ARGB(255, rLayer.m_uAtlasIndex, 0, 0);
 							}
 							++iLayer;
 						}

@@ -6,7 +6,7 @@ float4x4 g_mWorldViewProjection	: WORLDVIEWPROJ;
 float4x4 g_mWorldInvTransp		: WORLDINVTRANSPOSE;
 float g_fMorphFactor			: MORPHFACTOR;
 float4 g_vLightDir				: LIGHTDIR;
-float4 g_vAtlasInfo				: ATLASINFO;
+float4 g_vAtlasInfo				: ATLASDIFFUSEINFO;
 
 texture AtlasDiffuseTexture : ATLASDIFFUSETEX;
 sampler2D AtlasDiffuseSampler = sampler_state {
@@ -113,16 +113,18 @@ float GetMipmapLevel(float2 vUV, float2 vTileSize)
     return 0.5 * log2(d);
 }
 
+// This pixel function is based on Ysaneya's work
+// http://www.gamedev.net/community/forums/mod/journal/journal.asp?jn=263350&cmonth=4&cyear=2008 (see Thursday, April 10, 2008)
+// http://www.infinity-universe.com/Infinity/
 PS_OUTPUT RenderScenePS( VS_OUTPUT In ) 
 { 
 	PS_OUTPUT Output;
 
-	//*
 	g_vAtlasInfo = float4(0.25, 0.25, 256.0, 8.0);
 
 	/// estimate mipmap/LOD level
 	float fLod = GetMipmapLevel(In.UV, float2(g_vAtlasInfo.z, g_vAtlasInfo.z));
-	fLod = clamp(fLod, 0.0, g_vAtlasInfo.w - 3.0);
+	fLod = clamp(fLod, 0.0, g_vAtlasInfo.w - 2.0); // "- 2.0" removes 1x1 and 2x2 LODs
 
 	/// get width/height of the whole pack texture for the current lod level
 	float fSize = pow(2.0, g_vAtlasInfo.w - fLod);
@@ -134,22 +136,16 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 
 	float4 vTexID = tex2D(AtlasLUTSampler, In.UV2);
 	int nbTiles = int(1.0 / g_vAtlasInfo.x);
-	int id0 = int(vTexID.x * 256.0);
-	float2 vTile = float2(modf(id0, nbTiles), id0 / nbTiles);
+	int id0 = int(vTexID.x * 255.0);
+	float2 vTile = float2(id0 % nbTiles, id0 / nbTiles);
 	/// tweak pixels for correct bilinear filtering, and add offset for the wanted tile
 	vUV.x = vUV.x * ((fSizex * g_vAtlasInfo.x - 1.0) / fSizex) + 0.5 / fSizex + g_vAtlasInfo.x * vTile.x;
 	vUV.y = vUV.y * ((fSizey * g_vAtlasInfo.y - 1.0) / fSizey) + 0.5 / fSizey + g_vAtlasInfo.y * vTile.y;
 
     Output.RGBColor = tex2Dlod(AtlasDiffuseSampler, float4(vUV, 0.0, fLod));
-	Output.RGBColor *= saturate(dot(In.Light, In.Normal));
-	//*/
+	//Output.RGBColor = float4(vTexID.x * 16.0, 0.0, 0.0, 1.0); // color by slope intensity
 
-	/*
-	float4 vTextureID = tex2D(AtlasLUTSampler, In.UV2);
-	Output.RGBColor = vTextureID.xxxx * 16.0;
 	Output.RGBColor *= saturate(dot(In.Light, In.Normal));
-	//Output.RGBColor = tex2D(AtlasDiffuseSampler, In.UV) * saturate(dot(In.Light, In.Normal));
-	//*/
 	Output.RGBColor.a = 1.0f;
 
 	return Output;

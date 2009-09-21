@@ -262,7 +262,7 @@ namespace ElixirEngine
 
 		struct Layer
 		{
-			bool Evaluate(const float& _fHeight, const float& _fSlope);
+			bool Evaluate(const float& _fSlope, const float& _fHeight);
 
 			unsigned int	m_uAtlasIndex;
 			float			m_fMinHeight;

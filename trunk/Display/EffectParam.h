@@ -620,12 +620,17 @@ namespace ElixirEngine
 				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
 				bResult = (NULL != m_hData);
 			}
+			if (false != bResult)
+			{
+				m_uSemanticKey = MakeKey(strSemanticName);
+			}
 
 			return bResult;
 		}
 
 		virtual bool Use()
 		{
+			//m_pLightDir = m_rDisplayMaterial.GetMaterialManager().GetVector4BySemantic(m_uSemanticKey);
 			if (NULL != s_pLightDir)
 			{
 				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, s_pLightDir);
@@ -650,6 +655,9 @@ namespace ElixirEngine
 		static Vector4* s_pLightDir;
 
 	protected:
+		Vector4*	m_pLightDir;
+		Key			m_uSemanticKey;
+
 	private:
 	};
 
