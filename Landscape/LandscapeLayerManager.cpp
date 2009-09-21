@@ -95,7 +95,7 @@ namespace ElixirEngine
 		{
 			m_oShaderInfo.x = 1.0f / float(sAGS);
 			m_oShaderInfo.y = 1.0f / float(sAGS);
-			m_oShaderInfo.z = m_pAtlas->GetDesc(D3DCUBEMAP_FACES(0))->Width / sAGS;
+			m_oShaderInfo.z = float(m_pAtlas->GetDesc(D3DCUBEMAP_FACES(0))->Width / sAGS);
 			unsigned int uPowerLevel;
 			bResult = Landscape::GlobalInfo::IsPowerOf2(unsigned int(m_oShaderInfo.z), &uPowerLevel);
 			if (false != bResult)

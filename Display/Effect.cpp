@@ -10,14 +10,6 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	float* DisplayEffectParamTIME::s_fTime = NULL;
-	float* DisplayEffectParamMORPHFACTOR::s_fMorphFactor = NULL;
-	Vector4* DisplayEffectParamVECTOR4::s_pLightDir = NULL;
-
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-
 	DisplayEffect::DisplayEffect(DisplayRef _rDisplay)
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
@@ -288,6 +280,11 @@ namespace ElixirEngine
 		m_mEffects(),
 		m_mMaterials(),
 		m_mParamCreators(),
+		m_mFloatInfo(),
+		m_mVector2Info(),
+		m_mVector3Info(),
+		m_mVector4Info(),
+		m_mMatrixInfo(),
 		m_rDisplay(_rDisplay)
 	{
 
@@ -306,10 +303,10 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("WORLD"))] = boost::bind(&DisplayEffectParamWORLD::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("VIEWINV"))] = boost::bind(&DisplayEffectParamVIEWINV::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("WORLDINVTRANSPOSE"))] = boost::bind(&DisplayEffectParamWORLDINVTRANSPOSE::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TIME"))] = boost::bind(&DisplayEffectParamTIME::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TIME"))] = boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ENVIRONMENTTEX"))] = boost::bind(&DisplayEffectParamENVIRONMENTTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NORMALTEX"))] = boost::bind(&DisplayEffectParamNORMALTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("MORPHFACTOR"))] = boost::bind(&DisplayEffectParamMORPHFACTOR::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("MORPHFACTOR"))] = boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("LIGHTDIR"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("DIFFUSETEX"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ATLASDIFFUSETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
@@ -508,6 +505,16 @@ namespace ElixirEngine
 	DisplayRef DisplayMaterialManager::GetDisplay()
 	{
 		return m_rDisplay;
+	}
+
+	void DisplayMaterialManager::SetFloatBySemantic(const Key& _uSemanticKey, FloatPtr _pData)
+	{
+		m_mFloatInfo[_uSemanticKey] = _pData;
+	}
+
+	FloatPtr DisplayMaterialManager::GetFloatBySemantic(const Key& _uSemanticKey)
+	{
+		return m_mFloatInfo[_uSemanticKey];
 	}
 
 	void DisplayMaterialManager::SetVector2BySemantic(const Key& _uSemanticKey, Vector2* _pData)

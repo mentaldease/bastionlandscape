@@ -108,6 +108,8 @@ namespace ElixirEngine
 
 		DisplayRef GetDisplay();
 
+		void SetFloatBySemantic(const Key& _uSemanticKey, FloatPtr _pData);
+		FloatPtr GetFloatBySemantic(const Key& _uSemanticKey);
 		void SetVector2BySemantic(const Key& _uSemanticKey, Vector2* _pData);
 		Vector2* GetVector2BySemantic(const Key& _uSemanticKey);
 		void SetVector3BySemantic(const Key& _uSemanticKey, Vector3* _pData);
@@ -123,6 +125,7 @@ namespace ElixirEngine
 		DisplayEffectPtrMap		m_mEffects;
 		DisplayMaterialPtrMap	m_mMaterials;
 		CreateParamFuncMap		m_mParamCreators;
+		FloatPtrMap				m_mFloatInfo;
 		Vector2PtrMap			m_mVector2Info;
 		Vector3PtrMap			m_mVector3Info;
 		Vector4PtrMap			m_mVector4Info;

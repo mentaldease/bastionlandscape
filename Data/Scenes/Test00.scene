@@ -41,7 +41,7 @@ scene =
 			pixel_error_max = 2.5;
 			floor_scale = 5.0;
 			height_scale = 1.0;
-		},
+		}
 		*/
 		{
 			object_type = "landscape";
