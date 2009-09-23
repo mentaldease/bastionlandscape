@@ -52,17 +52,17 @@ namespace ElixirEngine
 		bool bResult = true;
 		for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 		{
-			const unsigned int uLODVertexPerRawCount = (m_oGlobalInfo.m_uVertexPerRawCount >> k) | 0x00000001;
-			const unsigned int uLODRawCount = (m_oGlobalInfo.m_uRawCount >> k) | 0x00000001;
-			const unsigned int uLODVertexCount = uLODVertexPerRawCount * uLODRawCount;
+			const unsigned int uLODVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
+			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
+			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			const unsigned int uLODIncrement = 0x00000001 << k;
-			const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-			const float fZOffset = float(m_oGlobalInfo.m_uRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+			const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+			const float fZOffset = float(m_oGlobalInfo.m_uRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
 			VertexIndependentPtr pVertexes = new VertexIndependent[uLODVertexCount];
 			VertexIndependentPtr pVertex = pVertexes;
-			for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += uLODIncrement)
+			for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += uLODIncrement)
 			{
-				for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += uLODIncrement)
+				for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += uLODIncrement)
 				{
 					pVertex->m_oPosition.x = float(i) * m_oGlobalInfo.m_fFloorScale - fXOffset;
 					pVertex->m_oPosition.y = 0.0f;
@@ -73,8 +73,8 @@ namespace ElixirEngine
 					pVertex->m_oNormal.x = 0.0f;
 					pVertex->m_oNormal.y = 0.0f;
 					pVertex->m_oNormal.z = 0.0f;
-					pVertex->m_oUV.x = float(i) / float(m_oGlobalInfo.m_uVertexPerRawCount - 1);
-					pVertex->m_oUV.y = float(j) / float(m_oGlobalInfo.m_uRawCount - 1);
+					pVertex->m_oUV.x = float(i) / float(m_oGlobalInfo.m_uVertexPerRowCount - 1);
+					pVertex->m_oUV.y = float(j) / float(m_oGlobalInfo.m_uRowCount - 1);
 					pVertex->m_fNormalizedHeight = 0.0f;
 					pVertex->m_fNormalizedSlope = 0.0f;
 					++pVertex;
@@ -84,9 +84,9 @@ namespace ElixirEngine
 			m_oGlobalInfo.m_pLODs[k].m_uIncrement = uLODIncrement;
 			m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent = pVertexes;
 			m_oGlobalInfo.m_pLODs[k].m_uVertexCount = uLODVertexCount;
-			m_oGlobalInfo.m_pLODs[k].m_uVertexPerRawCount = uLODVertexPerRawCount;
-			m_oGlobalInfo.m_pLODs[k].m_uRawCount = uLODRawCount;
-			m_oGlobalInfo.m_pLODs[k].m_uNumVertices = uLODVertexPerRawCount * (m_oGlobalInfo.m_uQuadSize + 1);
+			m_oGlobalInfo.m_pLODs[k].m_uVertexPerRowCount = uLODVertexPerRowCount;
+			m_oGlobalInfo.m_pLODs[k].m_uRowCount = uLODRowCount;
+			m_oGlobalInfo.m_pLODs[k].m_uNumVertices = uLODVertexPerRowCount * (m_oGlobalInfo.m_uQuadSize + 1);
 #if LANDSCAPE_USE_MORPHING
 			//ComputeVertexIndependentMorphs(m_oGlobalInfo.m_pLODs[k]);
 #endif // LANDSCAPE_USE_MORPHING
@@ -103,26 +103,26 @@ namespace ElixirEngine
 	{
 		VertexIndependentPtr pVertex = _rLODInfo.m_pVertexesIndependent;
 		VertexIndependentPtr pPrevVertex = NULL;
-		for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += _rLODInfo.m_uIncrement)
+		for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += _rLODInfo.m_uIncrement)
 		{
-			for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += _rLODInfo.m_uIncrement)
+			for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += _rLODInfo.m_uIncrement)
 			{
 				if (0 != (j % 2))
 				{
 					if (0 != (i % 2))
 					{
-						const int sPrevRawIndex = -int(_rLODInfo.m_uVertexPerRawCount) + 1;
-						const int sNextRawIndex = int(_rLODInfo.m_uVertexPerRawCount) - 1;
+						const int sPrevRowIndex = -int(_rLODInfo.m_uVertexPerRowCount) + 1;
+						const int sNextRowIndex = int(_rLODInfo.m_uVertexPerRowCount) - 1;
 #if LANDSCAPE_USE_MORPHING
-						pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
+						pVertex[0].m_oPosition2 = pVertex[sPrevRowIndex].m_oPosition + (pVertex[sNextRowIndex].m_oPosition - pVertex[sPrevRowIndex].m_oPosition) / 2.0f;
 #endif // LANDSCAPE_USE_MORPHING
 					}
 					else
 					{
-						const int sPrevRawIndex = -int(_rLODInfo.m_uVertexPerRawCount);
-						const int sNextRawIndex = int(_rLODInfo.m_uVertexPerRawCount);
+						const int sPrevRowIndex = -int(_rLODInfo.m_uVertexPerRowCount);
+						const int sNextRowIndex = int(_rLODInfo.m_uVertexPerRowCount);
 #if LANDSCAPE_USE_MORPHING
-						pVertex[0].m_oPosition2 = pVertex[sPrevRawIndex].m_oPosition + (pVertex[sNextRawIndex].m_oPosition - pVertex[sPrevRawIndex].m_oPosition) / 2.0f;
+						pVertex[0].m_oPosition2 = pVertex[sPrevRowIndex].m_oPosition + (pVertex[sNextRowIndex].m_oPosition - pVertex[sPrevRowIndex].m_oPosition) / 2.0f;
 #endif // LANDSCAPE_USE_MORPHING
 					}
 				}
@@ -147,23 +147,23 @@ namespace ElixirEngine
 	{
 		const int aIndexOffsets[6 * 2] =
 		{
-			0 - int(_rLODInfo.m_uVertexPerRawCount), -1,
-			1 - int(_rLODInfo.m_uVertexPerRawCount), 0 - int(_rLODInfo.m_uVertexPerRawCount),
-			1, 1 - int(_rLODInfo.m_uVertexPerRawCount),
-			-1, 0 - int(_rLODInfo.m_uVertexPerRawCount),
-			-1 + int(_rLODInfo.m_uVertexPerRawCount), 0 + int(_rLODInfo.m_uVertexPerRawCount),
-			0 + int(_rLODInfo.m_uVertexPerRawCount), 1
+			0 - int(_rLODInfo.m_uVertexPerRowCount), -1,
+			1 - int(_rLODInfo.m_uVertexPerRowCount), 0 - int(_rLODInfo.m_uVertexPerRowCount),
+			1, 1 - int(_rLODInfo.m_uVertexPerRowCount),
+			-1, 0 - int(_rLODInfo.m_uVertexPerRowCount),
+			-1 + int(_rLODInfo.m_uVertexPerRowCount), 0 + int(_rLODInfo.m_uVertexPerRowCount),
+			0 + int(_rLODInfo.m_uVertexPerRowCount), 1
 		};
 		const Vector3 oUp(0.0f, 1.0f, 0.0f);
 		VertexIndependentPtr pVertex = _rLODInfo.m_pVertexesIndependent;
-		for (int j = 0 ; int(_rLODInfo.m_uRawCount) > j ; ++j)
+		for (int j = 0 ; int(_rLODInfo.m_uRowCount) > j ; ++j)
 		{
-			for (int i = 0 ; int(_rLODInfo.m_uVertexPerRawCount) > i ; ++i)
+			for (int i = 0 ; int(_rLODInfo.m_uVertexPerRowCount) > i ; ++i)
 			{
 				for (int k = 0 ; 6 > k ; ++k)
 				{
-					const int sIndex1 = i + j * int(_rLODInfo.m_uVertexPerRawCount) + aIndexOffsets[k * 2 + 0];
-					const int sIndex2 = i + j * int(_rLODInfo.m_uVertexPerRawCount) + aIndexOffsets[k * 2 + 1];
+					const int sIndex1 = i + j * int(_rLODInfo.m_uVertexPerRowCount) + aIndexOffsets[k * 2 + 0];
+					const int sIndex2 = i + j * int(_rLODInfo.m_uVertexPerRowCount) + aIndexOffsets[k * 2 + 1];
 					if ((0 <= sIndex1) && (int(_rLODInfo.m_uVertexCount) > sIndex1)
 						&& (0 <= sIndex2) && (int(_rLODInfo.m_uVertexCount) > sIndex2))
 					{
@@ -189,26 +189,26 @@ namespace ElixirEngine
 		bool bResult = false;
 		for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 		{
-			const unsigned int uLODVertexPerRawCount = (m_oGlobalInfo.m_uVertexPerRawCount >> k) | 0x00000001;
-			const unsigned int uLODRawCount = (m_oGlobalInfo.m_uRawCount >> k) | 0x00000001;
-			const unsigned int uLODVertexCount = uLODVertexPerRawCount * uLODRawCount;
+			const unsigned int uLODVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
+			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
+			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(VertexDefault), sizeof(VertexDefault), VertexDefault::s_VertexElement };
 			DisplayVertexBufferPtr pVertexBuffer = m_rDisplay.CreateVertexBuffer(oVBCreateInfo);
 			bResult = (NULL != pVertexBuffer);
 			if (false != bResult)
 			{
 				const unsigned int uLODIncrement = 0x00000001 << k;
-				const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-				const float fZOffset = float(m_oGlobalInfo.m_uRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+				const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+				const float fZOffset = float(m_oGlobalInfo.m_uRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
 				VoidPtr pVertexes = new VertexDefault[uLODVertexCount];
 				VertexDefaultPtr pVertex = (VertexDefaultPtr)pVertexes;
 				VertexIndependentPtr pVertexIndependent = m_oGlobalInfo.m_pLODs[0].m_pVertexesIndependent;
-				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += uLODIncrement)
+				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += uLODIncrement)
 				{
-					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += uLODIncrement)
+					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += uLODIncrement)
 					{
-						const unsigned int uLOD0Index = i + j * m_oGlobalInfo.m_uVertexPerRawCount;
-						const unsigned int uLODkIndex = (i / uLODIncrement) + (j / uLODIncrement) * m_oGlobalInfo.m_pLODs[k].m_uVertexPerRawCount;
+						const unsigned int uLOD0Index = i + j * m_oGlobalInfo.m_uVertexPerRowCount;
+						const unsigned int uLODkIndex = (i / uLODIncrement) + (j / uLODIncrement) * m_oGlobalInfo.m_pLODs[k].m_uVertexPerRowCount;
 						*pVertex = pVertexIndependent[uLOD0Index];
 						const float fLODColor = 1.0f; //0.25f + (float(k) / float(m_oGlobalInfo.m_uLODCount - 1)) * 0.75f;
 						pVertex->m_oColor.x = fLODColor;
@@ -244,26 +244,26 @@ namespace ElixirEngine
 		bool bResult = false;
 		for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 		{
-			const unsigned int uLODVertexPerRawCount = (m_oGlobalInfo.m_uVertexPerRawCount >> k) | 0x00000001;
-			const unsigned int uLODRawCount = (m_oGlobalInfo.m_uRawCount >> k) | 0x00000001;
-			const unsigned int uLODVertexCount = uLODVertexPerRawCount * uLODRawCount;
+			const unsigned int uLODVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
+			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
+			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(VertexLiquid), sizeof(VertexLiquid), VertexLiquid::s_VertexElement };
 			DisplayVertexBufferPtr pVertexBuffer = m_rDisplay.CreateVertexBuffer(oVBCreateInfo);
 			bResult = (NULL != pVertexBuffer);
 			if (false != bResult)
 			{
 				const unsigned int uLODIncrement = 0x00000001 << k;
-				const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-				const float fZOffset = float(m_oGlobalInfo.m_uRawCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+				const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
+				const float fZOffset = float(m_oGlobalInfo.m_uRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
 				VoidPtr pVertexes = new VertexLiquid[uLODVertexCount];
 				VertexLiquidPtr pVertex = (VertexLiquidPtr)pVertexes;
 				VertexIndependentPtr pVertexIndependent = m_oGlobalInfo.m_pLODs[0].m_pVertexesIndependent;
-				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRawCount > j ; j += uLODIncrement)
+				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += uLODIncrement)
 				{
-					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRawCount > i ; i += uLODIncrement)
+					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += uLODIncrement)
 					{
-						const unsigned int uLOD0Index = i + j * m_oGlobalInfo.m_uVertexPerRawCount;
-						const unsigned int uLODkIndex = (i / uLODIncrement) + (j / uLODIncrement) * m_oGlobalInfo.m_pLODs[k].m_uVertexPerRawCount;
+						const unsigned int uLOD0Index = i + j * m_oGlobalInfo.m_uVertexPerRowCount;
+						const unsigned int uLODkIndex = (i / uLODIncrement) + (j / uLODIncrement) * m_oGlobalInfo.m_pLODs[k].m_uVertexPerRowCount;
 						*pVertex = pVertexIndependent[uLOD0Index];
 						pVertex->m_oTangent.x = 0.0f;
 						pVertex->m_oTangent.y = 0.0f;

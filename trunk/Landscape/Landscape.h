@@ -109,8 +109,8 @@ namespace ElixirEngine
 			unsigned int			m_uGridSize;
 			unsigned int			m_uQuadSize;
 			unsigned int			m_uGeometricError;
-			unsigned int			m_uVertexPerRawCount;
-			unsigned int			m_uRawCount;
+			unsigned int			m_uVertexPerRowCount;
+			unsigned int			m_uRowCount;
 			unsigned int			m_uVertexCount;
 			unsigned int			m_uNumVertices;
 			unsigned int			m_uIncrement;
@@ -135,8 +135,8 @@ namespace ElixirEngine
 			unsigned int			m_uGridSize;
 			unsigned int			m_uChunkCount;
 			unsigned int			m_uVertexCount;
-			unsigned int			m_uVertexPerRawCount;
-			unsigned int			m_uRawCount;
+			unsigned int			m_uVertexPerRowCount;
+			unsigned int			m_uRowCount;
 			unsigned int			m_uStripSize;
 			unsigned int			m_uLODCount;
 			unsigned int			m_uTotalLODStripSize;
@@ -285,8 +285,10 @@ namespace ElixirEngine
 		virtual void Release();
 
 		bool CreateSlopeAndHeightLUT(ConfigRef _rConfig);
+		bool CreateNoise(ConfigRef _rConfig);
 		DisplayTexturePtr GetAtlas();
 		DisplayTexturePtr GetSlopeAndHeightLUT();
+		DisplayTexturePtr GetNoise();
 		Vector4& GetShaderInfo();
 
 	protected:
@@ -294,9 +296,11 @@ namespace ElixirEngine
 		LandscapeLayerManagerRef	m_rLandscapeLayerManager;
 		DisplayTexturePtr			m_pAtlas;
 		DisplayTexturePtr			m_pSlopeAndHeightLUT;
+		DisplayTexturePtr			m_pNoise;
 		Vector4						m_oShaderInfo;
 		string						m_strAtlasName;
 		string						m_strSAHLUTName;
+		string						m_strNoiseName;
 
 	private:
 	};
@@ -335,6 +339,7 @@ namespace ElixirEngine
 		LandscapeLayeringPtr	m_pCurrentLayering;
 		Key						m_uAtlasDiffuseKey;
 		Key						m_uAtlasLUTKey;
+		Key						m_uNoiseKey;
 		Key						m_uAtlasDiffuseInfoKey;
 
 	private:

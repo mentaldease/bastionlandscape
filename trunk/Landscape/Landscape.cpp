@@ -56,8 +56,8 @@ namespace ElixirEngine
 		m_uGridSize(0),
 		m_uChunkCount(0),
 		m_uVertexCount(0),
-		m_uVertexPerRawCount(0),
-		m_uRawCount(0),
+		m_uVertexPerRowCount(0),
+		m_uRowCount(0),
 		m_uStripSize(0),
 		m_uLODCount(0),
 		m_uTotalLODStripSize(0),
@@ -79,8 +79,8 @@ namespace ElixirEngine
 		m_uGridSize = 0;
 		m_uChunkCount = 0;
 		m_uVertexCount = 0;
-		m_uVertexPerRawCount = 0;
-		m_uRawCount = 0;
+		m_uVertexPerRowCount = 0;
+		m_uRowCount = 0;
 		m_uStripSize = 0;
 		m_uLODCount = 0;
 		m_uTotalLODStripSize = 0;
@@ -99,9 +99,9 @@ namespace ElixirEngine
 		m_strName = _rOpenInfo.m_strName;
 		m_uQuadSize = _rOpenInfo.m_uQuadSize;
 		m_uGridSize = _rOpenInfo.m_uGridSize;
-		m_uVertexPerRawCount = _rOpenInfo.m_uQuadSize * _rOpenInfo.m_uGridSize + 1;
-		m_uRawCount = _rOpenInfo.m_uQuadSize * _rOpenInfo.m_uGridSize + 1;
-		m_uVertexCount = m_uVertexPerRawCount * m_uRawCount;
+		m_uVertexPerRowCount = _rOpenInfo.m_uQuadSize * _rOpenInfo.m_uGridSize + 1;
+		m_uRowCount = _rOpenInfo.m_uQuadSize * _rOpenInfo.m_uGridSize + 1;
+		m_uVertexCount = m_uVertexPerRowCount * m_uRowCount;
 		m_fPixelErrorMax = _rOpenInfo.m_fPixelErrorMax;
 		m_fFloorScale = _rOpenInfo.m_fFloorScale;
 		m_fHeightScale = _rOpenInfo.m_fHeightScale;
@@ -424,21 +424,21 @@ namespace ElixirEngine
 			{
 				const unsigned int uLODIncrement = (0x00000001 << 0);
 				const unsigned int uLODQuadSize = (m_oGlobalInfo.m_uQuadSize << 0);
-				const unsigned int uVertexPerRawCount = (m_oGlobalInfo.m_uVertexPerRawCount >> k) | 0x00000001;
+				const unsigned int uVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
 				for (unsigned int j = 0 ; uLODQuadSize > j ; j += uLODIncrement)
 				{
 					for (unsigned int i = 0 ; (uLODQuadSize + uLODIncrement) > i ; i += uLODIncrement)
 					{
-						*pIndexes = i + j * uVertexPerRawCount;
+						*pIndexes = i + j * uVertexPerRowCount;
 						++pIndexes;
-						*pIndexes = i + (j + uLODIncrement) * uVertexPerRawCount;
+						*pIndexes = i + (j + uLODIncrement) * uVertexPerRowCount;
 						++pIndexes;
 					}
 					if ((uLODQuadSize - uLODIncrement) != j)
 					{
-						*pIndexes = uLODQuadSize + (j + uLODIncrement) * uVertexPerRawCount;
+						*pIndexes = uLODQuadSize + (j + uLODIncrement) * uVertexPerRowCount;
 						++pIndexes;
-						*pIndexes = 0 + (j + uLODIncrement) * uVertexPerRawCount;
+						*pIndexes = 0 + (j + uLODIncrement) * uVertexPerRowCount;
 						++pIndexes;
 					}
 				}
@@ -499,11 +499,11 @@ namespace ElixirEngine
 			// foe each LOD
 			for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 			{
-				const unsigned int uLODVertexPerRawCount = m_oGlobalInfo.m_pLODs[k].m_uVertexPerRawCount;
-				const unsigned int uLODRawCount = (m_oGlobalInfo.m_uRawCount >> k) | 0x00000001;
+				const unsigned int uLODVertexPerRowCount = m_oGlobalInfo.m_pLODs[k].m_uVertexPerRowCount;
+				const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
 				const unsigned int uLODIncrement = 0x00000001 << k;
-				const float fVStep = 1.0f / float(uLODRawCount);
-				const float fUStep = 1.0f / float(uLODVertexPerRawCount);
+				const float fVStep = 1.0f / float(uLODRowCount);
+				const float fUStep = 1.0f / float(uLODVertexPerRowCount);
 				VertexIndependentPtr pVertexes = m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent;
 				VertexIndependentPtr pVertex = pVertexes;
 				DisplaySurface::UVInfo oUVInfo;
@@ -531,9 +531,9 @@ namespace ElixirEngine
 							}
 						}
 						// update vertex y with interpolated pixel value based on surface info
-						const float fRawHeight = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f;
-						pVertex->m_fNormalizedHeight = fRawHeight / 255.0f;
-						pVertex->m_oPosition.y = fRawHeight * m_oGlobalInfo.m_fHeightScale;
+						const float fRowHeight = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f;
+						pVertex->m_fNormalizedHeight = fRowHeight / 255.0f;
+						pVertex->m_oPosition.y = fRowHeight * m_oGlobalInfo.m_fHeightScale;
 						if (m_oGlobalInfo.m_fMinHeight > pVertex->m_oPosition.y)
 						{
 							m_oGlobalInfo.m_fMinHeight = pVertex->m_oPosition.y;

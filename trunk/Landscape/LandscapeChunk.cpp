@@ -46,7 +46,7 @@ namespace ElixirEngine
 		m_pLODInfo = &(rGlobalInfo.m_pLODs[m_uLOD]);
 		const unsigned int IndexX = pInfo->m_uX * rGlobalInfo.m_uQuadSize;
 		const unsigned int IndexZ = pInfo->m_uZ * rGlobalInfo.m_uQuadSize;
-		m_uStartVertexIndex = IndexX + IndexZ * m_pLODInfo->m_uVertexPerRawCount;
+		m_uStartVertexIndex = IndexX + IndexZ * m_pLODInfo->m_uVertexPerRowCount;
 
 		// center and extend
 		const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
@@ -154,8 +154,8 @@ namespace ElixirEngine
 			fDistance = (1.0f <= fDistance) ? fDistance : 1.0f;
 #else
 			const float fDelta = D3DXVec3Length(&oDelta);
-			const float fRawDistance = (fDelta - fExtends);
-			const float fDistance = (1.0f <= fRawDistance) ? fRawDistance : 1.0f;
+			const float fRowDistance = (fDelta - fExtends);
+			const float fDistance = (1.0f <= fRowDistance) ? fRowDistance : 1.0f;
 #endif
 			const float fVertexErrorLevel = (m_pLODInfo->m_uGeometricError / fDistance) * _fPixelSize;
 

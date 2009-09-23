@@ -1,4 +1,10 @@
 //--------------------------------------------------------------------------------------
+// Defines
+//--------------------------------------------------------------------------------------
+
+#define TERRAIN2_USE_NOISE	1
+
+//--------------------------------------------------------------------------------------
 // Global variables
 //--------------------------------------------------------------------------------------
 
@@ -21,6 +27,16 @@ sampler2D AtlasDiffuseSampler = sampler_state {
 texture AtlasLUTTexture : ATLASLUTTEX;
 sampler2D AtlasLUTSampler = sampler_state {
     Texture = <AtlasLUTTexture>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+
+texture NoiseTexture : NOISETEX;
+sampler2D NoiseSampler = sampler_state {
+    Texture = <NoiseTexture>;
     MinFilter = Linear;
     MipFilter = Linear;
     MagFilter = Linear;
@@ -132,7 +148,20 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 	/// perform tiling
 	float2 vUV = frac(In.UV);
 
+#if TERRAIN2_USE_NOISE
+	float2 vNoise = float2(1.0, 1.0);
+	float fNoiseFactor = 1.0;
+	vNoise *= tex2D(NoiseSampler, In.UV).xx * fNoiseFactor;
+	vNoise *= tex2D(NoiseSampler, In.UV * 2.0).xx * fNoiseFactor;
+	vNoise *= tex2D(NoiseSampler, In.UV * 4.0).xx * fNoiseFactor;
+	vNoise *= tex2D(NoiseSampler, In.UV * 8.0).xx * fNoiseFactor;
+	vNoise *= tex2D(NoiseSampler, In.UV * 16.0).xx * fNoiseFactor;
+	float2 vLUT = clamp(In.UV2 * 0.9 + vNoise * 0.1, float2(0.0, 0.0), float2(1.0, 1.0));
+	//float2 vLUT = clamp(In.UV2 + vNoise, float2(0.0, 0.0), float2(1.0, 1.0));
+	float4 vTexID = tex2D(AtlasLUTSampler, vLUT);
+#else // TERRAIN2_USE_NOISE
 	float4 vTexID = tex2D(AtlasLUTSampler, In.UV2);
+#endif // TERRAIN2_USE_NOISE
 	int nbTiles = int(1.0 / g_vAtlasInfo.x);
 	int id0 = int(vTexID.x * 255.0);
 	float2 vTile = float2(id0 % nbTiles, id0 / nbTiles);
