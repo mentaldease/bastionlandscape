@@ -4,6 +4,7 @@
 #include "../Display/Texture.h"
 #include "../Display/Effect.h"
 #include "../Core/File.h"
+#include "../Core/Noise.h"
 
 namespace ElixirEngine
 {
@@ -36,6 +37,7 @@ namespace ElixirEngine
 		m_rLandscapeLayerManager(_rLandscapeLayerManager),
 		m_pAtlas(NULL),
 		m_pSlopeAndHeightLUT(NULL),
+		m_pNoise(NULL),
 		m_oShaderInfo(0.0f, 0.0f, 0.0f, 0.0f),
 		m_strAtlasName(),
 		m_strSAHLUTName()
@@ -50,6 +52,7 @@ namespace ElixirEngine
 
 	bool LandscapeLayering::Create(const boost::any& _rConfig)
 	{
+		DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 		Config::CreateInfo oCCInfo = { pInfo->m_strPath };
 		Config oConfig;
@@ -66,7 +69,6 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
 			bResult = pTextureManager->Load(m_strAtlasName, m_strAtlasName, DisplayTexture::EType_2D);
 			m_pAtlas = (false != bResult) ? pTextureManager->Get(m_strAtlasName) : NULL;
 			bResult = (NULL != m_pAtlas);
@@ -74,7 +76,6 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
 			m_strSAHLUTName = pInfo->m_strPath;
 			m_strSAHLUTName = m_strSAHLUTName.substr(0, m_strSAHLUTName.find_last_of('.')) + string(".bmp");
 			bResult = pTextureManager->Load(m_strSAHLUTName, m_strSAHLUTName, DisplayTexture::EType_2D);
@@ -88,6 +89,24 @@ namespace ElixirEngine
 				bResult = pTextureManager->New(m_strSAHLUTName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
 				m_pSlopeAndHeightLUT = (false != bResult) ? pTextureManager->Get(m_strSAHLUTName) : NULL;
 				bResult = (NULL != m_pSlopeAndHeightLUT) && CreateSlopeAndHeightLUT(oConfig);
+			}
+		}
+
+		if (false != bResult)
+		{
+			m_strNoiseName = pInfo->m_strPath;
+			m_strNoiseName = m_strNoiseName.substr(0, m_strNoiseName.find_last_of('.')) + string("Noise.bmp");
+			bResult = pTextureManager->Load(m_strNoiseName, m_strNoiseName, DisplayTexture::EType_2D);
+			if ((false == bResult) || (0 != sRebuildLookupTable))
+			{
+				if (false != bResult)
+				{
+					pTextureManager->Unload(m_strNoiseName);
+					m_pNoise = NULL;
+				}
+				bResult = pTextureManager->New(m_strNoiseName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
+				m_pNoise = (false != bResult) ? pTextureManager->Get(m_strNoiseName) : NULL;
+				bResult = (NULL != m_pNoise) && CreateNoise(oConfig);
 			}
 		}
 
@@ -125,6 +144,11 @@ namespace ElixirEngine
 			pTextureManager->Unload(m_strAtlasName);
 			m_pAtlas = NULL;
 		}
+		if (NULL != m_pNoise)
+		{
+			pTextureManager->Unload(m_strNoiseName);
+			m_pNoise = NULL;
+		}
 		m_vLayers.clear();
 	}
 
@@ -136,6 +160,11 @@ namespace ElixirEngine
 	DisplayTexturePtr LandscapeLayering::GetSlopeAndHeightLUT()
 	{
 		return m_pSlopeAndHeightLUT;
+	}
+
+	DisplayTexturePtr LandscapeLayering::GetNoise()
+	{
+		return m_pNoise;
 	}
 
 	Vector4& LandscapeLayering::GetShaderInfo()
@@ -194,27 +223,26 @@ namespace ElixirEngine
 				const float fVStep = 1.0f / float(pDesc->Height);
 				LayerVec::iterator iEnd = m_vLayers.end();
 				BytePtr pData = static_cast<BytePtr>(oLockRect.pBits);
-				int sRawIndex = 0;
-				unsigned int uLastIndex = 0xff;
+				int sRowIndex = 0;
 				for (float v = 0.0f ; 1.0f > v ; v += fVStep)
 				{
-					UIntPtr pRaw = reinterpret_cast<UIntPtr>(&pData[sRawIndex * oLockRect.Pitch]);
+					UIntPtr pRow = reinterpret_cast<UIntPtr>(&pData[sRowIndex * oLockRect.Pitch]);
 					for (float u = 0.0f ; 1.0f > u ; u += fUStep)
 					{
-						*pRaw = D3DCOLOR_ARGB(255, 0, 255, 255);
+						*pRow = D3DCOLOR_ARGB(255, 0, 255, 255);
 						LayerVec::iterator iLayer = m_vLayers.begin();
 						while (iEnd != iLayer)
 						{
 							LayerRef rLayer = *iLayer;
 							if (false != rLayer.Evaluate(u, v))
 							{
-								*pRaw = D3DCOLOR_ARGB(255, rLayer.m_uAtlasIndex, 0, 0);
+								*pRow = D3DCOLOR_ARGB(255, rLayer.m_uAtlasIndex, 0, 0);
 							}
 							++iLayer;
 						}
-						++pRaw;
+						++pRow;
 					}
-					++sRawIndex;
+					++sRowIndex;
 				}
 				bResult = SUCCEEDED(pTexture->UnlockRect(0));
 				if (false != bResult)
@@ -237,6 +265,61 @@ namespace ElixirEngine
 		return bResult;
 	}
 
+	bool LandscapeLayering::CreateNoise(ConfigRef _rConfig)
+	{
+		NoiseGenerator oNoiseGenerator;
+		bool bResult = oNoiseGenerator.Create(boost::any(0));
+
+		if (false != bResult)
+		{
+			LockedRect oLockRect;
+			TexturePtr pTexture = static_cast<TexturePtr>(m_pNoise->GetBase());
+			SurfaceDescPtr pDesc = m_pNoise->GetDesc(D3DCUBEMAP_FACES(0));
+			bResult = (NULL != pTexture) && (NULL != pDesc) && SUCCEEDED(pTexture->LockRect(0, &oLockRect, NULL, 0));
+			if (false != bResult)
+			{
+				oNoiseGenerator.Process(int(pDesc->Width), int(pDesc->Height));
+				FloatPtr pSrcData = oNoiseGenerator.GetData();
+				const int sStride = oNoiseGenerator.GetStride();
+				BytePtr pData = static_cast<BytePtr>(oLockRect.pBits);
+
+				for (unsigned int j = 0 ; pDesc->Height > j ; ++j)
+				{
+					FloatPtr pSrcRow = pSrcData + size_t(j) * size_t(sStride);
+					UIntPtr pDstRow = reinterpret_cast<UIntPtr>(&pData[j * oLockRect.Pitch]);
+					for (unsigned int i = 0 ; pDesc->Width > i ; ++i)
+					{
+						const float fValue = ((*pSrcRow) < -1.0f) ? (*pSrcRow) + 1.0f : ((*pSrcRow) > 1.0f) ? (*pSrcRow) - 1.0f : (*pSrcRow);
+						const Byte uValue = Byte((fValue + 1.0f) * 0.5f * 255.0f);
+						*pDstRow = D3DCOLOR_ARGB(255, uValue, uValue, uValue);
+						++pDstRow;
+						++pSrcRow;
+					}
+				}
+			}
+			bResult = SUCCEEDED(pTexture->UnlockRect(0));
+
+			if (false != bResult)
+			{
+				BufferPtr pBuffer;
+				bResult = SUCCEEDED(D3DXSaveTextureToFileInMemory(&pBuffer, D3DXIFF_BMP, m_pNoise->GetBase(), NULL));
+				if (false != bResult)
+				{
+					FilePtr pFile = FS::GetRoot()->OpenFile(m_strNoiseName, FS::EOpenMode_CREATEBINARY);
+					if (NULL != pFile)
+					{
+						pFile->Write(pBuffer->GetBufferPointer(), pBuffer->GetBufferSize());
+						FS::GetRoot()->CloseFile(pFile);
+					}
+				}
+			}
+		}
+
+		oNoiseGenerator.Release();
+
+		return bResult;
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -250,6 +333,7 @@ namespace ElixirEngine
 		m_uAtlasDiffuseKey = MakeKey(string("ATLASDIFFUSETEX"));
 		m_uAtlasLUTKey = MakeKey(string("ATLASLUTTEX"));
 		m_uAtlasDiffuseInfoKey = MakeKey(string("ATLASDIFFUSEINFO"));
+		m_uNoiseKey = MakeKey(string("NOISETEX"));
 	}
 
 	LandscapeLayerManager::~LandscapeLayerManager()
@@ -293,6 +377,7 @@ namespace ElixirEngine
 				DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
 				pTextureManager->SetBySemantic(m_uAtlasDiffuseKey, m_pCurrentLayering->GetAtlas());
 				pTextureManager->SetBySemantic(m_uAtlasLUTKey, m_pCurrentLayering->GetSlopeAndHeightLUT());
+				pTextureManager->SetBySemantic(m_uNoiseKey, m_pCurrentLayering->GetNoise());
 				DisplayMaterialManagerPtr pMaterialManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetMaterialManager();
 				pMaterialManager->SetVector4BySemantic(m_uAtlasDiffuseInfoKey, &m_pCurrentLayering->GetShaderInfo());
 			}

@@ -26,6 +26,9 @@ material =
 			semantic = "ATLASLUTTEX";
 		},
 		{
+			semantic = "NOISETEX";
+		},
+		{
 			semantic = "ATLASDIFFUSEINFO";
 		},
 		{
