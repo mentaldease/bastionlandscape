@@ -90,6 +90,11 @@ namespace ElixirEngine
 				m_pSlopeAndHeightLUT = (false != bResult) ? pTextureManager->Get(m_strSAHLUTName) : NULL;
 				bResult = (NULL != m_pSlopeAndHeightLUT) && CreateSlopeAndHeightLUT(oConfig);
 			}
+			else
+			{
+				m_pSlopeAndHeightLUT = pTextureManager->Get(m_strSAHLUTName);
+				bResult = (NULL != m_pSlopeAndHeightLUT);
+			}
 		}
 
 		if (false != bResult)
@@ -107,6 +112,11 @@ namespace ElixirEngine
 				bResult = pTextureManager->New(m_strNoiseName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
 				m_pNoise = (false != bResult) ? pTextureManager->Get(m_strNoiseName) : NULL;
 				bResult = (NULL != m_pNoise) && CreateNoise(oConfig);
+			}
+			else
+			{
+				m_pNoise = pTextureManager->Get(m_strNoiseName);
+				bResult = (NULL != m_pNoise);
 			}
 		}
 
