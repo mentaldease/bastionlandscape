@@ -86,7 +86,7 @@ namespace ElixirEngine
 			m_oGlobalInfo.m_pLODs[k].m_uVertexCount = uLODVertexCount;
 			m_oGlobalInfo.m_pLODs[k].m_uVertexPerRowCount = uLODVertexPerRowCount;
 			m_oGlobalInfo.m_pLODs[k].m_uRowCount = uLODRowCount;
-			m_oGlobalInfo.m_pLODs[k].m_uNumVertices = uLODVertexPerRowCount * (m_oGlobalInfo.m_uQuadSize + 1);
+			m_oGlobalInfo.m_pLODs[k].m_uNumVertices = uLODVertexPerRowCount * (m_oGlobalInfo.m_uQuadSize + 1) - (uLODVertexPerRowCount - (m_oGlobalInfo.m_uQuadSize + 1));
 #if LANDSCAPE_USE_MORPHING
 			//ComputeVertexIndependentMorphs(m_oGlobalInfo.m_pLODs[k]);
 #endif // LANDSCAPE_USE_MORPHING

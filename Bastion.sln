@@ -24,8 +24,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Application", "Application\
 		{CD0A5B11-8FD1-4C60-9038-A583A4C23414} = {CD0A5B11-8FD1-4C60-9038-A583A4C23414}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libconfig++", "libconfig-1.3.2\libconfig++.vcproj", "{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bastion", "Bastion\Bastion.vcproj", "{A16EF48D-8015-4947-97CC-8E94DC560469}"
 	ProjectSection(ProjectDependencies) = postProject
 		{33FA3025-4977-466B-A665-FCF0EDF2C7E4} = {33FA3025-4977-466B-A665-FCF0EDF2C7E4}
@@ -33,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bastion", "Bastion\Bastion.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Display", "Display\Display.vcproj", "{9488B846-8068-4FBC-AEAE-4792EFE4DD17}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libconfig++", "libconfig\lib\libconfig++.vcproj", "{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,10 +56,6 @@ Global
 		{DBD11E5B-2E62-44DA-9210-DF82C0B03185}.Debug|Win32.Build.0 = Debug|Win32
 		{DBD11E5B-2E62-44DA-9210-DF82C0B03185}.Release|Win32.ActiveCfg = Release|Win32
 		{DBD11E5B-2E62-44DA-9210-DF82C0B03185}.Release|Win32.Build.0 = Release|Win32
-		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Debug|Win32.ActiveCfg = Debug|Win32
-		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Debug|Win32.Build.0 = Debug|Win32
-		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Release|Win32.ActiveCfg = Release|Win32
-		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Release|Win32.Build.0 = Release|Win32
 		{A16EF48D-8015-4947-97CC-8E94DC560469}.Debug|Win32.ActiveCfg = Debug|Win32
 		{A16EF48D-8015-4947-97CC-8E94DC560469}.Debug|Win32.Build.0 = Debug|Win32
 		{A16EF48D-8015-4947-97CC-8E94DC560469}.Release|Win32.ActiveCfg = Release|Win32
@@ -68,6 +64,10 @@ Global
 		{9488B846-8068-4FBC-AEAE-4792EFE4DD17}.Debug|Win32.Build.0 = Debug|Win32
 		{9488B846-8068-4FBC-AEAE-4792EFE4DD17}.Release|Win32.ActiveCfg = Release|Win32
 		{9488B846-8068-4FBC-AEAE-4792EFE4DD17}.Release|Win32.Build.0 = Release|Win32
+		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Debug|Win32.Build.0 = Debug|Win32
+		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Release|Win32.ActiveCfg = Release|Win32
+		{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
