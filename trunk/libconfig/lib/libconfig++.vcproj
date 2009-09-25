@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
-	Name="Bastion"
-	ProjectGUID="{A16EF48D-8015-4947-97CC-8E94DC560469}"
-	RootNamespace="Bastion"
+	Version="8.00"
+	Name="libconfig++"
+	ProjectGUID="{A0C36CE7-D908-4573-8B69-249EEEB7D2BE}"
+	RootNamespace="libconfig_c"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,8 +18,8 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="$(ProjectName).$(ConfigurationName)"
+			ConfigurationType="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -40,15 +40,10 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../libconfig/lib"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
+				AdditionalIncludeDirectories="lib"
+				PreprocessorDefinitions="LIBCONFIGXX_EXPORTS;LIBCONFIG_STATIC;YY_NO_UNISTD_H;YY_USE_CONST;WIN32;_DEBUG;_WINDOWS;_USRDLL"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="2"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="4"
+				UsePrecompiledHeader="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -61,6 +56,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)\$(ProjectName)_d.dll"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -94,8 +90,8 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
+			IntermediateDirectory="$(ProjectName).$(ConfigurationName)"
+			ConfigurationType="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -116,13 +112,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../libconfig/lib"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="lib"
+				PreprocessorDefinitions="LIBCONFIGXX_EXPORTS;LIBCONFIG_STATIC;YY_NO_UNISTD_H;YY_USE_CONST;_CRT_SECURE_NO_DEPRECATE;_STDLIB_H"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="2"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -135,9 +127,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				LinkIncremental="1"
-				GenerateDebugInformation="true"
-				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -177,28 +166,28 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Bastion.cpp"
+				RelativePath=".\grammar.c"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.cpp"
+				RelativePath=".\libconfig.c"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\libconfigcpp.cc"
+				>
+			</File>
+			<File
+				RelativePath=".\scanctx.c"
+				>
+			</File>
+			<File
+				RelativePath=".\scanner.c"
+				>
+			</File>
+			<File
+				RelativePath=".\strbuf.c"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -207,40 +196,46 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\Bastion.h"
+				RelativePath="..\ac_config.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Resource.h"
+				RelativePath=".\grammar.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath=".\libconfig.h"
+				>
+			</File>
+			<File
+				RelativePath=".\libconfig.hh"
+				>
+			</File>
+			<File
+				RelativePath=".\parsectx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\private.h"
+				>
+			</File>
+			<File
+				RelativePath=".\scanctx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\scanner.h"
+				>
+			</File>
+			<File
+				RelativePath=".\win32\stdint.h"
+				>
+			</File>
+			<File
+				RelativePath=".\wincompat.h"
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
-			<File
-				RelativePath=".\Bastion.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\Bastion.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\small.ico"
-				>
-			</File>
-		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
