@@ -111,7 +111,7 @@ namespace ElixirEngine
 		const unsigned int uBandJunctionVertexCount = 2 * (m_uQuadSize - 1);
 		m_uStripSize = uBandCount * uVertexPerBand + uBandJunctionVertexCount;
 
-		bool bResult = IsPowerOf2(m_uGridSize, &m_uLODCount) && IsPowerOf2(m_uQuadSize);
+		bool bResult = Display::IsPowerOf2(m_uGridSize, &m_uLODCount) && Display::IsPowerOf2(m_uQuadSize);
 
 		if (false != bResult)
 		{
@@ -143,39 +143,6 @@ namespace ElixirEngine
 			m_pLODs = NULL;
 		}
 	}
-
-	bool Landscape::GlobalInfo::IsPowerOf2(const unsigned int& _uValue, unsigned int* _pPowerLevel)
-	{
-		unsigned int uTemp = _uValue;
-		unsigned int uBitsCount = 0;
-		bool bResult = false;
-
-		if (NULL == _pPowerLevel)
-		{
-			while (1 != uTemp)
-			{
-				uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
-				uTemp >>= 1;
-			}
-			uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
-		}
-		else
-		{
-			(*_pPowerLevel) = 0;
-			while (1 != uTemp)
-			{
-				uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
-				uTemp >>= 1;
-				++(*_pPowerLevel);
-			}
-			uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
-		}
-
-		bResult = (1 == uBitsCount); // is it a power of 2 number ??
-
-		return bResult;
-	}
-
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

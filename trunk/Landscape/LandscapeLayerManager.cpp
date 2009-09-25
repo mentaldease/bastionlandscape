@@ -3,6 +3,7 @@
 #include "../Display/Display.h"
 #include "../Display/Texture.h"
 #include "../Display/Effect.h"
+#include "../Display/Surface.h"
 #include "../Core/File.h"
 #include "../Core/Noise.h"
 
@@ -69,9 +70,7 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			bResult = pTextureManager->Load(m_strAtlasName, m_strAtlasName, DisplayTexture::EType_2D);
-			m_pAtlas = (false != bResult) ? pTextureManager->Get(m_strAtlasName) : NULL;
-			bResult = (NULL != m_pAtlas);
+			bResult = CreateAtlas(oConfig);
 		}
 
 		if (false != bResult)
@@ -126,7 +125,7 @@ namespace ElixirEngine
 			m_oShaderInfo.y = 1.0f / float(sAGS);
 			m_oShaderInfo.z = float(m_pAtlas->GetDesc(D3DCUBEMAP_FACES(0))->Width / sAGS);
 			unsigned int uPowerLevel;
-			bResult = Landscape::GlobalInfo::IsPowerOf2(unsigned int(m_oShaderInfo.z), &uPowerLevel);
+			bResult = Display::IsPowerOf2(unsigned int(m_oShaderInfo.z), &uPowerLevel);
 			if (false != bResult)
 			{
 				m_oShaderInfo.w = float(uPowerLevel);
@@ -180,6 +179,110 @@ namespace ElixirEngine
 	Vector4& LandscapeLayering::GetShaderInfo()
 	{
 		return m_oShaderInfo;
+	}
+
+	bool LandscapeLayering::CreateAtlas(ConfigRef _rConfig)
+	{
+		DisplayTextureManagerPtr pTextureManager = LandscapeLayerManager::GetInstance()->GetDisplay().GetTextureManager();
+		DisplaySurfaceManagerPtr pSurfaceManager = m_rLandscapeLayerManager.GetDisplay().GetSurfaceManager();
+		bool bResult = pSurfaceManager->Load(m_strAtlasName, m_strAtlasName);
+		DisplaySurfacePtr pSurface = (false != bResult) ? pSurfaceManager->Get(m_strAtlasName) : NULL;
+
+		if (false != bResult)
+		{
+			ImageInfoRef rSurfaceInfo = pSurface->GetInfo();
+			bResult = pTextureManager->New(m_strAtlasName, rSurfaceInfo.Width, rSurfaceInfo.Height, D3DFMT_A8R8G8B8, true, DisplayTexture::EType_2D);
+			m_pAtlas = (false != bResult) ? pTextureManager->Get(m_strAtlasName) : NULL;
+		}
+		if (false != bResult)
+		{
+			unsigned int uWidthPow2Level;
+			unsigned int uHeightPow2Level;
+			ImageInfoRef rSurfaceInfo = pSurface->GetInfo();
+			bResult = Display::IsPowerOf2(rSurfaceInfo.Width, &uWidthPow2Level)
+				&& Display::IsPowerOf2(rSurfaceInfo.Height, &uHeightPow2Level)
+				&& pSurface->Lock(true);
+
+			if (false != bResult)
+			{
+				const unsigned int uMaxLOD = (uWidthPow2Level <= uHeightPow2Level) ? uWidthPow2Level : uHeightPow2Level;
+				TexturePtr pTexture = static_cast<TexturePtr>(m_pAtlas->GetBase());
+				LockedRect oLockRect;
+				UIntPtr pPixel;
+
+				for (unsigned int k = 0 ; uMaxLOD > k ; ++k)
+				{
+					bResult = SUCCEEDED(pTexture->LockRect(k, &oLockRect, NULL, 0));
+					if (false != bResult)
+					{
+						BytePtr pData = static_cast<BytePtr>(oLockRect.pBits);
+						const unsigned int uIncrement = 0x00000001 << k;
+						for (unsigned int j = 0, uRow = 0 ; rSurfaceInfo.Height > j ; j += uIncrement, ++uRow)
+						{
+							UIntPtr pRow = reinterpret_cast<UIntPtr>(&pData[uRow * oLockRect.Pitch]);
+							for (unsigned int i = 0 ; rSurfaceInfo.Width > i ; i += uIncrement)
+							{
+								pPixel = static_cast<UIntPtr>(pSurface->GetDataXY(i , j));
+								if (NULL == pPixel)
+								{
+									bResult = false;
+									break;
+								}
+								switch (rSurfaceInfo.Format)
+								{
+									case D3DFMT_A8R8G8B8:
+									{
+										*pRow = *pPixel;
+										break;
+									}
+									case D3DFMT_X8R8G8B8:
+									{
+										//*pRow = D3DCOLOR_ARGB(255, pPixel[0], pPixel[1], pPixel[2]);
+										*pRow = *pPixel | 0xff000000;
+										break;
+									}
+								}
+								++pRow;
+							}
+							if (false == bResult)
+							{
+								break;
+							}
+						}
+						bResult = SUCCEEDED(pTexture->UnlockRect(k)) && (false != bResult);
+					}
+					if (false == bResult)
+					{
+						break;
+					}
+				}
+				pSurface->Unlock();
+			}
+		}
+
+		if (false != bResult)
+		{
+			BufferPtr pBuffer;
+			bResult = SUCCEEDED(D3DXSaveTextureToFileInMemory(&pBuffer, D3DXIFF_DDS, m_pAtlas->GetBase(), NULL));
+			if (false != bResult)
+			{
+				const string strDDSName = m_strAtlasName.substr(0, m_strAtlasName.find_last_of('.')) + string(".dds");
+				FilePtr pFile = FS::GetRoot()->OpenFile(strDDSName, FS::EOpenMode_CREATEBINARY);
+				if (NULL != pFile)
+				{
+					pFile->Write(pBuffer->GetBufferPointer(), pBuffer->GetBufferSize());
+					FS::GetRoot()->CloseFile(pFile);
+				}
+				pBuffer->Release();
+			}
+		}
+
+		if (NULL != pSurface)
+		{
+			pSurfaceManager->Unload(m_strAtlasName);
+		}
+
+		return bResult;
 	}
 
 	bool LandscapeLayering::CreateSlopeAndHeightLUT(ConfigRef _rConfig)
@@ -267,6 +370,7 @@ namespace ElixirEngine
 							pFile->Write(pBuffer->GetBufferPointer(), pBuffer->GetBufferSize());
 							FS::GetRoot()->CloseFile(pFile);
 						}
+						pBuffer->Release();
 					}
 				}
 			}
@@ -321,6 +425,7 @@ namespace ElixirEngine
 						pFile->Write(pBuffer->GetBufferPointer(), pBuffer->GetBufferSize());
 						FS::GetRoot()->CloseFile(pFile);
 					}
+					pBuffer->Release();
 				}
 			}
 		}

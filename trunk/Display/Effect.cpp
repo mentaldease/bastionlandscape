@@ -55,6 +55,10 @@ namespace ElixirEngine
 				int a = 0;
 				++a;
 			}
+			if (NULL != pCompilErrors)
+			{
+				pCompilErrors->Release();
+			}
 		}
 		return bResult;
 	}
@@ -243,6 +247,7 @@ namespace ElixirEngine
 			DisplayMaterialPtr	m_pMaterial;
 		};
 		m_pEffect->GetEffect()->SetTechnique(m_hTechnique);
+		size_t uCount = m_vRenderList.size();
 		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderObjectFunction(this));
 		m_vRenderList.clear();
 

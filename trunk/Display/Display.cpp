@@ -38,7 +38,7 @@ namespace ElixirEngine
 			m_uVertexSize = pInfo->m_uVertexSize;
 			HRESULT hResult =  m_rDisplay.GetDevicePtr()->CreateVertexBuffer(
 				m_uBufferSize,
-				0,
+				D3DUSAGE_WRITEONLY,
 				0,
 				D3DPOOL_DEFAULT,
 				&m_pVertexBuffer,
@@ -138,7 +138,7 @@ namespace ElixirEngine
 			m_b16Bits = pInfo->m_b16Bits;
 			HRESULT hResult =  m_rDisplay.GetDevicePtr()->CreateIndexBuffer(
 				m_uBufferSize,
-				0,
+				D3DUSAGE_WRITEONLY,
 				m_b16Bits ? D3DFMT_INDEX16 : D3DFMT_INDEX32,
 				D3DPOOL_DEFAULT,
 				&m_pIndexBuffer,
@@ -600,5 +600,37 @@ namespace ElixirEngine
 			}
 		}
 		return 0;
+	}
+
+	bool Display::IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel)
+	{
+		unsigned int uTemp = _uValue;
+		unsigned int uBitsCount = 0;
+		bool bResult = false;
+
+		if (NULL == _pPowerLevel)
+		{
+			while (1 != uTemp)
+			{
+				uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
+				uTemp >>= 1;
+			}
+			uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
+		}
+		else
+		{
+			(*_pPowerLevel) = 0;
+			while (1 != uTemp)
+			{
+				uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
+				uTemp >>= 1;
+				++(*_pPowerLevel);
+			}
+			uBitsCount = (0x1 == (0x1 & uTemp)) ? (uBitsCount + 1) : uBitsCount;
+		}
+
+		bResult = (1 == uBitsCount); // is it a power of 2 number ??
+
+		return bResult;
 	}
 }
