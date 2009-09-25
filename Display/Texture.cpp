@@ -126,10 +126,15 @@ namespace ElixirEngine
 
 	bool DisplayTexture::New(CreateInfoRef _rInfo)
 	{
-		bool bResult = (0 != _rInfo.m_uWidth) && (0 != _rInfo.m_uHeight);
+		unsigned int uWidthPow2Level;
+		unsigned int uHeightPow2Level;
+		bool bResult = (0 != _rInfo.m_uWidth) && (0 != _rInfo.m_uHeight)
+			&& Display::IsPowerOf2(_rInfo.m_uWidth, &uWidthPow2Level)
+			&& Display::IsPowerOf2(_rInfo.m_uHeight, &uHeightPow2Level);
 
 		if (false != bResult)
 		{
+			const unsigned int uMaxLOD = (uWidthPow2Level <= uHeightPow2Level) ? uWidthPow2Level : uHeightPow2Level;
 			switch (_rInfo.m_eType)
 			{
 				case EType_2D:
@@ -137,8 +142,9 @@ namespace ElixirEngine
 					bResult = SUCCEEDED(D3DXCreateTexture(m_rDisplay.GetDevicePtr(),
 						_rInfo.m_uWidth,
 						_rInfo.m_uHeight,
-						(false != _rInfo.m_bMipmap) ? D3DX_DEFAULT : 1,
-						(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0,
+						(false != _rInfo.m_bMipmap) ? uMaxLOD : 1,
+						//(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0, // don't use D3DUSAGE_AUTOGENMIPMAP if you want to access each mipmap level
+						0,
 						_rInfo.m_eFormat,
 						D3DPOOL_MANAGED,
 						&m_pTexture));
@@ -153,7 +159,8 @@ namespace ElixirEngine
 					bResult = (_rInfo.m_uWidth == _rInfo.m_uHeight) && SUCCEEDED(D3DXCreateCubeTexture(m_rDisplay.GetDevicePtr(),
 						_rInfo.m_uWidth,
 						(false != _rInfo.m_bMipmap) ? D3DX_DEFAULT : 1,
-						(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0,
+						//(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0, // don't use D3DUSAGE_AUTOGENMIPMAP if you want to access each mipmap level
+						0,
 						_rInfo.m_eFormat,
 						D3DPOOL_MANAGED,
 						&m_pCubeTexture));

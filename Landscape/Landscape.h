@@ -128,7 +128,6 @@ namespace ElixirEngine
 			void Reset();
 			bool Create(const OpenInfo& _rOpenInfo);
 			void Release();
-			static bool IsPowerOf2(const unsigned int& _uValue, unsigned int* _pPowerLevel = NULL);
 
 			string					m_strName;
 			unsigned int			m_uQuadSize;
@@ -246,6 +245,8 @@ namespace ElixirEngine
 		Vector3					m_oExtends;
 		Landscape::LODInfoPtr	m_pLODInfo;
 		float					m_fMorphFactor;
+		unsigned int			m_uIndexX;
+		unsigned int			m_uIndexZ;
 
 	private:
 	};
@@ -284,6 +285,7 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		bool CreateAtlas(ConfigRef _rConfig);
 		bool CreateSlopeAndHeightLUT(ConfigRef _rConfig);
 		bool CreateNoise(ConfigRef _rConfig);
 		DisplayTexturePtr GetAtlas();

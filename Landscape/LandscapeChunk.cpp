@@ -25,7 +25,9 @@ namespace ElixirEngine
 		m_oCenter(0.0f, 0.0f, 0.0f),
 		m_oExtends(0.0f, 0.0f, 0.0f),
 		m_pLODInfo(NULL),
-		m_fMorphFactor(1.0f)
+		m_fMorphFactor(1.0f),
+		m_uIndexX(0),
+		m_uIndexZ(0)
 	{
 		m_pChildren[ESubChild_NORTHWEST] =
 		m_pChildren[ESubChild_NORTHEAST] =
@@ -43,10 +45,15 @@ namespace ElixirEngine
 		bool bResult = true;
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		m_pLODInfo = &(rGlobalInfo.m_pLODs[m_uLOD]);
-		const unsigned int IndexX = pInfo->m_uX * rGlobalInfo.m_uQuadSize;
-		const unsigned int IndexZ = pInfo->m_uZ * rGlobalInfo.m_uQuadSize;
-		m_uStartVertexIndex = IndexX + IndexZ * m_pLODInfo->m_uVertexPerRowCount;
+		m_pLODInfo = &rGlobalInfo.m_pLODs[m_uLOD];
+		m_uIndexX = pInfo->m_uX * rGlobalInfo.m_uQuadSize;
+		m_uIndexZ = pInfo->m_uZ * rGlobalInfo.m_uQuadSize;
+		//{
+		//	wchar_t wszBuffer[1024];
+		//	wsprintf(wszBuffer, L"%d;%d;%d\n", m_uIndexX, m_uIndexZ, m_uLOD);
+		//	OutputDebugString(wszBuffer);
+		//}
+		m_uStartVertexIndex = m_uIndexX + m_uIndexZ * m_pLODInfo->m_uVertexPerRowCount;
 
 		// center and extend
 		const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
@@ -54,7 +61,7 @@ namespace ElixirEngine
 		Vector3 oAABB[2] =
 		{
 			Vector3( FLT_MAX, FLT_MAX, FLT_MAX ),
-			Vector3( FLT_MIN, FLT_MIN, FLT_MIN )
+			Vector3( -FLT_MAX, -FLT_MAX, -FLT_MAX )
 		};
 		Vector3 oTemp;
 		for (unsigned int i = 0 ; uStripSize > i ; ++i)
@@ -88,6 +95,10 @@ namespace ElixirEngine
 					}
 					m_pChildren[uChild] = pLandscapeChunk;
 					++uChild;
+				}
+				if (false == bResult)
+				{
+					break;
 				}
 			}
 		}

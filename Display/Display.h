@@ -149,7 +149,8 @@ namespace ElixirEngine
 		MatrixPtr GetCurrentWorldMatrix();
 		MatrixPtr GetCurrentWorldInvTransposeMatrix();
 
-		unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
+		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
+		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
 
 	protected:
 		Direct3DPtr					m_pDirect3D;
