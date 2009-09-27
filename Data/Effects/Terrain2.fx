@@ -111,7 +111,7 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
-	Output.UV = In.vUV * 20.0f;
+	Output.UV = In.vUV * 10.0f;
 	Output.UV2 = In.vUV2;
 
 	return Output;    
@@ -152,12 +152,13 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 #if TERRAIN2_USE_NOISE
 	float2 vNoise = float2(1.0, 1.0);
 	float fNoiseFactor = 1.0;
-	vNoise *= tex2D(NoiseSampler, In.UV).xx * fNoiseFactor;
-	vNoise *= tex2D(NoiseSampler, In.UV * 2.0).xx * fNoiseFactor;
-	vNoise *= tex2D(NoiseSampler, In.UV * 4.0).xx * fNoiseFactor;
-	vNoise *= tex2D(NoiseSampler, In.UV * 8.0).xx * fNoiseFactor;
-	vNoise *= tex2D(NoiseSampler, In.UV * 16.0).xx * fNoiseFactor;
-	float2 vLUT = clamp(In.UV2 * 0.9 + vNoise * 0.1, float2(0.0, 0.0), float2(1.0, 1.0));
+	vNoise += tex2D(NoiseSampler, In.UV * 16.0).xx * fNoiseFactor;
+	vNoise += tex2D(NoiseSampler, In.UV * 8.0).xx * fNoiseFactor;
+	vNoise += tex2D(NoiseSampler, In.UV * 4.0).xx * fNoiseFactor;
+	vNoise += tex2D(NoiseSampler, In.UV * 2.0).xx * fNoiseFactor;
+	vNoise += tex2D(NoiseSampler, In.UV * 1.0).xx * fNoiseFactor;
+	vNoise /= 5.0;
+	float2 vLUT = clamp(In.UV2 * 0.99 + vNoise * 0.01, float2(0.0, 0.0), float2(1.0, 1.0));
 	float4 vTexID = tex2D(AtlasLUTSampler, vLUT);
 #else // TERRAIN2_USE_NOISE
 	float4 vTexID = tex2D(AtlasLUTSampler, In.UV2);
