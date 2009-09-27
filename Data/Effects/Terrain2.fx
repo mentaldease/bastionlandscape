@@ -2,7 +2,7 @@
 // Defines
 //--------------------------------------------------------------------------------------
 
-#define TERRAIN2_USE_NOISE	0
+#define TERRAIN2_USE_NOISE	1
 
 //--------------------------------------------------------------------------------------
 // Global variables
@@ -27,9 +27,9 @@ sampler2D AtlasDiffuseSampler = sampler_state {
 texture AtlasLUTTexture : ATLASLUTTEX;
 sampler2D AtlasLUTSampler = sampler_state {
     Texture = <AtlasLUTTexture>;
-    MinFilter = Linear;
-    MipFilter = Linear;
-    MagFilter = Linear;
+    MinFilter = None;
+    MipFilter = None;
+    MagFilter = None;
     AddressU = Wrap;
     AddressV = Wrap;
 };
@@ -37,9 +37,9 @@ sampler2D AtlasLUTSampler = sampler_state {
 texture NoiseTexture : NOISETEX;
 sampler2D NoiseSampler = sampler_state {
     Texture = <NoiseTexture>;
-    MinFilter = Linear;
-    MipFilter = Linear;
-    MagFilter = Linear;
+    MinFilter = None;
+    MipFilter = None;
+    MagFilter = None;
     AddressU = Wrap;
     AddressV = Wrap;
 };
@@ -126,7 +126,8 @@ float GetMipmapLevel(float2 vUV, float2 vTileSize)
 	float2 dx = ddx(vUV * vTileSize.x);
     float2 dy = ddy(vUV * vTileSize.y);
     float d = max(dot(dx, dx), dot(dy, dy));
-    return 0.5 * log2(d);
+    //return max(0.5 * log2(d), 0.0);
+	return log2(sqrt(d));
 }
 
 // This pixel function is based on Ysaneya's work
@@ -157,7 +158,6 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 	vNoise *= tex2D(NoiseSampler, In.UV * 8.0).xx * fNoiseFactor;
 	vNoise *= tex2D(NoiseSampler, In.UV * 16.0).xx * fNoiseFactor;
 	float2 vLUT = clamp(In.UV2 * 0.9 + vNoise * 0.1, float2(0.0, 0.0), float2(1.0, 1.0));
-	//float2 vLUT = clamp(In.UV2 + vNoise, float2(0.0, 0.0), float2(1.0, 1.0));
 	float4 vTexID = tex2D(AtlasLUTSampler, vLUT);
 #else // TERRAIN2_USE_NOISE
 	float4 vTexID = tex2D(AtlasLUTSampler, In.UV2);
