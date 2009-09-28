@@ -111,6 +111,7 @@ namespace ElixirEngine
 							{
 								break;
 							}
+							pSurface->Release();
 						}
 					}
 					break;
@@ -175,6 +176,7 @@ namespace ElixirEngine
 							{
 								break;
 							}
+							pSurface->Release();
 						}
 					}
 					break;

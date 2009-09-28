@@ -43,8 +43,6 @@ namespace BastionGame
 		typedef boost::function<void()> UpdateFunction;
 
 	protected:
-		void LoadLandscape();
-		void RenderLandscape();
 		void LoadScene();
 		void RenderScene();
 
