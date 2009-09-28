@@ -92,6 +92,7 @@ VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 
 	float4 vMorph = In.vPos2 + (In.vPos - In.vPos2) * g_fMorphFactor;
 	Output.Position = mul( vMorph, g_mWorldViewProjection );
+	Output.Position.z *= Output.Position.w;
 	float4 cRed = float4(1.0f, 0.0f, 0.0f, 1.0f);
 	float4 cMorph = cRed + (In.vDiffuse - cRed) * g_fMorphFactor;
 	Output.Diffuse = cMorph;

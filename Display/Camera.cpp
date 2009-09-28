@@ -70,6 +70,8 @@ namespace ElixirEngine
 			m_fFovy = pInfo->m_fDegreeFovy * (D3DX_PI / 180.0f);
 			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : (float)m_oViewport.Width / (float)m_oViewport.Height;
 			D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, pInfo->m_fZNear, pInfo->m_fZFar);
+			// the two following instructions lower z-fighting artifacts
+			// also make sure in the shaders to scale z position with w position : Output.Position.z *= Output.Position.w;
 			m_oMProjection._33 /= pInfo->m_fZFar;
 			m_oMProjection._43 /= pInfo->m_fZFar;
 			UpdatePixelSize();
