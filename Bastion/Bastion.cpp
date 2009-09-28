@@ -31,20 +31,26 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	WindowData oWindow;
+	WindowData m_oWindow;
 	Application* pApp = new Application;
 
-	oWindow.m_pCreateWindow = MyCreateWindow;
-	oWindow.m_hInstance = hInstance;
-	oWindow.m_hPrevInstance = hPrevInstance;
-	oWindow.m_lpCmdLine = lpCmdLine;
-	oWindow.m_nCmdShow = nCmdShow;
-	oWindow.m_oClientRect.left = 0;
-	oWindow.m_oClientRect.right = 0;
-	oWindow.m_oClientRect.right = 640;
-	oWindow.m_oClientRect.bottom = 480;
+	// default values
+	m_oWindow.m_pCreateWindow = MyCreateWindow;
+	m_oWindow.m_hInstance = hInstance;
+	m_oWindow.m_hPrevInstance = hPrevInstance;
+	m_oWindow.m_lpCmdLine = lpCmdLine;
+	m_oWindow.m_nCmdShow = nCmdShow;
+	m_oWindow.m_oClientRect.left = 0;
+	m_oWindow.m_oClientRect.right = 0;
+	m_oWindow.m_oClientRect.right = 640;
+	m_oWindow.m_oClientRect.bottom = 480;
+	m_oWindow.m_uDXColorFormat = D3DFMT_A8R8G8B8;
+	m_oWindow.m_uDXDepthFormat = D3DFMT_D24S8;
+	m_oWindow.m_fZNear = 1.0f;
+	m_oWindow.m_fZFar = 1000.0f;
+	m_oWindow.m_bFullScreen = false;
 
-	if (false != pApp->Create(boost::any(&oWindow)))
+	if (false != pApp->Create(boost::any(&m_oWindow)))
 	{
 		do
 		{

@@ -339,6 +339,7 @@ OceanVertOut OceanVS(AppData IN,
     float3 T = float3(0, ddy, 1);
     float3 N = float3(-ddx, 1, -ddy);
     OUT.HPosition = mul(Po,WvpXf);
+	OUT.HPosition.z *= OUT.HPosition.w;
     // pass texture coordinates for fetching the normal map
     float2 TextureScale = float2(TexReptX,TexReptY);
     float2 BumpSpeed = float2(BumpSpeedX,BumpSpeedY);
@@ -454,7 +455,7 @@ technique Main <
     pass p0 <
 	string Script = "Draw=geometry;";
     > {
-        VertexShader = compile vs_2_0 OceanVS(gWorldITXf,gWorldXf,
+        VertexShader = compile vs_3_0 OceanVS(gWorldITXf,gWorldXf,
 				gViewIXf,gWvpXf,
 		    gTimer,gWaveAmp,gWaveFreq,gBumpScale,
 		    gTexReptX,gTexReptY,gBumpSpeedX,gBumpSpeedY);
@@ -464,7 +465,7 @@ technique Main <
 		AlphaBlendEnable = false;
 		CullMode = cw;
 		//FillMode = wireframe;
-        PixelShader = compile ps_2_0 OceanPS(gEnvSampler,
+        PixelShader = compile ps_3_0 OceanPS(gEnvSampler,
 		    gKr,gKWater,gFresnelExp,gFresnelBias,gHDRMultiplier,
 		    gDeepColor,gShallowColor,gReflTint);
     }

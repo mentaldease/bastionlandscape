@@ -46,6 +46,36 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
+			m_oWindow = *(boost::any_cast<WindowData*>(_rConfig));
+			// modifiable values
+			Config::CreateInfo oCCInfo = { "data/bastion.cfg" };
+			Config oConfig;
+			if (false != oConfig.Create(boost::any(&oCCInfo)))
+			{
+				int sWidth = int(m_oWindow.m_oClientRect.right);
+				int sHeight = int(m_oWindow.m_oClientRect.bottom);
+				oConfig.GetValue(string("config.graphics.fullscreen"), m_oWindow.m_bFullScreen);
+				oConfig.GetValue(string("config.graphics.width"), sWidth);
+				oConfig.GetValue(string("config.graphics.height"), sHeight);
+				oConfig.GetValue(string("config.graphics.depth_near"), m_oWindow.m_fZNear);
+				oConfig.GetValue(string("config.graphics.depth_far"), m_oWindow.m_fZFar);
+				m_oWindow.m_oClientRect.right = sWidth;
+				m_oWindow.m_oClientRect.bottom = sHeight;
+				string strFormat;
+				if (false != oConfig.GetValue(string("config.graphics.color_format"), strFormat))
+				{
+					m_oWindow.m_uDXColorFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXColorFormat));
+				}
+				if (false != oConfig.GetValue(string("config.graphics.depth_format"), strFormat))
+				{
+					m_oWindow.m_uDXDepthFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXDepthFormat));
+				}
+			}
+			oConfig.Release();
+		}
+
+		if (false != bResult)
+		{
 			m_pTime = new Time;
 			bResult = m_pTime->Create(boost::any(0));
 			Time::SetRoot(m_pTime);
@@ -69,7 +99,7 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			m_eStateMode = EStateMode_INITIALING_WINDOW;
-			m_oWindow = *(boost::any_cast<WindowData*>(_rConfig));
+			//m_oWindow = *(boost::any_cast<WindowData*>(_rConfig));
 			m_eStateMode = (NULL != (*m_oWindow.m_pCreateWindow)(m_oWindow)) ? m_eStateMode : EStateMode_ERROR;
 			bResult = (EStateMode_ERROR != m_eStateMode);
 		}
@@ -90,8 +120,6 @@ namespace BastionGame
 			D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
 			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
 			pMaterialManager->SetFloatBySemantic(MakeKey(string("TIME")), &m_fRelativeTime);
-			//bResult = pMaterialManager->LoadMaterial("basic00", "data/materials/basic00.material")
-			//	&& pMaterialManager->LoadMaterial("water00", "data/materials/water00.material");
 		}
 
 		if (false != bResult)
@@ -129,7 +157,6 @@ namespace BastionGame
 				memset(m_aKeysInfo, 0, sizeof(unsigned char) * 256);
 				memset(&m_oMouseInfoOld, 0, sizeof(DIMouseState));
 				memset(&m_oMouseInfo, 0, sizeof(DIMouseState));
-				//m_pUpdateFunction = boost::bind(&Application::LoadLandscape, this);
 				m_pUpdateFunction = boost::bind(&Application::LoadScene, this);
 			}
 		}
@@ -234,42 +261,6 @@ namespace BastionGame
 	DisplayPtr Application::GetDisplay()
 	{
 		return m_pDisplay;
-	}
-
-	void Application::LoadLandscape()
-	{
-		if (NULL == m_pLandscape)
-		{
-			Landscape::OpenInfo oLOInfo = { "Landscape00", 16, 1, ELandscapeVertexFormat_LIQUID, "" };
-			m_pLandscape = new Landscape(*m_pDisplay);
-			if ((false == m_pLandscape->Create(boost::any(0)))
-				|| (false == m_pLandscape->Open(oLOInfo)))
-			{
-				m_pLandscape->Release();
-				delete m_pLandscape;
-				m_pLandscape = NULL;
-			}
-			else
-			{
-				m_pDisplay->GetCurrentCamera()->GetPosition() = Vector3(0.0f, 2.0f, -0.0f);
-				m_pLandscape->SetMaterial(m_pDisplay->GetMaterialManager()->GetMaterial("water00"));
-				m_pUpdateFunction = boost::bind(&Application::RenderLandscape, this);
-			}
-		}
-	}
-
-	void Application::RenderLandscape()
-	{
-		float fElapsedTime;
-		if (m_pTime->ResetTimer(m_uRLTimerID, fElapsedTime))
-		{
-			fElapsedTime /= 1000.0f;
-			m_fRelativeTime += fElapsedTime;
-			m_pInput->Update();
-			UpdateSpectatorCamera(fElapsedTime);
-			m_pLandscape->Update();
-			m_pDisplay->Update();
-		}
 	}
 
 	void Application::LoadScene()

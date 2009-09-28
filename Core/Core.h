@@ -16,17 +16,21 @@ namespace ElixirEngine
 	{
 		WindowData();
 
-		HWND		(*m_pCreateWindow)(WindowData& _rConfig);
-		HINSTANCE	m_hInstance;
-		HINSTANCE	m_hPrevInstance;
-		LPTSTR		m_lpCmdLine;
-		int			m_nCmdShow;
-		HACCEL		m_hAccelTable;
-		HWND		m_hWnd;
-		RECT		m_oClientRect;
-		RECT		m_oWindowRect;
-		int			m_sColorMode;
-		bool		m_bFullScreen;
+		HWND			(*m_pCreateWindow)(WindowData& _rConfig);
+		HINSTANCE		m_hInstance;
+		HINSTANCE		m_hPrevInstance;
+		LPTSTR			m_lpCmdLine;
+		int				m_nCmdShow;
+		HACCEL			m_hAccelTable;
+		HWND			m_hWnd;
+		RECT			m_oClientRect;
+		RECT			m_oWindowRect;
+		int				m_sColorMode;
+		bool			m_bFullScreen;
+		unsigned int	m_uDXColorFormat;
+		unsigned int	m_uDXDepthFormat;
+		float			m_fZNear;
+		float			m_fZFar;
 	};
 
 	//-----------------------------------------------------------------------------------------------

@@ -151,8 +151,14 @@ namespace ElixirEngine
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
+		static D3DFORMAT StringToDisplayFormat(const string& _strFormatName, const D3DFORMAT& _uDefaultFormat);
+		static D3DFORMAT KeyToDisplayFormat(const Key& _uFormatNameKey, const D3DFORMAT& _uDefaultFormat);
 
 	protected:
+		typedef map<Key, D3DFORMAT>	DisplayFormatMap;
+		static DisplayFormatMap s_mDisplayFormat;
+		static void InitDisplayFormatMap();
+
 		Direct3DPtr					m_pDirect3D;
 		DevicePtr					m_pDevice;
 		DisplayEffectPtrVec			m_vRenderList;

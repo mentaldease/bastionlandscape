@@ -27,9 +27,9 @@ sampler2D AtlasDiffuseSampler = sampler_state {
 texture AtlasLUTTexture : ATLASLUTTEX;
 sampler2D AtlasLUTSampler = sampler_state {
     Texture = <AtlasLUTTexture>;
-    MinFilter = None;
-    MipFilter = None;
-    MagFilter = None;
+    //MinFilter = None;
+    //MipFilter = None;
+    //MagFilter = None;
     AddressU = Wrap;
     AddressV = Wrap;
 };
@@ -37,9 +37,9 @@ sampler2D AtlasLUTSampler = sampler_state {
 texture NoiseTexture : NOISETEX;
 sampler2D NoiseSampler = sampler_state {
     Texture = <NoiseTexture>;
-    MinFilter = None;
-    MipFilter = None;
-    MagFilter = None;
+    //MinFilter = None;
+    //MipFilter = None;
+    //MagFilter = None;
     AddressU = Wrap;
     AddressV = Wrap;
 };
@@ -108,6 +108,7 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
 	Output.Position = mul(In.vPos, g_mWorldViewProjection);
+	Output.Position.z *= Output.Position.w;
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
