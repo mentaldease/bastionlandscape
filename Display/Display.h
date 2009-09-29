@@ -171,6 +171,21 @@ namespace ElixirEngine
 		unsigned int				m_uWidth;
 		unsigned int				m_uHeight;
 
+#if DISPLAY_TEST_MRT
+		TexturePtr					m_pMRTFinalTex;
+		TexturePtr					m_pMRTColorTex[2];
+		TexturePtr					m_pMRTPositionTex;
+		SurfacePtr					m_pMRTFinalSurf;
+		SurfacePtr					m_pMRTColorSurf[2];
+		SurfacePtr					m_pMRTPositionSurf;
+		SurfacePtr					m_pBackBufferSurf;
+		VertexDeclPtr				m_pVertDeclPP;
+		VertexBufferPtr				m_pVBPP;
+		DisplayEffectPtr			m_pDispFXPP;
+		EffectPtr					m_pEffectPP;
+		unsigned int				m_uMRTCurrent;
+#endif // DISPLAY_TEST_MRT
+
 	private:
 	};
 
