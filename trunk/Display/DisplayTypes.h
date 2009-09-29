@@ -4,6 +4,8 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 
+#define DISPLAY_TEST_MRT	1
+
 namespace ElixirEngine
 {
 	//-----------------------------------------------------------------------------------------------

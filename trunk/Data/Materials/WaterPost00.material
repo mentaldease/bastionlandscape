@@ -1,0 +1,35 @@
+# libconfig formatted file
+# Basic based material
+
+version = "1.0";
+
+material =
+{
+	name = "terrain00";
+	effect = "data/effects/WaterPost.fx";
+	technique = "RenderScene";
+	params =
+	(
+		{
+			semantic = "TEX2D00";
+		},
+		{
+			semantic = "TEX2D01";
+		},
+		{
+			semantic = "TEX2D02";
+		},
+		{
+			semantic = "TEX2D03";
+		},
+		{
+			semantic = "TEX2D04";
+		},
+		{
+			semantic = "TEX2D05";
+		},
+		{
+			semantic = "VIEWINV";
+		}
+	);
+};
