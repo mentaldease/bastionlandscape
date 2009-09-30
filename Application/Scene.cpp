@@ -63,7 +63,7 @@ namespace BastionGame
 			pMaterialManager->UnloadMaterial(m_mMaterials.begin()->first);
 			m_mMaterials.erase(m_mMaterials.begin());
 		}
-		m_mMaterials.clear();
+		//m_mMaterials.clear();
 	}
 
 	bool Scene::CreateLoadMaterials(Config& _rConfig)

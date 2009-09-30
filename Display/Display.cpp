@@ -277,58 +277,68 @@ namespace ElixirEngine
 			m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
 			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 #if DISPLAY_TEST_MRT
-			UInt uPassIndex = 0;
-			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-			MRTRenderBeginPass(uPassIndex);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
+			if (NULL != m_RTChain)
+			{
+				// Reset all the chain
+				//m_RTChain->RenderBegin(DisplayRenderTarget::ERENDERMODE_RESETPROCESS);
+				//m_RTChain->RenderEnd();
+
+				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+				UInt uPassIndex = 0;
+				MRTRenderBeginPass(uPassIndex);
+				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
+			}
 #endif // DISPLAY_TEST_MRT
 			m_pDevice->BeginScene();
 			m_pCamera->Update();
 			Render();
 			m_pDevice->EndScene();
 #if DISPLAY_TEST_MRT
-			MRTRenderEndPass();
-			m_RTChain->RenderEnd();
-
-			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
-			/*
-			m_pDevice->SetRenderTarget(0, m_pMRTFinalSurf);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, 0x00000000, 1.0f, 0L);
-			m_pDevice->SetVertexDeclaration(m_pVertDeclPP);
-			m_pDevice->BeginScene();
-
-			UINT cPasses, p;
-			m_pEffectPP->Begin( &cPasses, 0 );
-			for( p = 0; p < cPasses; ++p )
+			if (NULL != m_RTChain)
 			{
-				m_pEffectPP->BeginPass(p);
-				m_pDevice->SetStreamSource(0, m_pVBPP, 0, sizeof(PPVERT));
-				m_pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-				m_pEffectPP->EndPass();
-			}
-			m_pEffectPP->End();
-			m_pDevice->EndScene();
-			//*/
-			m_RTChain->RenderEnd();
+				MRTRenderEndPass();
+				m_RTChain->RenderEnd();
 
-			if (SUCCEEDED( m_pDevice->BeginScene()))
-			{
-				UInt uRTIndex = 0;
-				TexturePtr pPrevTarget = static_cast<TexturePtr>(m_RTChain->GetTexture(uRTIndex)->GetBase());
-				m_pEffectPP->SetTechnique("RenderScene");
-				m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
-				UINT cPasses;
-				m_pEffectPP->Begin(&cPasses, 0);
-				m_pRTGeom->RenderBegin();
-				for(UINT p = 0; p < cPasses; ++p)
+				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
+				/*
+				m_pDevice->SetRenderTarget(0, m_pMRTFinalSurf);
+				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, 0x00000000, 1.0f, 0L);
+				m_pDevice->SetVertexDeclaration(m_pVertDeclPP);
+				m_pDevice->BeginScene();
+
+				UINT cPasses, p;
+				m_pEffectPP->Begin( &cPasses, 0 );
+				for( p = 0; p < cPasses; ++p )
 				{
 					m_pEffectPP->BeginPass(p);
-					m_pRTGeom->Render();
+					m_pDevice->SetStreamSource(0, m_pVBPP, 0, sizeof(PPVERT));
+					m_pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
 					m_pEffectPP->EndPass();
 				}
-				m_pRTGeom->RenderEnd();
 				m_pEffectPP->End();
 				m_pDevice->EndScene();
+				//*/
+				m_RTChain->RenderEnd();
+
+				if (SUCCEEDED( m_pDevice->BeginScene()))
+				{
+					UInt uRTIndex = 0;
+					TexturePtr pPrevTarget = static_cast<TexturePtr>(m_RTChain->GetTexture(uRTIndex)->GetBase());
+					m_pEffectPP->SetTechnique("RenderScene");
+					m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
+					UINT cPasses;
+					m_pEffectPP->Begin(&cPasses, 0);
+					m_pRTGeom->RenderBegin();
+					for(UINT p = 0; p < cPasses; ++p)
+					{
+						m_pEffectPP->BeginPass(p);
+						m_pRTGeom->Render();
+						m_pEffectPP->EndPass();
+					}
+					m_pRTGeom->RenderEnd();
+					m_pEffectPP->End();
+					m_pDevice->EndScene();
+				}
 			}
 #endif // DISPLAY_TEST_MRT
 
@@ -595,12 +605,18 @@ namespace ElixirEngine
 #if DISPLAY_TEST_MRT
 	void Display::MRTRenderBeginPass(UIntRef _uIndex)
 	{
-		m_RTChain->RenderBeginPass(_uIndex);
+		if (NULL != m_RTChain)
+		{
+			m_RTChain->RenderBeginPass(_uIndex);
+		}
 	}
 
 	void Display::MRTRenderEndPass()
 	{
-		m_RTChain->RenderEndPass();
+		if (NULL != m_RTChain)
+		{
+			m_RTChain->RenderEndPass();
+		}
 	}
 #endif // DISPLAY_TEST_MRT
 

@@ -19,7 +19,6 @@ namespace BastionGame
 		m_eStateMode(EStateMode_UNINITIALIZED),
 		m_pDisplay(NULL),
 		m_pScene(NULL),
-		m_pLandscape(NULL),
 		m_pLandscapeLayerManager(NULL),
 		m_pUpdateFunction(NULL),
 		m_pFSRoot(NULL),
@@ -190,12 +189,6 @@ namespace BastionGame
 
 	void Application::Release()
 	{
-		if (NULL != m_pLandscape)
-		{
-			m_pLandscape->Close();
-			m_pLandscape->Release();
-			m_pLandscape = NULL;
-		}
 		if (NULL != m_pScene)
 		{
 			m_pScene->Release();

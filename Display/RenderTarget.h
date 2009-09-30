@@ -73,6 +73,8 @@ namespace ElixirEngine
 
 		enum ERenderMode
 		{
+			ERenderMode_UNKNOWNPROCESS,
+			ERenderMode_RESETPROCESS,
 			ERenderMode_NORMALPROCESS,
 			ERenderMode_POSTPROCESS
 		};
