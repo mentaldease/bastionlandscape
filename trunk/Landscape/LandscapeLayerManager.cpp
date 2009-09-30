@@ -85,7 +85,7 @@ namespace ElixirEngine
 					pTextureManager->Unload(m_strSAHLUTName);
 					m_pSlopeAndHeightLUT = NULL;
 				}
-				bResult = pTextureManager->New(m_strSAHLUTName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
+				bResult = pTextureManager->New(m_strSAHLUTName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D, DisplayTexture::EUsage_DEFAULT);
 				m_pSlopeAndHeightLUT = (false != bResult) ? pTextureManager->Get(m_strSAHLUTName) : NULL;
 				bResult = (NULL != m_pSlopeAndHeightLUT) && CreateSlopeAndHeightLUT(oConfig);
 			}
@@ -108,7 +108,7 @@ namespace ElixirEngine
 					pTextureManager->Unload(m_strNoiseName);
 					m_pNoise = NULL;
 				}
-				bResult = pTextureManager->New(m_strNoiseName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D);
+				bResult = pTextureManager->New(m_strNoiseName, 0x00000001 << 8, 0x00000001 << 8, D3DFMT_A8R8G8B8, false, DisplayTexture::EType_2D, DisplayTexture::EUsage_DEFAULT);
 				m_pNoise = (false != bResult) ? pTextureManager->Get(m_strNoiseName) : NULL;
 				bResult = (NULL != m_pNoise) && CreateNoise(oConfig);
 			}
@@ -191,7 +191,7 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			ImageInfoRef rSurfaceInfo = pSurface->GetInfo();
-			bResult = pTextureManager->New(m_strAtlasName, rSurfaceInfo.Width, rSurfaceInfo.Height, D3DFMT_A8R8G8B8, true, DisplayTexture::EType_2D);
+			bResult = pTextureManager->New(m_strAtlasName, rSurfaceInfo.Width, rSurfaceInfo.Height, D3DFMT_A8R8G8B8, true, DisplayTexture::EType_2D, DisplayTexture::EUsage_DEFAULT);
 			m_pAtlas = (false != bResult) ? pTextureManager->Get(m_strAtlasName) : NULL;
 		}
 		if (false != bResult)

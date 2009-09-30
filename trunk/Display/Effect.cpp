@@ -227,20 +227,23 @@ namespace ElixirEngine
 
 			void operator() (DisplayObjectPtr _pDisplayObject)
 			{
+				DisplayRef rDisplay = m_pMaterial->GetMaterialManager().GetDisplay();
 				EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
 				unsigned int uPassCount;
 				pEffect->Begin(&uPassCount, 0);
-				m_pMaterial->GetMaterialManager().GetDisplay().SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
+				_pDisplayObject->RenderBegin();
+				rDisplay.SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
 				for (unsigned int iPass = 0 ; iPass < uPassCount ; ++iPass)
 				{
+					rDisplay.MRTRenderBeginPass(iPass);
 					pEffect->BeginPass(iPass);
-					_pDisplayObject->RenderBegin();
 					m_pMaterial->UseParams();
 					pEffect->CommitChanges();
 					_pDisplayObject->Render();
-					_pDisplayObject->RenderEnd();
 					pEffect->EndPass();
+					rDisplay.MRTRenderEndPass();
 				}
+				_pDisplayObject->RenderEnd();
 				pEffect->End();
 			}
 
@@ -318,14 +321,22 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("ATLASLUTTEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ATLASDIFFUSEINFO"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NOISETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D02"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D03"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D04"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D05"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D06"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D07"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D02"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D03"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D04"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D05"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D06"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("RT2D07"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D00"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D01"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D02"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D03"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D04"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D05"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D06"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("TEX2D07"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 
 		return bResult;
 	}

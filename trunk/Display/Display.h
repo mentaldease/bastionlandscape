@@ -149,6 +149,11 @@ namespace ElixirEngine
 		MatrixPtr GetCurrentWorldMatrix();
 		MatrixPtr GetCurrentWorldInvTransposeMatrix();
 
+#if DISPLAY_TEST_MRT
+		void MRTRenderBeginPass(UIntRef _uIndex);
+		void MRTRenderEndPass();
+#endif // DISPLAY_TEST_MRT
+
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
 		static D3DFORMAT StringToDisplayFormat(const string& _strFormatName, const D3DFORMAT& _uDefaultFormat);
@@ -172,18 +177,13 @@ namespace ElixirEngine
 		unsigned int				m_uHeight;
 
 #if DISPLAY_TEST_MRT
-		TexturePtr					m_pMRTFinalTex;
-		TexturePtr					m_pMRTColorTex[2];
-		TexturePtr					m_pMRTPositionTex;
-		SurfacePtr					m_pMRTFinalSurf;
-		SurfacePtr					m_pMRTColorSurf[2];
-		SurfacePtr					m_pMRTPositionSurf;
-		SurfacePtr					m_pBackBufferSurf;
-		VertexDeclPtr				m_pVertDeclPP;
-		VertexBufferPtr				m_pVBPP;
-		DisplayEffectPtr			m_pDispFXPP;
-		EffectPtr					m_pEffectPP;
-		unsigned int				m_uMRTCurrent;
+		DisplayEffectPtr				m_pDispFXPP;
+		EffectPtr						m_pEffectPP;
+		unsigned int					m_uMRTCurrent;
+		DisplayRenderTargetGeometryPtr	m_pRTGeom;
+		DisplayRenderTargetPtr			m_pRTColor;
+		DisplayRenderTargetPtr			m_pRTPosition;
+		DisplayRenderTargetChainPtr		m_RTChain;
 #endif // DISPLAY_TEST_MRT
 
 	private:

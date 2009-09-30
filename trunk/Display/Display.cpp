@@ -4,30 +4,10 @@
 #include "../Display/Effect.h"
 #include "../Display/Texture.h"
 #include "../Display/Surface.h"
+#include "../Display/RenderTarget.h"
 
 namespace ElixirEngine
 {
-#if DISPLAY_TEST_MRT
-	// This is the vertex format used with the quad during post-process.
-	struct PPVERT
-	{
-		float x, y, z, rhw;
-		float tu, tv;       // Texcoord for post-process source
-		float tu2, tv2;     // Texcoord for the original scene
-
-		const static D3DVERTEXELEMENT9 Decl[4];
-	};
-
-	// Vertex declaration for post-processing
-	const D3DVERTEXELEMENT9 PPVERT::Decl[4] =
-	{
-		{ 0, 0,  D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITIONT, 0 },
-		{ 0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
-		{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  1 },
-		D3DDECL_END()
-	};
-#endif // DISPLAY_TEST_MRT
-
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -297,17 +277,20 @@ namespace ElixirEngine
 			m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
 			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 #if DISPLAY_TEST_MRT
-			m_pDevice->SetRenderTarget(0, m_pMRTColorSurf[0]);
-			m_pDevice->SetRenderTarget(1, m_pMRTPositionSurf);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, 0x00000000, 1.0f, 0L);
+			UInt uPassIndex = 0;
+			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			MRTRenderBeginPass(uPassIndex);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
 #endif // DISPLAY_TEST_MRT
 			m_pDevice->BeginScene();
 			m_pCamera->Update();
 			Render();
 			m_pDevice->EndScene();
 #if DISPLAY_TEST_MRT
-			m_pDevice->SetRenderTarget(1, NULL);
+			MRTRenderEndPass();
+			m_RTChain->RenderEnd();
 
+			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
 			/*
 			m_pDevice->SetRenderTarget(0, m_pMRTFinalSurf);
 			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, 0x00000000, 1.0f, 0L);
@@ -326,46 +309,27 @@ namespace ElixirEngine
 			m_pEffectPP->End();
 			m_pDevice->EndScene();
 			//*/
-
-			m_pDevice->SetRenderTarget(0, m_pBackBufferSurf);
+			m_RTChain->RenderEnd();
 
 			if (SUCCEEDED( m_pDevice->BeginScene()))
 			{
-				D3DSURFACE_DESC oBBSurfaceDesc;
-				m_pBackBufferSurf->GetDesc(&oBBSurfaceDesc);
-				PPVERT quad[4] =
-				{
-					{ -0.5f,						-0.5f,							0.5f,	1.0f,	0.0f,	0.0f,	0.0f,	0.0f },
-					{ -0.5f,						oBBSurfaceDesc.Height - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	0.0f,	0.0f },
-					{ oBBSurfaceDesc.Width - 0.5f,	-0.5f,							0.5f,	1.0f,	1.0f,	0.0f,	0.0f,	0.0f },
-					{ oBBSurfaceDesc.Width - 0.5f,	oBBSurfaceDesc.Height - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	0.0f,	0.0f }
-				};
-
-				//TexturePtr pPrevTarget = m_pMRTFinalTex;
-				TexturePtr pPrevTarget = m_pMRTColorTex[0];
-				VertexBufferPtr pCurrentVertexBuffer;
-				unsigned int uOffset;
-				unsigned int uStride;
-				m_pDevice->GetStreamSource(0, &pCurrentVertexBuffer, &uOffset, &uStride);
-				VertexDeclPtr pCurrentVertexDecl;
-				m_pDevice->GetVertexDeclaration(&pCurrentVertexDecl);
-				m_pDevice->SetVertexDeclaration(m_pVertDeclPP);
+				UInt uRTIndex = 0;
+				TexturePtr pPrevTarget = static_cast<TexturePtr>(m_RTChain->GetTexture(uRTIndex)->GetBase());
 				m_pEffectPP->SetTechnique("RenderScene");
 				m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
 				UINT cPasses;
 				m_pEffectPP->Begin(&cPasses, 0);
+				m_pRTGeom->RenderBegin();
 				for(UINT p = 0; p < cPasses; ++p)
 				{
 					m_pEffectPP->BeginPass(p);
-					m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, quad, sizeof( PPVERT ));
+					m_pRTGeom->Render();
 					m_pEffectPP->EndPass();
 				}
+				m_pRTGeom->RenderEnd();
 				m_pEffectPP->End();
 				m_pDevice->EndScene();
-				m_pDevice->SetStreamSource(0, pCurrentVertexBuffer, uOffset, uStride);
-				m_pDevice->SetVertexDeclaration(pCurrentVertexDecl);
 			}
-			m_uMRTCurrent = 1 - m_uMRTCurrent;
 #endif // DISPLAY_TEST_MRT
 
 			m_pDevice->Present(NULL, NULL, NULL, NULL);
@@ -452,60 +416,15 @@ namespace ElixirEngine
 #if DISPLAY_TEST_MRT
 		if (false != bResult)
 		{
-			m_uMRTCurrent = 0;
-			bResult = SUCCEEDED(m_pDevice->CreateTexture( m_uWidth, m_uHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pMRTFinalTex, NULL))
-				&& SUCCEEDED(m_pDevice->CreateTexture( m_uWidth, m_uHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pMRTColorTex[0], NULL))
-				&& SUCCEEDED(m_pDevice->CreateTexture( m_uWidth, m_uHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pMRTColorTex[1], NULL))
-				&& SUCCEEDED(m_pDevice->CreateTexture( m_uWidth, m_uHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_pMRTPositionTex, NULL))
-				&& SUCCEEDED(m_pMRTFinalTex->GetSurfaceLevel(0, &m_pMRTFinalSurf))
-				&& SUCCEEDED(m_pMRTColorTex[0]->GetSurfaceLevel(0, &m_pMRTColorSurf[0]))
-				&& SUCCEEDED(m_pMRTColorTex[1]->GetSurfaceLevel(0, &m_pMRTColorSurf[1]))
-				&& SUCCEEDED(m_pMRTPositionTex->GetSurfaceLevel(0, &m_pMRTPositionSurf))
-				&& SUCCEEDED(m_pDevice->CreateVertexDeclaration( PPVERT::Decl, &m_pVertDeclPP));
-
-			if (false != bResult)
-			{
-				m_pDevice->GetRenderTarget(0, &m_pBackBufferSurf);
-				float fExtentX = 1.0f, fExtentY = 1.0f;
-				D3DSURFACE_DESC oBBSurfaceDesc;
-				m_pBackBufferSurf->GetDesc(&oBBSurfaceDesc);
-
-				//
-				// Set up our quad
-				//
-				PPVERT Quad[4] =
-				{
-					{ -0.5f,						-0.5f,							1.0f,	1.0f,	0.0f,	0.0f,	0.0f,	0.0f },
-					{ oBBSurfaceDesc.Width - 0.5f,	-0.5,							1.0f,	1.0f,	1.0f,	0.0f,	1.0f,	0.0f },
-					{ -0.5,							oBBSurfaceDesc.Height - 0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	0.0f,	1.0f },
-					{ oBBSurfaceDesc.Width - 0.5f,	oBBSurfaceDesc.Height - 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f }
-				};
-
-				bResult = SUCCEEDED(m_pDevice->CreateVertexBuffer( sizeof( PPVERT ) * 4,
-					D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC,
-					0,
-					D3DPOOL_DEFAULT,
-					&m_pVBPP,
-					NULL ));
-
-				if (false != bResult)
-				{
-					LPVOID pVBData;
-					bResult = SUCCEEDED(m_pVBPP->Lock(0, 0, &pVBData, D3DLOCK_DISCARD));
-					if (false != bResult)
-					{
-						CopyMemory( pVBData, Quad, sizeof( Quad ) );
-						m_pVBPP->Unlock();
-					}
-				}
-			}
-
-			if (false != bResult)
-			{
-				bResult == m_pMaterialManager->LoadEffect("MRT", "data/effects/simplepost.fx")
-					&& (m_pDispFXPP = m_pMaterialManager->GetEffect("MRT"))
-					&& (m_pEffectPP = m_pDispFXPP->GetEffect());
-			}
+			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
+			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "RTChainTest", m_uWidth, m_uHeight, D3DFMT_A8R8G8B8, 2 };
+			m_pRTGeom = new DisplayRenderTargetGeometry(*this);
+			m_RTChain = new DisplayRenderTargetChain(*this);
+			bResult =  m_pRTGeom->Create(boost::any(&oRTGCInfo))
+				&& m_RTChain->Create(boost::any(&oRTCCInfo))
+				&& m_pMaterialManager->LoadEffect("MRT", "data/effects/simplepost.fx")
+				&& (m_pDispFXPP = m_pMaterialManager->GetEffect("MRT"))
+				&& (m_pEffectPP = m_pDispFXPP->GetEffect());
 		}
 #endif // DISPLAY_TEST_MRT
 
@@ -515,65 +434,21 @@ namespace ElixirEngine
 	void Display::CloseVideo()
 	{
 #if DISPLAY_TEST_MRT
+		if (NULL != m_RTChain)
+		{
+			m_RTChain->Release();
+			m_RTChain = NULL;
+		}
+		if (NULL != m_pRTGeom)
+		{
+			m_pRTGeom->Release();
+			delete m_pRTGeom;
+			m_pRTGeom = NULL;
+		}
 		if (NULL != m_pDispFXPP)
 		{
 			m_pMaterialManager->UnloadEffect("MRT");
 			m_pDispFXPP = NULL;
-		}
-		if (NULL != m_pBackBufferSurf)
-		{
-			m_pBackBufferSurf->Release();
-			m_pBackBufferSurf = NULL;
-		}
-		if (NULL != m_pVBPP)
-		{
-			m_pVBPP->Release();
-			m_pVBPP = NULL;
-		}
-		if (NULL != m_pVertDeclPP)
-		{
-			m_pVertDeclPP->Release();
-			m_pVertDeclPP = NULL;
-		}
-		if (NULL != m_pMRTFinalSurf)
-		{
-			m_pMRTFinalSurf->Release();
-			m_pMRTFinalSurf = NULL;
-		}
-		if (NULL != m_pMRTColorSurf[0])
-		{
-			m_pMRTColorSurf[0]->Release();
-			m_pMRTColorSurf[0] = NULL;
-		}
-		if (NULL != m_pMRTColorSurf[1])
-		{
-			m_pMRTColorSurf[1]->Release();
-			m_pMRTColorSurf[1] = NULL;
-		}
-		if (NULL != m_pMRTPositionSurf)
-		{
-			m_pMRTPositionSurf->Release();
-			m_pMRTPositionSurf = NULL;
-		}
-		if (NULL != m_pMRTFinalTex)
-		{
-			m_pMRTFinalTex->Release();
-			m_pMRTFinalTex = NULL;
-		}
-		if (NULL != m_pMRTColorTex[0])
-		{
-			m_pMRTColorTex[0]->Release();
-			m_pMRTColorTex[0] = NULL;
-		}
-		if (NULL != m_pMRTColorTex[1])
-		{
-			m_pMRTColorTex[1]->Release();
-			m_pMRTColorTex[1] = NULL;
-		}
-		if (NULL != m_pMRTPositionTex)
-		{
-			m_pMRTPositionTex->Release();
-			m_pMRTPositionTex = NULL;
 		}
 #endif // DISPLAY_TEST_MRT
 
@@ -716,6 +591,18 @@ namespace ElixirEngine
 	{
 		return &m_oWorldInvTransposeMatrix;
 	}
+
+#if DISPLAY_TEST_MRT
+	void Display::MRTRenderBeginPass(UIntRef _uIndex)
+	{
+		m_RTChain->RenderBeginPass(_uIndex);
+	}
+
+	void Display::MRTRenderEndPass()
+	{
+		m_RTChain->RenderEndPass();
+	}
+#endif // DISPLAY_TEST_MRT
 
 	unsigned int Display::GetFormatBitsPerPixel(const D3DFORMAT& _eFormat)
 	{

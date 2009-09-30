@@ -22,9 +22,11 @@
 using namespace std;
 
 // boost
+#define NBOOST_MCMEM // special define to remove some modified boost files
 #include <boost/bind.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/function.hpp>
+#include <boost/format.hpp>
 
 
 #endif // __COMMONINCLUDES_H__
