@@ -126,7 +126,7 @@ namespace ElixirEngine
 		m_strName = pInfo->m_strName;
 		m_uIndex = pInfo->m_uIndex;
 		m_eRenderState = ERenderState_UNKNOWN;
-		m_eMode = ERenderMode_NORMALPROCESS;
+		m_eMode = ERenderMode_UNKNOWNPROCESS;
 		m_pCurrentBufferTex = NULL;
 
 		for (UInt i = 0 ; c_uBufferCount > i ; ++i)
@@ -172,11 +172,18 @@ namespace ElixirEngine
 	{
 		if ((ERenderState_UNKNOWN == m_eRenderState) || (ERenderState_RENDEREND == m_eRenderState))
 		{
-			m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uIndex, &m_pPreviousBufferSurf);
-			m_bFirstRender = true;
-			m_uCurrentBuffer = 0;
-			m_eRenderState = ERenderState_RENDERBEGIN;
-			m_eMode = _eMode;
+			if (m_eMode != _eMode)
+			{
+				m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uIndex, &m_pPreviousBufferSurf);
+				m_bFirstRender = true;
+				m_uCurrentBuffer = 0;
+				m_eRenderState = ERenderState_RENDERBEGIN;
+				m_eMode = _eMode;
+				if ((ERenderMode_NORMALPROCESS == m_eMode) || (ERenderMode_RESETPROCESS == m_eMode))
+				{
+					m_pCurrentBufferTex = NULL;
+				}
+			}
 		}
 	}
 
@@ -184,21 +191,23 @@ namespace ElixirEngine
 	{
 		if ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState))
 		{
-			DisplayTexturePtr pPeviousBufferTex = m_pCurrentBufferTex;
-			SurfacePtr pSurface = m_pDoubleBufferSurf[m_uCurrentBuffer];
-			m_pCurrentBufferTex = m_pDoubleBufferTex[m_uCurrentBuffer];
-
-			if (false != m_bFirstRender)
+			if ((ERenderMode_POSTPROCESS == m_eMode) || (NULL == m_pCurrentBufferTex))
 			{
-				pSurface = m_pDoubleBufferSurf[c_uOriginalBuffer];
-				m_pCurrentBufferTex = m_pDoubleBufferTex[c_uOriginalBuffer];
-			}
+				SurfacePtr pNewSurface = m_pDoubleBufferSurf[m_uCurrentBuffer];
+				DisplayTexturePtr pNewBufferTex = m_pDoubleBufferTex[m_uCurrentBuffer];
 
-			if (pPeviousBufferTex != m_pCurrentBufferTex)
-			{
-				m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uIndex, pSurface);
-			}
+				if (false != m_bFirstRender)
+				{
+					pNewSurface = m_pDoubleBufferSurf[c_uOriginalBuffer];
+					pNewBufferTex = m_pDoubleBufferTex[c_uOriginalBuffer];
+				}
 
+				if (pNewBufferTex != m_pCurrentBufferTex)
+				{
+					m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uIndex, pNewSurface);
+					m_pCurrentBufferTex = pNewBufferTex;
+				}
+			}
 			m_eRenderState = ERenderState_RENDERBEGINPASS;
 		}
 	}
@@ -222,7 +231,7 @@ namespace ElixirEngine
 		{
 			if (ERenderMode_NORMALPROCESS == m_eMode)
 			{
-				//m_uCurrentBuffer = (false != m_bFirstRender) ? m_uCurrentBuffer : 1 - m_uCurrentBuffer;
+				m_uCurrentBuffer = (false != m_bFirstRender) ? m_uCurrentBuffer : 1 - m_uCurrentBuffer;
 			}
 			m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uIndex, m_pPreviousBufferSurf);
 			m_eRenderState = ERenderState_RENDEREND;

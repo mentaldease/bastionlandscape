@@ -41,7 +41,8 @@ namespace ElixirEngine
 		m_pNoise(NULL),
 		m_oShaderInfo(0.0f, 0.0f, 0.0f, 0.0f),
 		m_strAtlasName(),
-		m_strSAHLUTName()
+		m_strSAHLUTName(),
+		m_strNoiseName()
 	{
 
 	}
@@ -527,9 +528,9 @@ namespace ElixirEngine
 		{
 			LandscapeLayeringPtrMap::iterator iPair = m_mConfigs.begin();
 			LandscapeLayeringPtr pConfig = iPair->second;
+			m_mConfigs.erase(iPair);
 			pConfig->Release();
 			delete pConfig;
-			m_mConfigs.erase(m_mConfigs.begin());
 		}
 	}
 

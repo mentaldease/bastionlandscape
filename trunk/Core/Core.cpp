@@ -38,12 +38,16 @@ namespace ElixirEngine
 
 	CoreObject::CoreObject()
 	{
-		s_mObjects[this] = 1;
+		//s_mObjects[this] = 1;
 	}
 
 	CoreObject::~CoreObject()
 	{
-		s_mObjects.erase(s_mObjects.find(this));
+		//CoreObjectPtrCounterMap::iterator iPair = s_mObjects.find(this);
+		//if (s_mObjects.end() != iPair)
+		//{
+		//	s_mObjects.erase(iPair);
+		//}
 	}
 
 	bool CoreObject::Create(const boost::any& _rConfig)

@@ -156,8 +156,9 @@ namespace ElixirEngine
 
 				DisplayEffectParam::CreateInfo oDEPCInfo = { pInfo->m_pConfig, pShortcut, this };
 				DisplayEffectParamPtr pParam = m_rMaterialManager.CreateParam(strSemanticValue, boost::any(&oDEPCInfo));
-				if (false == bResult)
+				if (NULL == pParam)
 				{
+					bResult = false;
 					break;
 				}
 
