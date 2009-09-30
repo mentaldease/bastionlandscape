@@ -144,6 +144,25 @@ namespace ElixirEngine
 	typedef DisplaySurface* DisplaySurfacePtr;
 	typedef DisplaySurface& DisplaySurfaceRef;
 	typedef map<Key, DisplaySurfacePtr> DisplaySurfacePtrMap;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayRenderTarget;
+	typedef DisplayRenderTarget* DisplayRenderTargetPtr;
+	typedef DisplayRenderTarget& DisplayRenderTargetRef;
+	typedef vector<DisplayRenderTargetPtr> DisplayRenderTargetPtrVec;
+
+	class DisplayRenderTargetChain;
+	typedef DisplayRenderTargetChain* DisplayRenderTargetChainPtr;
+	typedef DisplayRenderTargetChain& DisplayRenderTargetChainRef;
+	typedef map<Key, DisplayRenderTargetChainPtr> DisplayRenderTargetChainPtrMap;
+
+	class DisplayRenderTargetGeometry;
+	typedef DisplayRenderTargetGeometry* DisplayRenderTargetGeometryPtr;
+	typedef DisplayRenderTargetGeometry& DisplayRenderTargetGeometryRef;
+
 }
 
 #endif // __DISPLAYTYPES_H__

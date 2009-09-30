@@ -7,8 +7,6 @@
 
 #include "../Application/Scene.h"
 
-#include <boost/bind.hpp>
-
 namespace BastionGame
 {
 	//-----------------------------------------------------------------------------------------------

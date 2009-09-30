@@ -1,0 +1,17 @@
+# libconfig formatted file
+# Basic based material
+
+version = "1.0";
+
+material =
+{
+	name = "terrain00";
+	effect = "data/effects/SimplePost.fx";
+	technique = "RenderScene";
+	params =
+	(
+		{
+			semantic = "RT2D00";
+		}
+	);
+};

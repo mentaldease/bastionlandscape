@@ -20,6 +20,12 @@ namespace ElixirEngine
 			EType_CUBE,
 		};
 
+		enum EUsage
+		{
+			EUsage_DEFAULT,
+			EUsage_RENDERTARGET,
+		};
+
 		struct CreateInfo
 		{
 			bool			m_bLoadMode;
@@ -29,6 +35,7 @@ namespace ElixirEngine
 			unsigned int	m_uWidth;
 			unsigned int	m_uHeight;
 			D3DFORMAT		m_eFormat;
+			EUsage			m_eUsage;
 			bool			m_bMipmap;
 		};
 		typedef CreateInfo* CreateInfoPtr;
@@ -72,7 +79,7 @@ namespace ElixirEngine
 		virtual void Release();
 
 		bool Load(const string& _strName, const string& _strPath, const DisplayTexture::EType& _eType);
-		bool New(const string& _strName, const unsigned int& _uWidth, const unsigned int& _uHeight, const D3DFORMAT& _eFormat, const bool& _bMipmap, const DisplayTexture::EType& _eType);
+		bool New(const string& _strName, const unsigned int& _uWidth, const unsigned int& _uHeight, const D3DFORMAT& _eFormat, const bool& _bMipmap, const DisplayTexture::EType& _eType, const DisplayTexture::EUsage& _eUsage);
 		void Unload(const string& _strName);
 		DisplayTexturePtr Get(const string& _strName);
 		void UnloadAll();

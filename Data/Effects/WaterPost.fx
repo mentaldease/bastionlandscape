@@ -2,11 +2,11 @@
 // Copyright (C) Wojciech Toman 2009
 
 sampler heightMap		: TEX2D00; //register(s0);
-sampler backBufferMap	: TEX2D01; //register(s1);
-sampler positionMap		: TEX2D02; //register(s2);
-sampler normalMap		: TEX2D03; //register(s3);
-sampler foamMap			: TEX2D04; //register(s4);
-sampler reflectionMap	: TEX2D05; //register(s5);
+sampler backBufferMap	: RT2D00; //register(s1);
+sampler positionMap		: RT2D01; //register(s2);
+sampler normalMap		: TEX2D01; //register(s3);
+sampler foamMap			: TEX2D02; //register(s4);
+sampler reflectionMap	: TEX2D03; //register(s5);
 
 // We need this matrix to restore position in world space
 float4x4 matViewInverse	: VIEWINV;

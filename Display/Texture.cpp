@@ -127,11 +127,11 @@ namespace ElixirEngine
 
 	bool DisplayTexture::New(CreateInfoRef _rInfo)
 	{
-		unsigned int uWidthPow2Level;
-		unsigned int uHeightPow2Level;
+		unsigned int uWidthPow2Level = 0;
+		unsigned int uHeightPow2Level = 0;
 		bool bResult = (0 != _rInfo.m_uWidth) && (0 != _rInfo.m_uHeight)
-			&& Display::IsPowerOf2(_rInfo.m_uWidth, &uWidthPow2Level)
-			&& Display::IsPowerOf2(_rInfo.m_uHeight, &uHeightPow2Level);
+			&& ((EUsage_RENDERTARGET == _rInfo.m_eUsage) || Display::IsPowerOf2(_rInfo.m_uWidth, &uWidthPow2Level))
+			&& ((EUsage_RENDERTARGET == _rInfo.m_eUsage) || Display::IsPowerOf2(_rInfo.m_uHeight, &uHeightPow2Level));
 
 		if (false != bResult)
 		{
@@ -143,11 +143,11 @@ namespace ElixirEngine
 					bResult = SUCCEEDED(D3DXCreateTexture(m_rDisplay.GetDevicePtr(),
 						_rInfo.m_uWidth,
 						_rInfo.m_uHeight,
-						(false != _rInfo.m_bMipmap) ? uMaxLOD : 1,
+						(EUsage_RENDERTARGET != _rInfo.m_eUsage) && (false != _rInfo.m_bMipmap) ? uMaxLOD : 1,
 						//(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0, // don't use D3DUSAGE_AUTOGENMIPMAP if you want to access each mipmap level
-						0,
+						(EUsage_RENDERTARGET == _rInfo.m_eUsage) ? D3DUSAGE_RENDERTARGET : 0,
 						_rInfo.m_eFormat,
-						D3DPOOL_MANAGED,
+						(EUsage_RENDERTARGET == _rInfo.m_eUsage) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED,
 						&m_pTexture));
 					if (false != bResult)
 					{
@@ -159,11 +159,12 @@ namespace ElixirEngine
 				{
 					bResult = (_rInfo.m_uWidth == _rInfo.m_uHeight) && SUCCEEDED(D3DXCreateCubeTexture(m_rDisplay.GetDevicePtr(),
 						_rInfo.m_uWidth,
-						(false != _rInfo.m_bMipmap) ? D3DX_DEFAULT : 1,
+						//(false != _rInfo.m_bMipmap) ? D3DX_DEFAULT : 1,
+						(EUsage_RENDERTARGET != _rInfo.m_eUsage) && (false != _rInfo.m_bMipmap) ? uMaxLOD : 1,
 						//(false != _rInfo.m_bMipmap) ? D3DUSAGE_AUTOGENMIPMAP : 0, // don't use D3DUSAGE_AUTOGENMIPMAP if you want to access each mipmap level
-						0,
+						(EUsage_RENDERTARGET == _rInfo.m_eUsage) ? D3DUSAGE_RENDERTARGET : 0,
 						_rInfo.m_eFormat,
-						D3DPOOL_MANAGED,
+						(EUsage_RENDERTARGET == _rInfo.m_eUsage) ? D3DPOOL_DEFAULT : D3DPOOL_MANAGED,
 						&m_pCubeTexture));
 					if (false != bResult)
 					{
@@ -226,7 +227,7 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			DisplayTexture::CreateInfo oDTCInfo = { true, _strName, _strPath, _eType, 0, 0, D3DFMT_UNKNOWN, false };
+			DisplayTexture::CreateInfo oDTCInfo = { true, _strName, _strPath, _eType, 0, 0, D3DFMT_UNKNOWN, DisplayTexture::EUsage_DEFAULT, false };
 			DisplayTexturePtr pTexture = new DisplayTexture(m_rDisplay);
 			bResult = pTexture->Create(boost::any(&oDTCInfo));
 			if (false != bResult)
@@ -244,13 +245,13 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	bool DisplayTextureManager::New(const string& _strName, const unsigned int& _uWidth, const unsigned int& _uHeight, const D3DFORMAT& _eFormat, const bool& _bMipmap, const DisplayTexture::EType& _eType)
+	bool DisplayTextureManager::New(const string& _strName, const unsigned int& _uWidth, const unsigned int& _uHeight, const D3DFORMAT& _eFormat, const bool& _bMipmap, const DisplayTexture::EType& _eType, const DisplayTexture::EUsage& _eUsage)
 	{
 		bool bResult = (NULL == Get(_strName));
 
 		if (false != bResult)
 		{
-			DisplayTexture::CreateInfo oDTCInfo = { false, _strName, _strName, _eType, _uWidth, _uHeight, _eFormat, _bMipmap };
+			DisplayTexture::CreateInfo oDTCInfo = { false, _strName, _strName, _eType, _uWidth, _uHeight, _eFormat, _eUsage, _bMipmap };
 			DisplayTexturePtr pTexture = new DisplayTexture(m_rDisplay);
 			bResult = pTexture->Create(boost::any(&oDTCInfo));
 			if (false != bResult)
