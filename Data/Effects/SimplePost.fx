@@ -4,7 +4,7 @@
 // Data
 //--------------------------------------------------------------------------------------
 
-texture g_ColorTex : TEX2D00;
+texture g_ColorTex : RT2D00;
 
 sampler2D ColorSampler = sampler_state
 {

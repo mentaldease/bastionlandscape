@@ -163,6 +163,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PostProcess.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RenderTarget.cpp"
 				>
 			</File>
@@ -218,6 +222,10 @@
 			</File>
 			<File
 				RelativePath=".\EffectParam.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PostProcess.h"
 				>
 			</File>
 			<File

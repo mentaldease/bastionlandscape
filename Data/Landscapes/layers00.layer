@@ -1,8 +1,6 @@
 # libconfig formatted file
 # landscape layers configuration
 
-version = "1.0";
-
 config =
 {
 	atlas_filename = "data/textures/terrainatlas00.jpg";

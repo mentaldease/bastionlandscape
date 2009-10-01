@@ -5,6 +5,7 @@
 #include "../Display/Texture.h"
 #include "../Display/Surface.h"
 #include "../Display/RenderTarget.h"
+#include "../Display/PostProcess.h"
 
 namespace ElixirEngine
 {
@@ -276,50 +277,47 @@ namespace ElixirEngine
 			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(64, 0, 128), 1.0f, 0);
 			m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
 			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-#if DISPLAY_TEST_MRT
-			if (NULL != m_RTChain)
+
+			if ((NULL != m_pPostProcesses) && (NULL != m_RTChain))
 			{
 				// Reset all the chain
-				//m_RTChain->RenderBegin(DisplayRenderTarget::ERENDERMODE_RESETPROCESS);
-				//m_RTChain->RenderEnd();
-
-				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_RESETPROCESS);
+				m_RTChain->RenderEnd();
+				// Render to buffers
 				UInt uPassIndex = 0;
-				MRTRenderBeginPass(uPassIndex);
+				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+				m_RTChain->RenderBeginPass(uPassIndex);
 				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
 			}
-#endif // DISPLAY_TEST_MRT
+
 			m_pDevice->BeginScene();
 			m_pCamera->Update();
 			Render();
 			m_pDevice->EndScene();
-#if DISPLAY_TEST_MRT
-			if (NULL != m_RTChain)
+
+			if ((NULL != m_pPostProcesses) && (NULL != m_RTChain))
 			{
 				MRTRenderEndPass();
 				m_RTChain->RenderEnd();
 
+				//*
+				// Apply post processes effects
 				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
-				/*
-				m_pDevice->SetRenderTarget(0, m_pMRTFinalSurf);
-				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, 0x00000000, 1.0f, 0L);
-				m_pDevice->SetVertexDeclaration(m_pVertDeclPP);
-				m_pDevice->BeginScene();
 
-				UINT cPasses, p;
-				m_pEffectPP->Begin( &cPasses, 0 );
-				for( p = 0; p < cPasses; ++p )
+				DisplayPostProcessPtrMap::iterator iPair = m_pPostProcesses->begin();
+				DisplayPostProcessPtrMap::iterator iEnd = m_pPostProcesses->end();
+				while (iEnd != iPair)
 				{
-					m_pEffectPP->BeginPass(p);
-					m_pDevice->SetStreamSource(0, m_pVBPP, 0, sizeof(PPVERT));
-					m_pDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-					m_pEffectPP->EndPass();
+					DisplayPostProcessPtr pPostProcess = iPair->second;
+					pPostProcess->Process();
+					++iPair;
 				}
-				m_pEffectPP->End();
-				m_pDevice->EndScene();
 				//*/
+
 				m_RTChain->RenderEnd();
 
+				//*
+				// copy back to back buffer
 				if (SUCCEEDED( m_pDevice->BeginScene()))
 				{
 					UInt uRTIndex = 0;
@@ -328,22 +326,24 @@ namespace ElixirEngine
 					m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
 					UINT cPasses;
 					m_pEffectPP->Begin(&cPasses, 0);
-					m_pRTGeom->RenderBegin();
+					m_pPostProcessGeometry->RenderBegin();
 					for(UINT p = 0; p < cPasses; ++p)
 					{
 						m_pEffectPP->BeginPass(p);
-						m_pRTGeom->Render();
+						m_pPostProcessGeometry->Render();
 						m_pEffectPP->EndPass();
 					}
-					m_pRTGeom->RenderEnd();
+					m_pPostProcessGeometry->RenderEnd();
 					m_pEffectPP->End();
 					m_pDevice->EndScene();
 				}
+				//*/
 			}
-#endif // DISPLAY_TEST_MRT
 
 			m_pDevice->Present(NULL, NULL, NULL, NULL);
 		}
+
+		m_pPostProcesses = NULL;
 	}
 
 	void Display::Release()
@@ -423,44 +423,41 @@ namespace ElixirEngine
 			bResult = m_pSurfaceManager->Create(boost::any(0));
 		}
 
-#if DISPLAY_TEST_MRT
 		if (false != bResult)
 		{
 			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
 			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "RTChainTest", m_uWidth, m_uHeight, D3DFMT_A8R8G8B8, 2 };
-			m_pRTGeom = new DisplayRenderTargetGeometry(*this);
+			m_pPostProcessGeometry = new DisplayRenderTargetGeometry(*this);
 			m_RTChain = new DisplayRenderTargetChain(*this);
-			bResult =  m_pRTGeom->Create(boost::any(&oRTGCInfo))
+			bResult =  m_pPostProcessGeometry->Create(boost::any(&oRTGCInfo))
 				&& m_RTChain->Create(boost::any(&oRTCCInfo))
 				&& m_pMaterialManager->LoadEffect("MRT", "data/effects/simplepost.fx")
 				&& (m_pDispFXPP = m_pMaterialManager->GetEffect("MRT"))
 				&& (m_pEffectPP = m_pDispFXPP->GetEffect());
+			m_pPostProcesses = NULL;
 		}
-#endif // DISPLAY_TEST_MRT
 
 		return bResult;
 	}
 
 	void Display::CloseVideo()
 	{
-#if DISPLAY_TEST_MRT
 		if (NULL != m_RTChain)
 		{
 			m_RTChain->Release();
 			m_RTChain = NULL;
 		}
-		if (NULL != m_pRTGeom)
+		if (NULL != m_pPostProcessGeometry)
 		{
-			m_pRTGeom->Release();
-			delete m_pRTGeom;
-			m_pRTGeom = NULL;
+			m_pPostProcessGeometry->Release();
+			delete m_pPostProcessGeometry;
+			m_pPostProcessGeometry = NULL;
 		}
 		if (NULL != m_pDispFXPP)
 		{
 			m_pMaterialManager->UnloadEffect("MRT");
 			m_pDispFXPP = NULL;
 		}
-#endif // DISPLAY_TEST_MRT
 
 		if (NULL != m_pSurfaceManager)
 		{
@@ -602,7 +599,6 @@ namespace ElixirEngine
 		return &m_oWorldInvTransposeMatrix;
 	}
 
-#if DISPLAY_TEST_MRT
 	void Display::MRTRenderBeginPass(UIntRef _uIndex)
 	{
 		if (NULL != m_RTChain)
@@ -618,7 +614,16 @@ namespace ElixirEngine
 			m_RTChain->RenderEndPass();
 		}
 	}
-#endif // DISPLAY_TEST_MRT
+
+	void Display::AddPostProcessesList(DisplayPostProcessPtrMapPtr _pPostProcesses)
+	{
+		m_pPostProcesses = _pPostProcesses;
+	}
+
+	DisplayObjectPtr Display::GetPostProcessGeometry()
+	{
+		return m_pPostProcessGeometry;
+	}
 
 	unsigned int Display::GetFormatBitsPerPixel(const D3DFORMAT& _eFormat)
 	{

@@ -96,6 +96,7 @@ namespace ElixirEngine
 		void UnloadMaterial(const string& _strName);
 		void UnloadMaterial(const Key& _uNameKey);
 		DisplayMaterialPtr GetMaterial(const string& _strName);
+		DisplayMaterialPtr GetMaterial(const Key& _strNameKey);
 
 		bool LoadEffect(const string& _strName, const string& _strPath);
 		void UnloadEffect(const string& _strName);
@@ -133,6 +134,43 @@ namespace ElixirEngine
 		DisplayRef				m_rDisplay;
 
 	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	struct RenderObjectFunction
+	{
+		RenderObjectFunction(DisplayMaterialPtr _pMaterial)
+		:	m_pMaterial(_pMaterial)
+		{
+
+		}
+
+		void operator() (DisplayObjectPtr _pDisplayObject)
+		{
+			DisplayRef rDisplay = m_pMaterial->GetMaterialManager().GetDisplay();
+			EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
+			unsigned int uPassCount;
+			pEffect->Begin(&uPassCount, 0);
+			_pDisplayObject->RenderBegin();
+			rDisplay.SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
+			for (unsigned int iPass = 0 ; iPass < uPassCount ; ++iPass)
+			{
+				rDisplay.MRTRenderBeginPass(iPass);
+				pEffect->BeginPass(iPass);
+				m_pMaterial->UseParams();
+				pEffect->CommitChanges();
+				_pDisplayObject->Render();
+				pEffect->EndPass();
+				rDisplay.MRTRenderEndPass();
+			}
+			_pDisplayObject->RenderEnd();
+			pEffect->End();
+		}
+
+		DisplayMaterialPtr	m_pMaterial;
 	};
 }
 

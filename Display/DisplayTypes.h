@@ -163,6 +163,17 @@ namespace ElixirEngine
 	typedef DisplayRenderTargetGeometry* DisplayRenderTargetGeometryPtr;
 	typedef DisplayRenderTargetGeometry& DisplayRenderTargetGeometryRef;
 
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayPostProcess;
+	typedef DisplayPostProcess* DisplayPostProcessPtr;
+	typedef DisplayPostProcess& DisplayPostProcessRef;
+	typedef vector<DisplayPostProcessPtr> DisplayPostProcessPtrVec;
+	typedef DisplayPostProcessPtrVec* DisplayPostProcessPtrVecPtr;
+	typedef map<Key, DisplayPostProcessPtr> DisplayPostProcessPtrMap;
+	typedef DisplayPostProcessPtrMap* DisplayPostProcessPtrMapPtr;
 }
 
 #endif // __DISPLAYTYPES_H__

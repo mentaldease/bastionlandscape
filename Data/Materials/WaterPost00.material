@@ -1,11 +1,9 @@
 # libconfig formatted file
-# Basic based material
-
-version = "1.0";
+# water post effect material
 
 material =
 {
-	name = "terrain00";
+	name = "waterpost00";
 	effect = "data/effects/WaterPost.fx";
 	technique = "RenderScene";
 	params =

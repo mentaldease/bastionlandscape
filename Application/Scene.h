@@ -29,13 +29,16 @@ namespace BastionGame
 		bool CreateLoadMaterials(Config& _rConfig);
 		bool CreateLoadLandscapes(Config& _rConfig);
 		bool CreateLoadLandscape(Config& _rConfig, ConfigShortcutPtr pShortcut);
+		bool CreateLoadPostProcesses(Config& _rConfig);
+		bool CreateLoadPostProcess(Config& _rConfig, ConfigShortcutPtr pShortcut);
 
 	protected:
-		ApplicationRef			m_rApplication;
-		CoreObjectPtrMap		m_mAllObjects;
-		LandscapePtrMap			m_mLandscapes;
-		DisplayMaterialPtrMap	m_mMaterials;
-		string					m_strName;
+		ApplicationRef				m_rApplication;
+		CoreObjectPtrMap			m_mAllObjects;
+		LandscapePtrMap				m_mLandscapes;
+		DisplayMaterialPtrMap		m_mMaterials;
+		DisplayPostProcessPtrMap	m_mPostProcesses;
+		string						m_strName;
 
 	private:
 	};

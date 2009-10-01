@@ -149,10 +149,10 @@ namespace ElixirEngine
 		MatrixPtr GetCurrentWorldMatrix();
 		MatrixPtr GetCurrentWorldInvTransposeMatrix();
 
-#if DISPLAY_TEST_MRT
 		void MRTRenderBeginPass(UIntRef _uIndex);
 		void MRTRenderEndPass();
-#endif // DISPLAY_TEST_MRT
+		void AddPostProcessesList(DisplayPostProcessPtrMapPtr _pPostProcesses);
+		DisplayObjectPtr GetPostProcessGeometry();
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
@@ -177,10 +177,11 @@ namespace ElixirEngine
 		unsigned int				m_uHeight;
 
 #if DISPLAY_TEST_MRT
+		DisplayPostProcessPtrMapPtr		m_pPostProcesses;
 		DisplayEffectPtr				m_pDispFXPP;
 		EffectPtr						m_pEffectPP;
 		unsigned int					m_uMRTCurrent;
-		DisplayRenderTargetGeometryPtr	m_pRTGeom;
+		DisplayRenderTargetGeometryPtr	m_pPostProcessGeometry;
 		DisplayRenderTargetPtr			m_pRTColor;
 		DisplayRenderTargetPtr			m_pRTPosition;
 		DisplayRenderTargetChainPtr		m_RTChain;
