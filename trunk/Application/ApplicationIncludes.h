@@ -9,6 +9,7 @@
 #include "../Input/Input.h"
 #include "../Core/Time.h"
 #include "../Core/Config.h"
+#include "../Display/PostProcess.h"
 using namespace ElixirEngine;
 
 #include "../Application/ApplicationTypes.h"

@@ -88,7 +88,7 @@ namespace ElixirEngine
 		virtual void Release();
 
 		void RenderBegin(const ERenderMode& _eMode);
-		void RenderBeginPass(const UIntRef _uIndex);
+		void RenderBeginPass(UIntRef _uIndex);
 		void RenderEndPass();
 		void RenderEnd();
 
@@ -117,6 +117,8 @@ namespace ElixirEngine
 		DisplayTexturePtr	m_pCurrentBufferTex;
 		UInt				m_uCurrentBuffer;
 		UInt				m_uIndex;
+		Key					m_uRTSemanticNameKey;
+		Key					m_uORTSemanticNameKey;
 		ERenderState		m_eRenderState;
 		ERenderMode			m_eMode;
 		bool				m_bFirstRender;
@@ -149,11 +151,11 @@ namespace ElixirEngine
 		virtual void Release();
 
 		void RenderBegin(const DisplayRenderTarget::ERenderMode& _eMode);
-		void RenderBeginPass(const UIntRef _uIndex);
+		void RenderBeginPass(UIntRef _uIndex);
 		void RenderEndPass();
 		void RenderEnd();
 
-		DisplayTexturePtr GetTexture(const UIntRef _uBufferIndex);
+		DisplayTexturePtr GetTexture(UIntRef _uBufferIndex);
 
 	protected:
 		DisplayRenderTargetPtrVec	m_vGBuffer;

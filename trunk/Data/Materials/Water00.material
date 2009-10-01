@@ -1,8 +1,6 @@
 # libconfig formatted file
 # Water based material
 
-version = "1.0";
-
 material =
 {
 	name = "water00";

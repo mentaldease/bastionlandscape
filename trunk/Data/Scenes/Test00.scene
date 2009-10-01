@@ -1,8 +1,6 @@
 # libconfig formatted file
 # simple scene test
 
-version = "1.0";
-
 scene =
 {
 	name = "Test00";
@@ -27,6 +25,18 @@ scene =
 		{
 			name = "terrain02";
 			path = "data/materials/terrain02.material";
+		},
+		{
+			name = "monochrome00";
+			path = "data/materials/monochromepost00.material";
+		},
+		{
+			name = "inverse00";
+			path = "data/materials/inversepost00.material";
+		},
+		{
+			name = "dofcombine00";
+			path = "data/materials/dofcombinepost00.material";
 		}
 	);
 	landscapes =
@@ -77,5 +87,22 @@ scene =
 			height_scale = 1.0;
 		}
 		*/
+	);
+	postprocesses =
+	(
+		{
+			name = "monochrome";
+			material = "monochrome00";
+		},
+		/*
+		{
+			name = "inverse";
+			material = "inverse00";
+		},
+		*/
+		{
+			name = "dofcombine";
+			material = "dofcombine00";
+		}
 	);
 };

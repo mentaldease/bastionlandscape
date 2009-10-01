@@ -35,7 +35,8 @@ namespace BastionGame
 		{
 			bResult = oConfig.GetValue(string("scene.name"), m_strName)
 				&& CreateLoadMaterials(oConfig)
-				&& CreateLoadLandscapes(oConfig);
+				&& CreateLoadLandscapes(oConfig)
+				&& CreateLoadPostProcesses(oConfig);
 		}
 
 		oConfig.Release();
@@ -52,11 +53,27 @@ namespace BastionGame
 			iPair->second->Update();
 			++iPair;
 		}
+		if (false == m_mPostProcesses.empty())
+		{
+			m_rApplication.GetDisplay()->AddPostProcessesList(&m_mPostProcesses);
+		}
 	}
 
 	void Scene::Release()
 	{
+		// landscapes
+		while (m_mLandscapes.end() != m_mLandscapes.begin())
+		{
+			LandscapePtr pLandscape = m_mLandscapes.begin()->second;
+			pLandscape->Release();
+			delete pLandscape;
+			m_mLandscapes.erase(m_mLandscapes.begin());
+		}
+
+		// landscape layer system
 		LandscapeLayerManager::GetInstance()->UnloadAll();
+
+		// materials
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 		while (m_mMaterials.end() != m_mMaterials.begin())
 		{
@@ -64,6 +81,15 @@ namespace BastionGame
 			m_mMaterials.erase(m_mMaterials.begin());
 		}
 		//m_mMaterials.clear();
+
+		// render post process
+		while (m_mPostProcesses.end() != m_mPostProcesses.begin())
+		{
+			DisplayPostProcessPtr pPostProcess = m_mPostProcesses.begin()->second;
+			pPostProcess->Release();
+			delete pPostProcess;
+			m_mPostProcesses.erase(m_mPostProcesses.begin());
+		}
 	}
 
 	bool Scene::CreateLoadMaterials(Config& _rConfig)
@@ -196,6 +222,57 @@ namespace BastionGame
 		{
 			pLandscape->Release();
 			delete pLandscape;
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadPostProcesses(Config& _rConfig)
+	{
+		const unsigned int uBufferSize = 1024;
+		char szBuffer[uBufferSize];
+		const int uCount = _rConfig.GetCount("scene.postprocesses");
+		bool bResult = true;
+
+		for (int i = 0 ; uCount > i ; ++i)
+		{
+			_snprintf(szBuffer, uBufferSize, "scene.postprocesses.[%u]", i);
+			ConfigShortcutPtr pShortcut = _rConfig.GetShortcut(string(szBuffer));
+			if (NULL == pShortcut)
+			{
+				bResult = false;
+				break;
+			}
+			bResult = CreateLoadPostProcess(_rConfig, pShortcut);
+			if (false == bResult)
+			{
+				break;
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadPostProcess(Config& _rConfig, ConfigShortcutPtr pShortcut)
+	{
+		DisplayPostProcessPtr pPostProcess = new DisplayPostProcess(*m_rApplication.GetDisplay());
+		DisplayPostProcess::CreateInfo oPPCInfo;
+		string strMaterialName;
+		bool bResult = _rConfig.GetValue(pShortcut, "name", oPPCInfo.m_strName)
+			&& (m_mPostProcesses.end() == m_mPostProcesses.find(MakeKey(oPPCInfo.m_strName))) // <== check that there is NOT another post process with the same name
+			&& _rConfig.GetValue(pShortcut, "material", strMaterialName)
+			&& (oPPCInfo.m_uMaterialNameKey = MakeKey(strMaterialName))
+			&& pPostProcess->Create(boost::any(&oPPCInfo));
+
+
+		if (false != bResult)
+		{
+			m_mPostProcesses[MakeKey(oPPCInfo.m_strName)] = pPostProcess;
+		}
+		else
+		{
+			pPostProcess->Release();
+			delete pPostProcess;
 		}
 
 		return bResult;

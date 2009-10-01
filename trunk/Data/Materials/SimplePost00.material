@@ -1,11 +1,9 @@
 # libconfig formatted file
-# Basic based material
-
-version = "1.0";
+# simple color post effect material
 
 material =
 {
-	name = "terrain00";
+	name = "simplepost00";
 	effect = "data/effects/SimplePost.fx";
 	technique = "RenderScene";
 	params =

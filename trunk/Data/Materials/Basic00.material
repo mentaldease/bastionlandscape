@@ -1,8 +1,6 @@
 # libconfig formatted file
 # Basic based material
 
-version = "1.0";
-
 material =
 {
 	name = "basic00";

@@ -218,38 +218,6 @@ namespace ElixirEngine
 
 	void DisplayMaterial::Render()
 	{
-		struct RenderObjectFunction
-		{
-			RenderObjectFunction(DisplayMaterialPtr _pMaterial)
-			:	m_pMaterial(_pMaterial)
-			{
-
-			}
-
-			void operator() (DisplayObjectPtr _pDisplayObject)
-			{
-				DisplayRef rDisplay = m_pMaterial->GetMaterialManager().GetDisplay();
-				EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
-				unsigned int uPassCount;
-				pEffect->Begin(&uPassCount, 0);
-				_pDisplayObject->RenderBegin();
-				rDisplay.SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
-				for (unsigned int iPass = 0 ; iPass < uPassCount ; ++iPass)
-				{
-					rDisplay.MRTRenderBeginPass(iPass);
-					pEffect->BeginPass(iPass);
-					m_pMaterial->UseParams();
-					pEffect->CommitChanges();
-					_pDisplayObject->Render();
-					pEffect->EndPass();
-					rDisplay.MRTRenderEndPass();
-				}
-				_pDisplayObject->RenderEnd();
-				pEffect->End();
-			}
-
-			DisplayMaterialPtr	m_pMaterial;
-		};
 		m_pEffect->GetEffect()->SetTechnique(m_hTechnique);
 		size_t uCount = m_vRenderList.size();
 		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderObjectFunction(this));
@@ -322,6 +290,7 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("ATLASLUTTEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ATLASDIFFUSEINFO"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NOISETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		// render target texture
 		m_mParamCreators[MakeKey(string("RT2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("RT2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("RT2D02"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
@@ -330,6 +299,16 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("RT2D05"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("RT2D06"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("RT2D07"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		// original render target texture (rendered during normal process mode)
+		m_mParamCreators[MakeKey(string("ORT2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ORT2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ORT2D02"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ORT2D03"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ORT2D04"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ORT2D05"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ORT2D06"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("ORT2D07"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		// standard texture
 		m_mParamCreators[MakeKey(string("TEX2D00"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("TEX2D01"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("TEX2D02"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
@@ -428,9 +407,13 @@ namespace ElixirEngine
 
 	DisplayMaterialPtr DisplayMaterialManager::GetMaterial(const string& _strName)
 	{
-		Key uKey = 0;
-		uKey = MakeKey(_strName);
-		DisplayMaterialPtrMap::iterator iPair = m_mMaterials.find(uKey);
+		const Key uKey = MakeKey(_strName);
+		return GetMaterial(uKey);
+	}
+
+	DisplayMaterialPtr DisplayMaterialManager::GetMaterial(const Key& _strNameKey)
+	{
+		DisplayMaterialPtrMap::iterator iPair = m_mMaterials.find(_strNameKey);
 		bool bResult = (m_mMaterials.end() != iPair);
 		DisplayMaterialPtr pResult = (false != bResult) ? iPair->second : NULL;
 		return pResult;
