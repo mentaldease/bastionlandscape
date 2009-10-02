@@ -39,9 +39,9 @@ namespace ElixirEngine
 		const Vertex aQuad[4] =
 		{
 			{ -0.5f,					-0.5f,						0.5f,	1.0f,	0.0f,	0.0f,	0.0f,	0.0f },
-			{ -0.5f,					pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	0.0f,	0.0f },
-			{ pInfo->m_uWidth - 0.5f,	-0.5f,						0.5f,	1.0f,	1.0f,	0.0f,	0.0f,	0.0f },
-			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	0.0f,	0.0f }
+			{ -0.5f,					pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	0.0f,	1.0f },
+			{ pInfo->m_uWidth - 0.5f,	-0.5f,						0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	0.0f },
+			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f }
 		};
 		memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
 
@@ -103,12 +103,14 @@ namespace ElixirEngine
 		m_pPreviousBufferSurf(NULL),
 		m_pCurrentBufferTex(NULL),
 		m_uCurrentBuffer(0),
-		m_uIndex(0),
+		m_uRTIndex(0),
+		m_uPassIndex(0),
 		m_uRTSemanticNameKey(0),
 		m_uORTSemanticNameKey(0),
 		m_eRenderState(ERenderState_UNKNOWN),
 		m_eMode(ERenderMode_UNKNOWNPROCESS),
-		m_bFirstRender(true)
+		m_bFirstRender(true),
+		m_bImmediateWrite(false)
 	{
 		for (UInt i = 0 ; c_uBufferCount > i ; ++i)
 		{
@@ -128,14 +130,16 @@ namespace ElixirEngine
 		bool bResult = false;
 
 		m_strName = pInfo->m_strName;
-		m_uIndex = pInfo->m_uIndex;
+		m_uRTIndex = pInfo->m_uIndex;
+		m_bImmediateWrite = pInfo->m_bImmediateWrite;
 		m_eRenderState = ERenderState_UNKNOWN;
 		m_eMode = ERenderMode_UNKNOWNPROCESS;
 		m_pCurrentBufferTex = NULL;
+		m_uCurrentBuffer = 0;
 
-		string strSemanticName = boost::str(boost::format("RT2D0%1%") % m_uIndex);
+		string strSemanticName = boost::str(boost::format("RT2D0%1%") % m_uRTIndex);
 		m_uRTSemanticNameKey = MakeKey(strSemanticName);
-		strSemanticName = boost::str(boost::format("ORT2D0%1%") % m_uIndex);
+		strSemanticName = boost::str(boost::format("ORT2D0%1%") % m_uRTIndex);
 		m_uORTSemanticNameKey = MakeKey(strSemanticName);
 
 		for (UInt i = 0 ; c_uBufferCount > i ; ++i)
@@ -183,12 +187,15 @@ namespace ElixirEngine
 		{
 			if (m_eMode != _eMode)
 			{
-				m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uIndex, &m_pPreviousBufferSurf);
-				m_uCurrentBuffer = 0;
 				m_eRenderState = ERenderState_RENDERBEGIN;
-				m_eMode = _eMode;
-				if ((ERenderMode_NORMALPROCESS == m_eMode) || (ERenderMode_RESETPROCESS == m_eMode))
+				if (false == m_bImmediateWrite)
 				{
+					m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
+				}
+				m_eMode = _eMode;
+				if (ERenderMode_NORMALPROCESS == m_eMode)
+				{
+					m_uCurrentBuffer = 0;
 					m_bFirstRender = true;
 					m_pCurrentBufferTex = NULL;
 				}
@@ -200,30 +207,26 @@ namespace ElixirEngine
 	{
 		if ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState))
 		{
+			m_uPassIndex = _uIndex;
+			m_eRenderState = ERenderState_RENDERBEGINPASS;
 			if ((ERenderMode_POSTPROCESS == m_eMode) || (NULL == m_pCurrentBufferTex))
 			{
-				SurfacePtr pNewSurface = m_pDoubleBufferSurf[m_uCurrentBuffer];
-				DisplayTexturePtr pNewBufferTex = m_pDoubleBufferTex[m_uCurrentBuffer];
-
-				if (false != m_bFirstRender)
-				{
-					pNewSurface = m_pDoubleBufferSurf[c_uOriginalBuffer];
-					pNewBufferTex = m_pDoubleBufferTex[c_uOriginalBuffer];
-				}
-
 				if (ERenderMode_POSTPROCESS == m_eMode)
 				{
 					m_rDisplay.GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, m_pCurrentBufferTex);
 					m_rDisplay.GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, m_pDoubleBufferTex[c_uOriginalBuffer]);
 				}
 
-				if (pNewBufferTex != m_pCurrentBufferTex)
+				if (false == m_bImmediateWrite)
 				{
-					m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uIndex, pNewSurface);
-					m_pCurrentBufferTex = pNewBufferTex;
+					const UInt uNewIndex = (false != m_bFirstRender) ? c_uOriginalBuffer : m_uCurrentBuffer;
+					if (m_pDoubleBufferTex[uNewIndex] != m_pCurrentBufferTex)
+					{
+						m_pCurrentBufferTex = m_pDoubleBufferTex[uNewIndex];
+						m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pDoubleBufferSurf[uNewIndex]);
+					}
 				}
 			}
-			m_eRenderState = ERenderState_RENDERBEGINPASS;
 		}
 	}
 
@@ -231,12 +234,13 @@ namespace ElixirEngine
 	{
 		if (ERenderState_RENDERBEGINPASS == m_eRenderState)
 		{
+			m_eRenderState = ERenderState_RENDERENDPASS;
 			if (ERenderMode_POSTPROCESS == m_eMode)
 			{
-				m_uCurrentBuffer = (false != m_bFirstRender) ? m_uCurrentBuffer : 1 - m_uCurrentBuffer;
-				m_bFirstRender = false;
+				m_rDisplay.GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, NULL);
+				m_rDisplay.GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, NULL);
+				m_uCurrentBuffer = 1 - m_uCurrentBuffer;
 			}
-			m_eRenderState = ERenderState_RENDERENDPASS;
 		}
 	}
 
@@ -244,13 +248,17 @@ namespace ElixirEngine
 	{
 		if ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState))
 		{
-			if (ERenderMode_NORMALPROCESS == m_eMode)
-			{
-				m_uCurrentBuffer = (false != m_bFirstRender) ? m_uCurrentBuffer : 1 - m_uCurrentBuffer;
-				m_bFirstRender = false;
-			}
-			m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uIndex, m_pPreviousBufferSurf);
 			m_eRenderState = ERenderState_RENDEREND;
+			m_bFirstRender = false;
+			if (false == m_bImmediateWrite)
+			{
+				m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
+				if (NULL != m_pPreviousBufferSurf)
+				{
+					m_pPreviousBufferSurf->Release();
+					m_pPreviousBufferSurf = NULL;
+				}
+			}
 		}
 	}
 
@@ -317,6 +325,8 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetChain::RenderBegin(const DisplayRenderTarget::ERenderMode& _eMode)
 	{
+		m_rDisplay.GetDevicePtr()->BeginScene();
+
 		DisplayRenderTargetPtrVec::iterator iRT = m_vGBuffer.begin();
 		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
 		while (iEnd != iRT)
@@ -357,6 +367,8 @@ namespace ElixirEngine
 			(*iRT)->RenderEnd();
 			++iRT;
 		}
+
+		m_rDisplay.GetDevicePtr()->EndScene();
 	}
 
 	DisplayTexturePtr DisplayRenderTargetChain::GetTexture(UIntRef _uBufferIndex)

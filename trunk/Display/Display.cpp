@@ -280,43 +280,39 @@ namespace ElixirEngine
 
 			if ((NULL != m_pPostProcesses) && (NULL != m_RTChain))
 			{
-				// Reset all the chain
-				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_RESETPROCESS);
-				m_RTChain->RenderEnd();
-				// Render to buffers
+				// Render scene to buffers
 				UInt uPassIndex = 0;
 				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 				m_RTChain->RenderBeginPass(uPassIndex);
 				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
 			}
+			else
+			{
+				m_pDevice->BeginScene();
+			}
 
-			m_pDevice->BeginScene();
 			m_pCamera->Update();
 			Render();
-			m_pDevice->EndScene();
 
 			if ((NULL != m_pPostProcesses) && (NULL != m_RTChain))
 			{
-				MRTRenderEndPass();
+				m_RTChain->RenderEndPass();
 				m_RTChain->RenderEnd();
 
-				//*
 				// Apply post processes effects
 				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
 
-				DisplayPostProcessPtrMap::iterator iPair = m_pPostProcesses->begin();
-				DisplayPostProcessPtrMap::iterator iEnd = m_pPostProcesses->end();
-				while (iEnd != iPair)
+				DisplayPostProcessPtrVec::iterator iPostProcess = m_pPostProcesses->begin();
+				DisplayPostProcessPtrVec::iterator iEnd = m_pPostProcesses->end();
+				while (iEnd != iPostProcess)
 				{
-					DisplayPostProcessPtr pPostProcess = iPair->second;
+					DisplayPostProcessPtr pPostProcess = *iPostProcess;
 					pPostProcess->Process();
-					++iPair;
+					++iPostProcess;
 				}
-				//*/
 
 				m_RTChain->RenderEnd();
 
-				//*
 				// copy back to back buffer
 				if (SUCCEEDED( m_pDevice->BeginScene()))
 				{
@@ -337,7 +333,10 @@ namespace ElixirEngine
 					m_pEffectPP->End();
 					m_pDevice->EndScene();
 				}
-				//*/
+			}
+			else
+			{
+				m_pDevice->EndScene();
 			}
 
 			m_pDevice->Present(NULL, NULL, NULL, NULL);
@@ -615,7 +614,7 @@ namespace ElixirEngine
 		}
 	}
 
-	void Display::AddPostProcessesList(DisplayPostProcessPtrMapPtr _pPostProcesses)
+	void Display::AddPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses)
 	{
 		m_pPostProcesses = _pPostProcesses;
 	}

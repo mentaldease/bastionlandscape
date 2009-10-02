@@ -69,12 +69,12 @@ namespace ElixirEngine
 			UInt		m_uHeight;
 			D3DFORMAT	m_uFormat;
 			UInt		m_uIndex;
+			bool		m_bImmediateWrite;
 		};
 
 		enum ERenderMode
 		{
 			ERenderMode_UNKNOWNPROCESS,
-			ERenderMode_RESETPROCESS,
 			ERenderMode_NORMALPROCESS,
 			ERenderMode_POSTPROCESS
 		};
@@ -111,17 +111,19 @@ namespace ElixirEngine
 
 		string				m_strName;
 		DisplayRef			m_rDisplay; 
-		DisplayTexturePtr	m_pDoubleBufferTex[3];
-		SurfacePtr			m_pDoubleBufferSurf[3];
+		DisplayTexturePtr	m_pDoubleBufferTex[c_uBufferCount];
+		SurfacePtr			m_pDoubleBufferSurf[c_uBufferCount];
 		SurfacePtr			m_pPreviousBufferSurf;
 		DisplayTexturePtr	m_pCurrentBufferTex;
 		UInt				m_uCurrentBuffer;
-		UInt				m_uIndex;
+		UInt				m_uRTIndex;
+		UInt				m_uPassIndex;
 		Key					m_uRTSemanticNameKey;
 		Key					m_uORTSemanticNameKey;
 		ERenderState		m_eRenderState;
 		ERenderMode			m_eMode;
 		bool				m_bFirstRender;
+		bool				m_bImmediateWrite;
 
 	private:
 	};

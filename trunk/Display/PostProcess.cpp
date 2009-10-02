@@ -13,7 +13,8 @@ namespace ElixirEngine
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
 		m_pMaterial(NULL),
-		m_pDisplayObject(NULL)
+		m_pDisplayObject(NULL),
+		m_bImmediateWrite(false)
 	{
 
 	}
@@ -30,6 +31,7 @@ namespace ElixirEngine
 		m_pMaterial = m_rDisplay.GetMaterialManager()->GetMaterial(m_uMaterialNameKey);
 		m_pDisplayObject = m_rDisplay.GetPostProcessGeometry();
 		m_strName = pInfo->m_strName;
+		m_bImmediateWrite = pInfo->m_bImmediateWrite;
 		bool bResult = (NULL != m_pMaterial);
 
 		return bResult;

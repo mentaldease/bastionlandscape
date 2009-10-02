@@ -151,7 +151,7 @@ namespace ElixirEngine
 
 		void MRTRenderBeginPass(UIntRef _uIndex);
 		void MRTRenderEndPass();
-		void AddPostProcessesList(DisplayPostProcessPtrMapPtr _pPostProcesses);
+		void AddPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses);
 		DisplayObjectPtr GetPostProcessGeometry();
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
@@ -177,7 +177,8 @@ namespace ElixirEngine
 		unsigned int				m_uHeight;
 
 #if DISPLAY_TEST_MRT
-		DisplayPostProcessPtrMapPtr		m_pPostProcesses;
+		//DisplayPostProcessPtrMapPtr	m_pPostProcesses;
+		DisplayPostProcessPtrVecPtr		m_pPostProcesses;
 		DisplayEffectPtr				m_pDispFXPP;
 		EffectPtr						m_pEffectPP;
 		unsigned int					m_uMRTCurrent;

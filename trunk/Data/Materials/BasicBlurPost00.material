@@ -1,0 +1,15 @@
+# libconfig formatted file
+# basic blur post effect material
+
+material =
+{
+	name = "basicblurpost00";
+	effect = "data/effects/BasicBlurPost.fx";
+	technique = "RenderScene";
+	params =
+	(
+		{
+			semantic = "RT2D00";
+		}
+	);
+};

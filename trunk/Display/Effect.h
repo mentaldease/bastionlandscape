@@ -152,14 +152,14 @@ namespace ElixirEngine
 		{
 			DisplayRef rDisplay = m_pMaterial->GetMaterialManager().GetDisplay();
 			EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
-			unsigned int uPassCount;
+			UInt uPassCount;
 			pEffect->Begin(&uPassCount, 0);
 			_pDisplayObject->RenderBegin();
 			rDisplay.SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
-			for (unsigned int iPass = 0 ; iPass < uPassCount ; ++iPass)
+			for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
 			{
-				rDisplay.MRTRenderBeginPass(iPass);
-				pEffect->BeginPass(iPass);
+				rDisplay.MRTRenderBeginPass(uPass);
+				pEffect->BeginPass(uPass);
 				m_pMaterial->UseParams();
 				pEffect->CommitChanges();
 				_pDisplayObject->Render();

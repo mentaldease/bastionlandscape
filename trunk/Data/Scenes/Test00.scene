@@ -37,6 +37,10 @@ scene =
 		{
 			name = "dofcombine00";
 			path = "data/materials/dofcombinepost00.material";
+		},
+		{
+			name = "basicblur00";
+			path = "data/materials/basicblurpost00.material";
 		}
 	);
 	landscapes =
@@ -90,16 +94,20 @@ scene =
 	);
 	postprocesses =
 	(
+		/*
 		{
 			name = "monochrome";
 			material = "monochrome00";
 		},
-		/*
 		{
 			name = "inverse";
 			material = "inverse00";
 		},
 		*/
+		{
+			name = "basicblur";
+			material = "basicblur00";
+		},
 		{
 			name = "dofcombine";
 			material = "dofcombine00";
