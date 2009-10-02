@@ -38,6 +38,7 @@ namespace BastionGame
 		LandscapePtrMap				m_mLandscapes;
 		DisplayMaterialPtrMap		m_mMaterials;
 		DisplayPostProcessPtrMap	m_mPostProcesses;
+		DisplayPostProcessPtrVec	m_vPostProcesses;
 		string						m_strName;
 
 	private:

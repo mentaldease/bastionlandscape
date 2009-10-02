@@ -17,6 +17,7 @@ namespace ElixirEngine
 		{
 			string	m_strName;
 			Key		m_uMaterialNameKey;
+			bool	m_bImmediateWrite;
 		};
 		typedef CreateInfo* CreateInfoPtr;
 
@@ -36,6 +37,7 @@ namespace ElixirEngine
 		DisplayMaterialPtr	m_pMaterial;
 		DisplayObjectPtr	m_pDisplayObject;
 		Key					m_uMaterialNameKey;
+		bool				m_bImmediateWrite;
 
 	private:
 	};

@@ -14,6 +14,8 @@ namespace BastionGame
 		m_mAllObjects(),
 		m_mLandscapes(),
 		m_mMaterials(),
+		m_mPostProcesses(),
+		m_vPostProcesses(),
 		m_strName()
 	{
 
@@ -53,9 +55,9 @@ namespace BastionGame
 			iPair->second->Update();
 			++iPair;
 		}
-		if (false == m_mPostProcesses.empty())
+		if (false == m_vPostProcesses.empty())
 		{
-			m_rApplication.GetDisplay()->AddPostProcessesList(&m_mPostProcesses);
+			m_rApplication.GetDisplay()->AddPostProcessesList(&m_vPostProcesses);
 		}
 	}
 
@@ -90,6 +92,7 @@ namespace BastionGame
 			delete pPostProcess;
 			m_mPostProcesses.erase(m_mPostProcesses.begin());
 		}
+		m_vPostProcesses.clear();
 	}
 
 	bool Scene::CreateLoadMaterials(Config& _rConfig)
@@ -258,6 +261,9 @@ namespace BastionGame
 		DisplayPostProcessPtr pPostProcess = new DisplayPostProcess(*m_rApplication.GetDisplay());
 		DisplayPostProcess::CreateInfo oPPCInfo;
 		string strMaterialName;
+		bool bImmediateWrite = false;
+		_rConfig.GetValue(pShortcut, "immediate_write", bImmediateWrite);
+		oPPCInfo.m_bImmediateWrite = bImmediateWrite;
 		bool bResult = _rConfig.GetValue(pShortcut, "name", oPPCInfo.m_strName)
 			&& (m_mPostProcesses.end() == m_mPostProcesses.find(MakeKey(oPPCInfo.m_strName))) // <== check that there is NOT another post process with the same name
 			&& _rConfig.GetValue(pShortcut, "material", strMaterialName)
@@ -268,6 +274,7 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			m_mPostProcesses[MakeKey(oPPCInfo.m_strName)] = pPostProcess;
+			m_vPostProcesses.push_back(pPostProcess);
 		}
 		else
 		{
