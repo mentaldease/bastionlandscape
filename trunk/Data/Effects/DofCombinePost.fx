@@ -146,12 +146,28 @@ void DofCombine( float2 Tex : TEXCOORD0,
                  out float4 oCol : COLOR0 )
 {
     float3 ColorOrig = tex2D( g_samSceneColor, Tex2 );
-
     float3 ColorBlur = tex2D( g_samSrcColor, Tex );
 
-    float Blur = dot( tex2D( g_samSrcPosition, Tex ), FocalPlane );
-
+#if 0
+	float Blur = dot( tex2D( g_samSrcPosition, Tex ), FocalPlane );
     oCol = float4( lerp( ColorOrig, ColorBlur, saturate(abs(Blur)) ), 1.0f );
+#else
+	float Distance = 100.0f;
+	float Range = 100.0f;
+	float Near = 1.0f;
+	float Far = 10000.0f;
+	Far = Far / (Far - Near);
+	// Get the depth texel
+	float  fDepth = tex2D(g_samSrcPosition, Tex).z;
+	// Invert the depth texel so the background is white and the nearest objects are black
+	fDepth = 1 - fDepth;
+	// Calculate the distance from the selected distance and range on our DoF effect, set from the application
+	float fSceneZ = (-Near * Far) / (fDepth - Far);
+	float Blur = saturate(abs(fSceneZ - Distance) / Range);
+	// Based on how far the texel is from "distance" in Distance, stored in blurFactor, mix the scene
+	//return lerp(NormalScene,BlurScene,blurFactor);
+	oCol = float4(lerp(ColorOrig, ColorBlur, Blur), 1.0f);
+#endif
 }
 
 

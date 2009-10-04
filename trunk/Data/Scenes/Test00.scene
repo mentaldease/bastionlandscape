@@ -94,7 +94,6 @@ scene =
 	);
 	postprocesses =
 	(
-		/*
 		{
 			name = "monochrome";
 			material = "monochrome00";
@@ -103,7 +102,6 @@ scene =
 			name = "inverse";
 			material = "inverse00";
 		},
-		*/
 		{
 			name = "basicblur";
 			material = "basicblur00";

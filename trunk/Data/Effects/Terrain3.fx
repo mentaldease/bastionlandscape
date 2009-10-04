@@ -75,7 +75,7 @@ struct VS_OUTPUT
 	float3 Light		: TEXCOORD1;
 	float3 Normal		: TEXCOORD2;  // vertex normal
 	float2 UV2			: TEXCOORD3;
-	float4 _Position	: TEXCOORD4;  // vertex position
+	float3 Position3	: TEXCOORD4;  // vertex position
 };
 
 struct PS_OUTPUT
@@ -103,7 +103,7 @@ VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 	Output.UV = In.vUV;
 	Output.UV2 = In.vUV2;
 
-	Output._Position = Output.Position;
+	Output.Position3 = Output.Position.xyz;
 
 	return Output;    
 }
@@ -113,14 +113,13 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
 	Output.Position = mul(In.vPos, g_mWorldViewProjection);
+	Output.Position3 = Output.Position.zzz;
 	Output.Position.z *= Output.Position.w;
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
 	Output.UV = In.vUV * 10.0f;
 	Output.UV2 = In.vUV2;
-
-	Output._Position = Output.Position;
 
 	return Output;    
 }
@@ -184,7 +183,7 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 	Output.vColor *= saturate(dot(In.Light, In.Normal));
 	Output.vColor.a = 1.0f;
 
-	Output.vPosition = In._Position;
+	Output.vPosition = float4(In.Position3, 1.0f);
 
 	return Output;
 }
