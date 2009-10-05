@@ -13,6 +13,78 @@ namespace BastionGame
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class CameraListener : public CoreObject
+	{
+	public:
+		CameraListener(DisplayRef _rDisplay)
+		:	CoreObject(),
+			m_pCamera(NULL),
+			m_rDisplay(_rDisplay),
+			m_oReflection(),
+			m_uUserMatrix00Key(MakeKey(string("USERMATRIX00")))
+		{
+
+		}
+
+		virtual ~CameraListener()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			bool bResult = true;
+			return bResult;
+		}
+
+		virtual void Update()
+		{
+			if (m_pCamera != m_rDisplay.GetCurrentCamera())
+			{
+				m_pCamera = m_rDisplay.GetCurrentCamera();
+			}
+			if (NULL != m_pCamera)
+			{
+				Plane reflect_plane;
+				Matrix reflect_matrix;
+				reflect_plane.a = 0.0f;
+				reflect_plane.b = 1.0f;
+				reflect_plane.c = 0.0f;
+				reflect_plane.d = 0.0f;
+				// Create a reflection matrix and multiply it with the view matrix
+				D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
+				Matrix oView = *m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
+				D3DXMatrixMultiply(&oView, &oView, &reflect_matrix);
+
+				Matrix oViewInv;
+				MatrixPtr pProjection = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);
+				D3DXMatrixMultiply(&m_oReflection, D3DXMatrixInverse(&oViewInv, NULL, &oView), pProjection);
+
+				Plane clip_plane = reflect_plane;
+				Matrix oVP = m_oReflection;
+				D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
+				D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
+				D3DXPlaneTransform(&clip_plane, &clip_plane, &m_oReflection);
+				m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
+				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
+
+				m_rDisplay.GetMaterialManager()->SetMatrixBySemantic(m_uUserMatrix00Key, &m_oReflection);
+			}
+		}
+
+	protected:
+		DisplayCameraPtr	m_pCamera;
+		DisplayRef			m_rDisplay;
+		Matrix				m_oReflection;
+		Key					m_uUserMatrix00Key;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	Application::Application()
 	:	CoreObject(),
 		m_oWindow(),
@@ -28,7 +100,9 @@ namespace BastionGame
 		m_pMouse(NULL),
 		m_uRLTimerID(0xffffffff),
 		m_fRelativeTime(0.0f),
-		m_fCameraMoveSpeed(100.0f)
+		m_fCameraMoveSpeed(100.0f),
+		m_oLightDir(0.0f, 0.0f, 0.0f, 0.0f),
+		m_pCameraListener(NULL)
 	{
 	}
 
@@ -160,6 +234,16 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
+			m_pCameraListener = new CameraListener(*m_pDisplay);
+			bResult = m_pCameraListener->Create(boost::any(0));
+			if (false != bResult)
+			{
+				m_pDisplay->GetCurrentCamera()->AddListener(m_pCameraListener);
+			}
+		}
+
+		if (false != bResult)
+		{
 			m_eStateMode = EStateMode_READY;
 		}
 
@@ -189,6 +273,13 @@ namespace BastionGame
 
 	void Application::Release()
 	{
+		if (NULL != m_pCameraListener)
+		{
+			m_pDisplay->GetCurrentCamera()->RemoveListener(m_pCameraListener);
+			m_pCameraListener->Release();
+			delete m_pCameraListener;
+			m_pCameraListener = NULL;
+		}
 		if (NULL != m_pScene)
 		{
 			m_pScene->Release();

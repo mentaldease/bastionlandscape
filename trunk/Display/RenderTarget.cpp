@@ -215,7 +215,7 @@ namespace ElixirEngine
 				{
 					m_rDisplay.GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, m_pCurrentBufferTex);
 					m_rDisplay.GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, m_pDoubleBufferTex[c_uOriginalBuffer]);
-					if (1 == m_uRTIndex)
+					if (1 <= m_uRTIndex)
 					{
 						return;
 					}
@@ -238,7 +238,7 @@ namespace ElixirEngine
 		if (ERenderState_RENDERBEGINPASS == m_eRenderState)
 		{
 			m_eRenderState = ERenderState_RENDERENDPASS;
-			if ((ERenderMode_POSTPROCESS == m_eMode) && (1 == m_uRTIndex))
+			if ((ERenderMode_POSTPROCESS == m_eMode) && (1 <= m_uRTIndex))
 			{
 				return;
 			}
@@ -265,10 +265,10 @@ namespace ElixirEngine
 					m_pPreviousBufferSurf->Release();
 					m_pPreviousBufferSurf = NULL;
 				}
-				if ((ERenderMode_NORMALPROCESS == m_eMode) && (1 == m_uRTIndex))
-				{
-					//D3DXSaveTextureToFile(L"data/Debug.jpg", D3DXIFF_JPG, m_pCurrentBufferTex->GetBase(), NULL);
-				}
+				//if ((ERenderMode_NORMALPROCESS == m_eMode) && (1 == m_uRTIndex))
+				//{
+				//	D3DXSaveTextureToFile(L"data/Debug.jpg", D3DXIFF_JPG, m_pCurrentBufferTex->GetBase(), NULL);
+				//}
 			}
 		}
 	}

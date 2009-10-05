@@ -70,6 +70,7 @@ namespace BastionGame
 		DIMouseState				m_oMouseInfo;
 		DIMouseState				m_oMouseInfoOld;
 		Vector4						m_oLightDir;
+		CameraListenerPtr			m_pCameraListener;
 
 	private:
 	};

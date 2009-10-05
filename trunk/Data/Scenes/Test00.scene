@@ -45,6 +45,7 @@ scene =
 	);
 	landscapes =
 	(
+		/*
 		{
 			object_type = "landscape";
 			name = "water";
@@ -59,6 +60,7 @@ scene =
 			floor_scale = 10.0;
 			height_scale = 1.0;
 		},
+		*/
 		{
 			object_type = "landscape";
 			name = "ground";
@@ -92,6 +94,7 @@ scene =
 		}
 		*/
 	);
+	/*
 	postprocesses =
 	(
 		{
@@ -111,4 +114,5 @@ scene =
 			material = "dofcombine00";
 		}
 	);
+	*/
 };

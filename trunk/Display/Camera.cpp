@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "../Display/Camera.h"
+#include "../Display/Effect.h"
 
 namespace ElixirEngine
 {
@@ -38,7 +39,8 @@ namespace ElixirEngine
 		m_fFovy(0.0f),
 		m_fAspectRatio(0.0f),
 		m_fPixelSize(0.0f),
-		m_oViewport()
+		m_oViewport(),
+		m_uCameraPosKey(MakeKey(string("CAMERAPOS")))
 	{
 
 	}
@@ -87,21 +89,52 @@ namespace ElixirEngine
 			static Matrix oYRot;
 			static Matrix oZRot;
 			static Matrix oTemp;
-			D3DXMatrixRotationX( &oXRot, m_oVRotation.x * s_fDegToRad );
-			D3DXMatrixRotationY( &oYRot, m_oVRotation.y * s_fDegToRad );
-			D3DXMatrixRotationZ( &oZRot, m_oVRotation.z * s_fDegToRad );
-			D3DXMatrixMultiply( &oTemp, &oXRot, &oYRot );
-			D3DXMatrixMultiply( &m_oMRotation, &oTemp, &oZRot );
+			D3DXMatrixRotationX(&oXRot, m_oVRotation.x * s_fDegToRad);
+			D3DXMatrixRotationY(&oYRot, m_oVRotation.y * s_fDegToRad);
+			D3DXMatrixRotationZ(&oZRot, m_oVRotation.z * s_fDegToRad);
+			D3DXMatrixMultiply(&oTemp, &oXRot, &oYRot);
+			D3DXMatrixMultiply(&m_oMRotation, &oTemp, &oZRot);
 		}
 
 		{
-			D3DXMatrixTranslation( &m_oMPosition, m_oVPosition.x, m_oVPosition.y, m_oVPosition.z );
+			D3DXMatrixTranslation(&m_oMPosition, m_oVPosition.x, m_oVPosition.y, m_oVPosition.z);
 		}
 
 		{
-			D3DXMatrixMultiply( &m_oMView, &m_oMRotation, &m_oMPosition );
-			D3DXMatrixMultiply( &m_oMViewProj, D3DXMatrixInverse( &m_oMViewInv, NULL, &m_oMView ), &m_oMProjection );
+			D3DXMatrixMultiply(&m_oMView, &m_oMRotation, &m_oMPosition);
+
+			//Plane reflect_plane;
+			//Matrix reflect_matrix;
+			//reflect_plane.a = 0.0f;
+			//reflect_plane.b = 1.0f;
+			//reflect_plane.c = 0.0f;
+			//reflect_plane.d = 0.0f;
+			//// Create a reflection matrix and multiply it with the view matrix
+			//D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
+			//D3DXMatrixMultiply(&m_oMView, &m_oMView, &reflect_matrix);
+
+			D3DXMatrixMultiply(&m_oMViewProj, D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView), &m_oMProjection);
 			ExtractFrustumPlanes();
+
+			//Plane clip_plane = reflect_plane;
+			//Matrix oVP = m_oMViewProj;
+			//D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
+			//D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
+			////D3DXPlaneTransform(&clip_plane, &clip_plane, &m_oMProjection);
+			////D3DXPlaneTransform(&clip_plane, &clip_plane, &m_oMView);
+			//D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
+			//m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
+			//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
+		}
+
+		m_rDisplay.GetMaterialManager()->SetVector3BySemantic(m_uCameraPosKey, &m_oVPosition);
+
+		CoreObjectPtrVec::iterator iListener = m_vListeners.begin();
+		CoreObjectPtrVec::iterator iEnd = m_vListeners.end();
+		while (iEnd != iListener)
+		{
+			(*iListener)->Update();
+			++iListener;
 		}
 	}
 
@@ -242,6 +275,23 @@ namespace ElixirEngine
 		eResult = (6 == sTotalIn) ? ECollision_IN : ECollision_INTERSECT;
 
 		return eResult;
+	}
+
+	void DisplayCamera::AddListener(CoreObjectPtr _pListener)
+	{
+		if (m_vListeners.end() == find(m_vListeners.begin(), m_vListeners.end(), _pListener))
+		{
+			m_vListeners.push_back(_pListener);
+		}
+	}
+
+	void DisplayCamera::RemoveListener(CoreObjectPtr _pListener)
+	{
+		CoreObjectPtrVec::iterator iListerner = find(m_vListeners.begin(), m_vListeners.end(), _pListener);
+		if (m_vListeners.end() != iListerner)
+		{
+			m_vListeners.erase(iListerner);
+		}
 	}
 
 	void DisplayCamera::UpdatePixelSize()

@@ -15,7 +15,7 @@ float4x4 matViewInverse	: VIEWINV;
 float waterLevel = 0.0f;
 
 // Position of the camera
-float3 cameraPos;
+float4 cameraPos		: CAMERAPOS;
 
 // How fast will colours fade out. You can also think about this
 // values as how clear water is. Therefore use smaller values (eg. 0.05f)
@@ -154,14 +154,14 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	
 	if(position.y <= level + maxAmplitude)
 	{
-		float3 eyeVec = position - cameraPos;
+		float3 eyeVec = position - cameraPos.xyz;
 		float diff = level - position.y;
 		float cameraDepth = cameraPos.y - position.y;
 		
 		// Find intersection with water surface
 		float3 eyeVecNorm = normalize(eyeVec);
 		float t = (level - cameraPos.y) / eyeVecNorm.y;
-		float3 surfacePoint = cameraPos + eyeVecNorm * t;
+		float3 surfacePoint = cameraPos.xyz + eyeVecNorm * t;
 		
 		eyeVecNorm = normalize(eyeVecNorm);
 		
@@ -175,13 +175,13 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 			bias *= 0.1f;
 			level += bias * maxAmplitude;
 			t = (level - cameraPos.y) / eyeVecNorm.y;
-			surfacePoint = cameraPos + eyeVecNorm * t;
+			surfacePoint = cameraPos.xyz + eyeVecNorm * t;
 		}
 		
 		depth = length(position - surfacePoint);
 		float depth2 = surfacePoint.y - position.y;
 		
-		eyeVecNorm = normalize(cameraPos - surfacePoint);
+		eyeVecNorm = normalize(cameraPos.xyz - surfacePoint);
 		
 		float normal1 = tex2D(heightMap, (texCoord + float2(-1, 0) / 256)).r;
 		float normal2 = tex2D(heightMap, (texCoord + float2(1, 0) / 256)).r;
