@@ -13,6 +13,7 @@ float4x4 g_mWorldInvTransp		: WORLDINVTRANSPOSE;
 float g_fMorphFactor			: MORPHFACTOR;
 float4 g_vLightDir				: LIGHTDIR;
 float4 g_vAtlasInfo				: ATLASDIFFUSEINFO;
+float4x4 g_mReflection			: USERMATRIX00;
 
 texture AtlasDiffuseTexture : ATLASDIFFUSETEX;
 sampler2D AtlasDiffuseSampler = sampler_state {
@@ -82,6 +83,7 @@ struct PS_OUTPUT
 {
 	float4 vColor		: COLOR0;  // Pixel color
 	float4 vPosition	: COLOR1;  // Pixel position
+	float4 vNormal		: COLOR2;  // Pixel normal
 };
 
 //--------------------------------------------------------------------------------------
@@ -112,8 +114,9 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 {
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
-	Output.Position = mul(In.vPos, g_mWorldViewProjection);
-	Output.Position3 = Output.Position.zzz;
+	//Output.Position = mul(In.vPos, g_mWorldViewProjection);
+	Output.Position = mul(In.vPos, g_mReflection);
+	Output.Position3 = Output.Position.xyz;
 	Output.Position.z *= Output.Position.w;
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);

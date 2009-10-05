@@ -274,9 +274,8 @@ namespace ElixirEngine
 	{
 		if (NULL != m_pDevice)
 		{
-			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(64, 0, 128), 1.0f, 0);
+			//m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 			m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
-			//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
 			if ((NULL != m_pPostProcesses) && (NULL != m_RTChain))
 			{
@@ -425,7 +424,7 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
-			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "RTChainTest", m_uWidth, m_uHeight, D3DFMT_A8R8G8B8, 2 };
+			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "RTChainTest", m_uWidth, m_uHeight, D3DFMT_A8R8G8B8, 3 };
 			m_pPostProcessGeometry = new DisplayRenderTargetGeometry(*this);
 			m_RTChain = new DisplayRenderTargetChain(*this);
 			bResult =  m_pPostProcessGeometry->Create(boost::any(&oRTGCInfo))

@@ -290,6 +290,7 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("ATLASLUTTEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ATLASDIFFUSEINFO"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NOISETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("CAMERAPOS"))] = boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1);
 		// render target texture
 		m_mParamCreators[MakeKey(string("RT2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("RT2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
@@ -317,6 +318,15 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("TEX2D05"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("TEX2D06"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("TEX2D07"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		// user defined matrix
+		m_mParamCreators[MakeKey(string("USERMATRIX00"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("USERMATRIX01"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("USERMATRIX02"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("USERMATRIX03"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("USERMATRIX04"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("USERMATRIX05"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("USERMATRIX06"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("USERMATRIX07"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
 
 		return bResult;
 	}

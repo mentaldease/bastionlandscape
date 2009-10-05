@@ -94,6 +94,9 @@ namespace ElixirEngine
 		ECollision CollisionWithSphere(const Vector3& _rCenter, const float& _fRadius);
 		ECollision CollisionWithAABB(AABBRef _rAABB);
 
+		void AddListener(CoreObjectPtr _pListener);
+		void RemoveListener(CoreObjectPtr _pListener);
+
 	protected:
 		void UpdatePixelSize();
 		void ExtractFrustumPlanes();
@@ -120,6 +123,10 @@ namespace ElixirEngine
 		Plane		m_aFrustumPlanes[EFrustumPlane_COUNT];
 		Plane		m_aFrustumNormals[EFrustumPlane_COUNT];
 		float		m_aFrustumDistances[EFrustumPlane_COUNT];
+
+		Key			m_uCameraPosKey;
+
+		CoreObjectPtrVec	m_vListeners;
 
 	private:
 	};

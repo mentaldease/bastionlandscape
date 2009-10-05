@@ -22,7 +22,7 @@ material =
 		{
 			semantic = "TEX2D01";
 			name = "waterpost00_normalMap";
-			valuse = "data/textures/waterpost00_normalMap.jpg"
+			valuse = "data/textures/waterpost00_normalMap.dds"
 		},
 		{
 			semantic = "TEX2D02";

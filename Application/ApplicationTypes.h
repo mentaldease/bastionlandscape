@@ -14,6 +14,10 @@ namespace BastionGame
 	class Scene;
 	typedef Scene* ScenePtr;
 	typedef Scene& SceneRef;
+
+	class CameraListener;
+	typedef CameraListener* CameraListenerPtr;
+	typedef CameraListener& CameraListenerRef;
 }
 
 #endif // __APPLICATIONTYPES_H__
