@@ -57,7 +57,7 @@ namespace BastionGame
 		}
 		if (false == m_vPostProcesses.empty())
 		{
-			m_rApplication.GetDisplay()->AddPostProcessesList(&m_vPostProcesses);
+			m_rApplication.GetDisplay()->SetPostProcessesList(&m_vPostProcesses);
 		}
 	}
 

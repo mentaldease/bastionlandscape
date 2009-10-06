@@ -94,16 +94,19 @@ scene =
 		}
 		*/
 	);
-	render_chain =
+	normalprocesses =
 	(
 		{
 			name = "reflection";
-			render_target_2 = 1;
+			render_target_type_0 = "tex2d";
+			render_target_name_0 = "reflection";
 		},
 		{
 			name = "base";
-			render_target_0 = 1;
-			render_target_1 = 1;
+			render_target_type_0 = "gbuffer";
+			render_target_name_0 = "gbuffer0";
+			render_target_type_1 = "gbuffer";
+			render_target_name_1 = "gbuffer1";
 		}
 	);
 	/*
