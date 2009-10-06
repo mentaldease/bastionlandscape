@@ -152,7 +152,7 @@ namespace ElixirEngine
 
 		void MRTRenderBeginPass(UIntRef _uIndex);
 		void MRTRenderEndPass();
-		void AddPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses);
+		void SetPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses);
 		DisplayObjectPtr GetPostProcessGeometry();
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);

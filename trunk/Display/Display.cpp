@@ -285,7 +285,7 @@ namespace ElixirEngine
 			m_RTChain->GetRenderTarget(2)->SetIndex(0);
 			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 			m_RTChain->RenderBeginPass(0);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
 			m_pCamera->SetReflection(true);
 			m_pCamera->Update();
 			Render();
@@ -297,7 +297,7 @@ namespace ElixirEngine
 			m_RTChain->GetRenderTarget(2)->SetEnabled(false);
 			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 			m_RTChain->RenderBeginPass(0);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0L);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0L);
 			m_pCamera->SetReflection(false);
 			m_pCamera->Update();
 			Render();
@@ -311,7 +311,7 @@ namespace ElixirEngine
 			m_RTChain->GetRenderTarget(2)->SetEnabled(true);
 			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 			m_RTChain->RenderBeginPass(0);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
 			m_pCamera->Update();
 			Render();
 			m_RTChain->RenderEndPass();
@@ -637,7 +637,7 @@ namespace ElixirEngine
 		}
 	}
 
-	void Display::AddPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses)
+	void Display::SetPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses)
 	{
 		m_pPostProcesses = _pPostProcesses;
 	}
