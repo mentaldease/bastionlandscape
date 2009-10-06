@@ -97,6 +97,8 @@ namespace ElixirEngine
 		void AddListener(CoreObjectPtr _pListener);
 		void RemoveListener(CoreObjectPtr _pListener);
 
+		void SetReflection(const bool _bState);
+
 	protected:
 		void UpdatePixelSize();
 		void ExtractFrustumPlanes();
@@ -104,29 +106,31 @@ namespace ElixirEngine
 		EHalfSpace PointSideOfPlane(const Plane &_rPlane, const Vector3& _rPoint);
 
 	protected:
-		DisplayRef	m_rDisplay;
+		DisplayRef			m_rDisplay;
 
-		Matrix		m_oMView;
-		Matrix		m_oMViewInv;
-		Matrix		m_oMProjection;
-		Matrix		m_oMViewProj;
-		Matrix		m_oMPosition;
-		Matrix		m_oMRotation;
-		Vector3		m_oVPosition;
-		Vector3		m_oVRotation;
+		Matrix				m_oMView;
+		Matrix				m_oMViewInv;
+		Matrix				m_oMProjection;
+		Matrix				m_oMViewProj;
+		Matrix				m_oMPosition;
+		Matrix				m_oMRotation;
+		Vector3				m_oVPosition;
+		Vector3				m_oVRotation;
 
-		float		m_fFovy;
-		float		m_fAspectRatio;
-		float		m_fPixelSize;
-		Viewport	m_oViewport;
+		float				m_fFovy;
+		float				m_fAspectRatio;
+		float				m_fPixelSize;
+		Viewport			m_oViewport;
 
-		Plane		m_aFrustumPlanes[EFrustumPlane_COUNT];
-		Plane		m_aFrustumNormals[EFrustumPlane_COUNT];
-		float		m_aFrustumDistances[EFrustumPlane_COUNT];
+		Plane				m_aFrustumPlanes[EFrustumPlane_COUNT];
+		Plane				m_aFrustumNormals[EFrustumPlane_COUNT];
+		float				m_aFrustumDistances[EFrustumPlane_COUNT];
 
-		Key			m_uCameraPosKey;
+		Key					m_uCameraPosKey;
 
 		CoreObjectPtrVec	m_vListeners;
+
+		bool				m_bReflection;
 
 	private:
 	};

@@ -41,6 +41,8 @@ namespace ElixirEngine
 	typedef float*				FloatPtr;
 	typedef float&				FloatRef;
 	typedef map<Key, FloatPtr>	FloatPtrMap;
+	typedef bool*				BoolPtr;
+	typedef bool&				BoolRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

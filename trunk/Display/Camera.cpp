@@ -40,7 +40,8 @@ namespace ElixirEngine
 		m_fAspectRatio(0.0f),
 		m_fPixelSize(0.0f),
 		m_oViewport(),
-		m_uCameraPosKey(MakeKey(string("CAMERAPOS")))
+		m_uCameraPosKey(MakeKey(string("CAMERAPOS"))),
+		m_bReflection(false)
 	{
 
 	}
@@ -95,36 +96,39 @@ namespace ElixirEngine
 			D3DXMatrixMultiply(&oTemp, &oXRot, &oYRot);
 			D3DXMatrixMultiply(&m_oMRotation, &oTemp, &oZRot);
 		}
-
 		{
 			D3DXMatrixTranslation(&m_oMPosition, m_oVPosition.x, m_oVPosition.y, m_oVPosition.z);
 		}
 
+		if (false != m_bReflection)
 		{
 			D3DXMatrixMultiply(&m_oMView, &m_oMRotation, &m_oMPosition);
 
-			//Plane reflect_plane;
-			//Matrix reflect_matrix;
-			//reflect_plane.a = 0.0f;
-			//reflect_plane.b = 1.0f;
-			//reflect_plane.c = 0.0f;
-			//reflect_plane.d = 0.0f;
-			//// Create a reflection matrix and multiply it with the view matrix
-			//D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
-			//D3DXMatrixMultiply(&m_oMView, &m_oMView, &reflect_matrix);
+			Plane reflect_plane;
+			Matrix reflect_matrix;
+			reflect_plane.a = 0.0f;
+			reflect_plane.b = 1.0f;
+			reflect_plane.c = 0.0f;
+			reflect_plane.d = 0.0f;
+			// Create a reflection matrix and multiply it with the view matrix
+			D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
+			D3DXMatrixMultiply(&m_oMView, &m_oMView, &reflect_matrix);
 
 			D3DXMatrixMultiply(&m_oMViewProj, D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView), &m_oMProjection);
-			ExtractFrustumPlanes();
 
-			//Plane clip_plane = reflect_plane;
-			//Matrix oVP = m_oMViewProj;
-			//D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
-			//D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
-			////D3DXPlaneTransform(&clip_plane, &clip_plane, &m_oMProjection);
-			////D3DXPlaneTransform(&clip_plane, &clip_plane, &m_oMView);
-			//D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
-			//m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
-			//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
+			Plane clip_plane = reflect_plane;
+			Matrix oVP = m_oMViewProj;
+			D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
+			D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
+			D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
+			m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
+			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
+		}
+		else
+		{
+			D3DXMatrixMultiply(&m_oMView, &m_oMRotation, &m_oMPosition);
+			D3DXMatrixMultiply(&m_oMViewProj, D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView), &m_oMProjection);
+			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 		}
 
 		m_rDisplay.GetMaterialManager()->SetVector3BySemantic(m_uCameraPosKey, &m_oVPosition);
@@ -136,6 +140,8 @@ namespace ElixirEngine
 			(*iListener)->Update();
 			++iListener;
 		}
+
+		ExtractFrustumPlanes();
 	}
 
 	void DisplayCamera::Release()
@@ -292,6 +298,11 @@ namespace ElixirEngine
 		{
 			m_vListeners.erase(iListerner);
 		}
+	}
+
+	void DisplayCamera::SetReflection(const bool _bState)
+	{
+		m_bReflection = _bState;
 	}
 
 	void DisplayCamera::UpdatePixelSize()

@@ -236,6 +236,7 @@ namespace ElixirEngine
 		m_pDirect3D(NULL),
 		m_pDevice(NULL),
 		m_vRenderList(),
+		m_vUpdateList(),
 		m_pCamera(NULL),
 		m_pMaterialManager(NULL),
 		m_pTextureManager(NULL),
@@ -272,74 +273,87 @@ namespace ElixirEngine
 
 	void Display::Update()
 	{
-		if (NULL != m_pDevice)
+		//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
+		m_pDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
+
+		// Render scene to buffers
+		if (true)
 		{
-			//m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
-			m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
-
-			if ((NULL != m_pPostProcesses) && (NULL != m_RTChain))
-			{
-				// Render scene to buffers
-				UInt uPassIndex = 0;
-				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-				m_RTChain->RenderBeginPass(uPassIndex);
-				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
-			}
-			else
-			{
-				m_pDevice->BeginScene();
-			}
-
+			m_RTChain->GetRenderTarget(0)->SetEnabled(false);
+			m_RTChain->GetRenderTarget(1)->SetEnabled(false);
+			m_RTChain->GetRenderTarget(2)->SetEnabled(true);
+			m_RTChain->GetRenderTarget(2)->SetIndex(0);
+			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			m_RTChain->RenderBeginPass(0);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
+			m_pCamera->SetReflection(true);
 			m_pCamera->Update();
 			Render();
+			m_RTChain->RenderEndPass();
+			m_RTChain->RenderEnd();
 
-			if ((NULL != m_pPostProcesses) && (NULL != m_RTChain))
-			{
-				m_RTChain->RenderEndPass();
-				m_RTChain->RenderEnd();
-
-				// Apply post processes effects
-				m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
-
-				DisplayPostProcessPtrVec::iterator iPostProcess = m_pPostProcesses->begin();
-				DisplayPostProcessPtrVec::iterator iEnd = m_pPostProcesses->end();
-				while (iEnd != iPostProcess)
-				{
-					DisplayPostProcessPtr pPostProcess = *iPostProcess;
-					pPostProcess->Process();
-					++iPostProcess;
-				}
-
-				m_RTChain->RenderEnd();
-
-				// copy back to back buffer
-				if (SUCCEEDED( m_pDevice->BeginScene()))
-				{
-					UInt uRTIndex = 0;
-					TexturePtr pPrevTarget = static_cast<TexturePtr>(m_RTChain->GetTexture(uRTIndex)->GetBase());
-					m_pEffectPP->SetTechnique("RenderScene");
-					m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
-					UINT cPasses;
-					m_pEffectPP->Begin(&cPasses, 0);
-					m_pPostProcessGeometry->RenderBegin();
-					for(UINT p = 0; p < cPasses; ++p)
-					{
-						m_pEffectPP->BeginPass(p);
-						m_pPostProcessGeometry->Render();
-						m_pEffectPP->EndPass();
-					}
-					m_pPostProcessGeometry->RenderEnd();
-					m_pEffectPP->End();
-					m_pDevice->EndScene();
-				}
-			}
-			else
-			{
-				m_pDevice->EndScene();
-			}
-
-			m_pDevice->Present(NULL, NULL, NULL, NULL);
+			m_RTChain->GetRenderTarget(0)->SetEnabled(true);
+			m_RTChain->GetRenderTarget(1)->SetEnabled(true);
+			m_RTChain->GetRenderTarget(2)->SetEnabled(false);
+			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			m_RTChain->RenderBeginPass(0);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0L);
+			m_pCamera->SetReflection(false);
+			m_pCamera->Update();
+			Render();
+			m_RTChain->RenderEndPass();
+			m_RTChain->RenderEnd();
 		}
+		else
+		{
+			m_RTChain->GetRenderTarget(0)->SetEnabled(true);
+			m_RTChain->GetRenderTarget(1)->SetEnabled(true);
+			m_RTChain->GetRenderTarget(2)->SetEnabled(true);
+			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			m_RTChain->RenderBeginPass(0);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
+			m_pCamera->Update();
+			Render();
+			m_RTChain->RenderEndPass();
+			m_RTChain->RenderEnd();
+		}
+
+		if ((NULL != m_pPostProcesses) && (false == m_pPostProcesses->empty()))
+		{
+			// Apply post processes effects
+			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
+			DisplayPostProcessPtrVec::iterator iPostProcess = m_pPostProcesses->begin();
+			DisplayPostProcessPtrVec::iterator iEnd = m_pPostProcesses->end();
+			while (iEnd != iPostProcess)
+			{
+				DisplayPostProcessPtr pPostProcess = *iPostProcess;
+				pPostProcess->Process();
+				++iPostProcess;
+			}
+			m_RTChain->RenderEnd();
+		}
+
+		// copy back to back buffer
+		if (SUCCEEDED( m_pDevice->BeginScene()))
+		{
+			TexturePtr pPrevTarget = static_cast<TexturePtr>(m_RTChain->GetTexture(0)->GetBase());
+			m_pEffectPP->SetTechnique("RenderScene");
+			m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
+			UINT cPasses;
+			m_pEffectPP->Begin(&cPasses, 0);
+			m_pPostProcessGeometry->RenderBegin();
+			for(UINT p = 0; p < cPasses; ++p)
+			{
+				m_pEffectPP->BeginPass(p);
+				m_pPostProcessGeometry->Render();
+				m_pEffectPP->EndPass();
+			}
+			m_pPostProcessGeometry->RenderEnd();
+			m_pEffectPP->End();
+			m_pDevice->EndScene();
+		}
+
+		m_pDevice->Present(NULL, NULL, NULL, NULL);
 
 		m_pPostProcesses = NULL;
 	}
@@ -490,6 +504,14 @@ namespace ElixirEngine
 		}
 	}
 
+	void Display::UpdateRequest(CoreObjectPtr _pCoreObject)
+	{
+		if (m_vUpdateList.end() == find(m_vUpdateList.begin(), m_vUpdateList.end(), _pCoreObject))
+		{
+			m_vUpdateList.push_back(_pCoreObject);
+		}
+	}
+
 	void Display::RenderRequest(DisplayObjectPtr _pDisplayObject)
 	{
 		DisplayMaterialPtr pMaterial = _pDisplayObject->GetMaterial();
@@ -504,6 +526,8 @@ namespace ElixirEngine
 
 	void Display::Render()
 	{
+		RenderUpdate();
+
 		struct RenderEffectFunction
 		{
 			void operator()(DisplayEffectPtr _pDisplayEffect)
@@ -621,6 +645,17 @@ namespace ElixirEngine
 	DisplayObjectPtr Display::GetPostProcessGeometry()
 	{
 		return m_pPostProcessGeometry;
+	}
+
+	void Display::RenderUpdate()
+	{
+		CoreObjectPtrVec::iterator iCoreObject = m_vUpdateList.begin();
+		CoreObjectPtrVec::iterator iEnd = m_vUpdateList.end();
+		while (iEnd != iCoreObject)
+		{
+			(*iCoreObject)->Update();
+			++iCoreObject;
+		}
 	}
 
 	unsigned int Display::GetFormatBitsPerPixel(const D3DFORMAT& _eFormat)

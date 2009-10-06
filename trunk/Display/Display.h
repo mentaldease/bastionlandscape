@@ -130,6 +130,7 @@ namespace ElixirEngine
 		bool OpenVideo(const WindowData& _rWindowData);
 		void CloseVideo();
 
+		void UpdateRequest(CoreObjectPtr _pCoreObject);
 		void RenderRequest(DisplayObjectPtr _pDisplayObject);
 		void Render();
 
@@ -164,29 +165,25 @@ namespace ElixirEngine
 		static DisplayFormatMap s_mDisplayFormat;
 		static void InitDisplayFormatMap();
 
-		Direct3DPtr					m_pDirect3D;
-		DevicePtr					m_pDevice;
-		DisplayEffectPtrVec			m_vRenderList;
-		DisplayCameraPtr			m_pCamera;
-		DisplayMaterialManagerPtr	m_pMaterialManager;
-		DisplayTextureManagerPtr	m_pTextureManager;
-		DisplaySurfaceManagerPtr	m_pSurfaceManager;
-		MatrixPtr					m_pWorldMatrix;
-		Matrix						m_oWorldInvTransposeMatrix;
-		unsigned int				m_uWidth;
-		unsigned int				m_uHeight;
+		void RenderUpdate();
 
-#if DISPLAY_TEST_MRT
-		//DisplayPostProcessPtrMapPtr	m_pPostProcesses;
+		Direct3DPtr						m_pDirect3D;
+		DevicePtr						m_pDevice;
+		DisplayEffectPtrVec				m_vRenderList;
+		CoreObjectPtrVec				m_vUpdateList;
+		DisplayCameraPtr				m_pCamera;
+		DisplayMaterialManagerPtr		m_pMaterialManager;
+		DisplayTextureManagerPtr		m_pTextureManager;
+		DisplaySurfaceManagerPtr		m_pSurfaceManager;
+		MatrixPtr						m_pWorldMatrix;
+		Matrix							m_oWorldInvTransposeMatrix;
+		unsigned int					m_uWidth;
+		unsigned int					m_uHeight;
 		DisplayPostProcessPtrVecPtr		m_pPostProcesses;
 		DisplayEffectPtr				m_pDispFXPP;
 		EffectPtr						m_pEffectPP;
-		unsigned int					m_uMRTCurrent;
 		DisplayRenderTargetGeometryPtr	m_pPostProcessGeometry;
-		DisplayRenderTargetPtr			m_pRTColor;
-		DisplayRenderTargetPtr			m_pRTPosition;
 		DisplayRenderTargetChainPtr		m_RTChain;
-#endif // DISPLAY_TEST_MRT
 
 	private:
 	};
