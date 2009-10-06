@@ -39,10 +39,7 @@ namespace BastionGame
 
 		virtual void Update()
 		{
-			if (m_pCamera != m_rDisplay.GetCurrentCamera())
-			{
-				m_pCamera = m_rDisplay.GetCurrentCamera();
-			}
+			//m_pCamera = m_rDisplay.GetCurrentCamera();
 			if (NULL != m_pCamera)
 			{
 				Plane reflect_plane;
@@ -64,7 +61,7 @@ namespace BastionGame
 				Matrix oVP = m_oReflection;
 				D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
 				D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
-				D3DXPlaneTransform(&clip_plane, &clip_plane, &m_oReflection);
+				D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
 				m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
 				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
 
@@ -374,7 +371,7 @@ namespace BastionGame
 			m_fRelativeTime += fElapsedTime;
 			m_pInput->Update();
 			UpdateSpectatorCamera(fElapsedTime);
-			m_pScene->Update();
+			m_pDisplay->UpdateRequest(m_pScene);
 			m_pDisplay->Update();
 		}
 	}

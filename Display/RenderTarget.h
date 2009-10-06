@@ -88,11 +88,15 @@ namespace ElixirEngine
 		virtual void Release();
 
 		void RenderBegin(const ERenderMode& _eMode);
-		void RenderBeginPass(UIntRef _uIndex);
+		void RenderBeginPass(const UInt _uIndex);
 		void RenderEndPass();
 		void RenderEnd();
 
 		DisplayTexturePtr GetTexture();
+		void SetEnabled(const bool _bState);
+		bool IsEnabled();
+		void SetIndex(const UInt _uIndex);
+		UInt GetIndex();
 
 	protected:
 		enum ERenderState
@@ -124,6 +128,7 @@ namespace ElixirEngine
 		ERenderMode			m_eMode;
 		bool				m_bFirstRender;
 		bool				m_bImmediateWrite;
+		bool				m_bEnabled;
 
 	private:
 	};
@@ -153,11 +158,12 @@ namespace ElixirEngine
 		virtual void Release();
 
 		void RenderBegin(const DisplayRenderTarget::ERenderMode& _eMode);
-		void RenderBeginPass(UIntRef _uIndex);
+		void RenderBeginPass(const UInt _uIndex);
 		void RenderEndPass();
 		void RenderEnd();
 
-		DisplayTexturePtr GetTexture(UIntRef _uBufferIndex);
+		DisplayTexturePtr GetTexture(const UInt _uRTIndex);
+		DisplayRenderTargetPtr GetRenderTarget(const UInt _uRTIndex);
 
 	protected:
 		DisplayRenderTargetPtrVec	m_vGBuffer;

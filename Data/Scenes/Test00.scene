@@ -94,6 +94,18 @@ scene =
 		}
 		*/
 	);
+	render_chain =
+	(
+		{
+			name = "reflection";
+			render_target_2 = 1;
+		},
+		{
+			name = "base";
+			render_target_0 = 1;
+			render_target_1 = 1;
+		}
+	);
 	/*
 	postprocesses =
 	(

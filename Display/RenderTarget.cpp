@@ -110,7 +110,8 @@ namespace ElixirEngine
 		m_eRenderState(ERenderState_UNKNOWN),
 		m_eMode(ERenderMode_UNKNOWNPROCESS),
 		m_bFirstRender(true),
-		m_bImmediateWrite(false)
+		m_bImmediateWrite(false),
+		m_bEnabled(false)
 	{
 		for (UInt i = 0 ; c_uBufferCount > i ; ++i)
 		{
@@ -183,29 +184,26 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::RenderBegin(const ERenderMode& _eMode)
 	{
-		if ((ERenderState_UNKNOWN == m_eRenderState) || (ERenderState_RENDEREND == m_eRenderState))
+		if ((false != m_bEnabled) && ((ERenderState_UNKNOWN == m_eRenderState) || (ERenderState_RENDEREND == m_eRenderState)))
 		{
-			if (m_eMode != _eMode)
+			m_eRenderState = ERenderState_RENDERBEGIN;
+			if (false == m_bImmediateWrite)
 			{
-				m_eRenderState = ERenderState_RENDERBEGIN;
-				if (false == m_bImmediateWrite)
-				{
-					m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
-				}
-				m_eMode = _eMode;
-				if (ERenderMode_NORMALPROCESS == m_eMode)
-				{
-					m_uCurrentBuffer = 0;
-					m_bFirstRender = true;
-					m_pCurrentBufferTex = NULL;
-				}
+				m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
+			}
+			m_eMode = _eMode;
+			if (ERenderMode_NORMALPROCESS == m_eMode)
+			{
+				m_uCurrentBuffer = 0;
+				m_bFirstRender = true;
+				m_pCurrentBufferTex = NULL;
 			}
 		}
 	}
 
-	void DisplayRenderTarget::RenderBeginPass(UIntRef _uIndex)
+	void DisplayRenderTarget::RenderBeginPass(const UInt _uIndex)
 	{
-		if ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState))
+		if ((false != m_bEnabled) && ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState)))
 		{
 			m_uPassIndex = _uIndex;
 			m_eRenderState = ERenderState_RENDERBEGINPASS;
@@ -235,17 +233,17 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::RenderEndPass()
 	{
-		if (ERenderState_RENDERBEGINPASS == m_eRenderState)
+		if ((false != m_bEnabled) && (ERenderState_RENDERBEGINPASS == m_eRenderState))
 		{
 			m_eRenderState = ERenderState_RENDERENDPASS;
-			if ((ERenderMode_POSTPROCESS == m_eMode) && (1 <= m_uRTIndex))
-			{
-				return;
-			}
 			if (ERenderMode_POSTPROCESS == m_eMode)
 			{
-				//m_rDisplay.GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, NULL);
-				//m_rDisplay.GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, NULL);
+				if (1 <= m_uRTIndex)
+				{
+					return;
+				}
+				m_rDisplay.GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, NULL);
+				m_rDisplay.GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, NULL);
 				m_uCurrentBuffer = 1 - m_uCurrentBuffer;
 			}
 		}
@@ -253,7 +251,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::RenderEnd()
 	{
-		if ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState))
+		if ((false != m_bEnabled) && ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState)))
 		{
 			m_eRenderState = ERenderState_RENDEREND;
 			m_bFirstRender = false;
@@ -276,6 +274,26 @@ namespace ElixirEngine
 	DisplayTexturePtr DisplayRenderTarget::GetTexture()
 	{
 		return m_pCurrentBufferTex;
+	}
+
+	void DisplayRenderTarget::SetEnabled(const bool _bState)
+	{
+		m_bEnabled = _bState;
+	}
+
+	bool DisplayRenderTarget::IsEnabled()
+	{
+		return m_bEnabled;
+	}
+
+	void DisplayRenderTarget::SetIndex(const UInt _uIndex)
+	{
+		m_uRTIndex = _uIndex;
+	}
+
+	UInt DisplayRenderTarget::GetIndex()
+	{
+		return m_uRTIndex;
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -347,7 +365,7 @@ namespace ElixirEngine
 		}
 	}
 
-	void DisplayRenderTargetChain::RenderBeginPass(UIntRef _uIndex)
+	void DisplayRenderTargetChain::RenderBeginPass(const UInt _uIndex)
 	{
 		DisplayRenderTargetPtrVec::iterator iRT = m_vGBuffer.begin();
 		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
@@ -382,9 +400,15 @@ namespace ElixirEngine
 		m_rDisplay.GetDevicePtr()->EndScene();
 	}
 
-	DisplayTexturePtr DisplayRenderTargetChain::GetTexture(UIntRef _uBufferIndex)
+	DisplayTexturePtr DisplayRenderTargetChain::GetTexture(const UInt _uRTIndex)
 	{
-		DisplayTexturePtr pResult = (_uBufferIndex < m_vGBuffer.size()) ? m_vGBuffer[_uBufferIndex]->GetTexture() : NULL;
+		DisplayTexturePtr pResult = (_uRTIndex < m_vGBuffer.size()) ? m_vGBuffer[_uRTIndex]->GetTexture() : NULL;
+		return pResult;
+	}
+
+	DisplayRenderTargetPtr DisplayRenderTargetChain::GetRenderTarget(const UInt _uRTIndex)
+	{
+		DisplayRenderTargetPtr pResult = (_uRTIndex < m_vGBuffer.size()) ? m_vGBuffer[_uRTIndex] : NULL;
 		return pResult;
 	}
 }
