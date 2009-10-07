@@ -6,6 +6,7 @@
 #include "../Display/Surface.h"
 #include "../Display/RenderTarget.h"
 #include "../Display/PostProcess.h"
+#include "../Display/NormalProcess.h"
 
 namespace ElixirEngine
 {
@@ -242,6 +243,13 @@ namespace ElixirEngine
 		m_pTextureManager(NULL),
 		m_pSurfaceManager(NULL),
 		m_pWorldMatrix(NULL),
+		m_pPostProcesses(NULL),
+		m_pDispFXPP(NULL),
+		m_pEffectPP(NULL),
+		m_pPostProcessGeometry(NULL),
+		m_pRTChain(NULL),
+		m_pNormalProcesses(NULL),
+		m_pCurrentNormalProcess(NULL),
 		m_oWorldInvTransposeMatrix(),
 		m_uWidth(0),
 		m_uHeight(0)
@@ -277,66 +285,90 @@ namespace ElixirEngine
 		m_pDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
 
 		// Render scene to buffers
-		if (true)
+		if (false)
 		{
-			m_RTChain->GetRenderTarget(0)->SetEnabled(false);
-			m_RTChain->GetRenderTarget(1)->SetEnabled(false);
-			m_RTChain->GetRenderTarget(2)->SetEnabled(true);
-			m_RTChain->GetRenderTarget(2)->SetIndex(0);
-			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-			m_RTChain->RenderBeginPass(0);
+			m_pRTChain->GetRenderTarget(0)->SetEnabled(false);
+			m_pRTChain->GetRenderTarget(1)->SetEnabled(false);
+			m_pRTChain->GetRenderTarget(2)->SetEnabled(true);
+			m_pRTChain->GetRenderTarget(2)->SetIndex(0);
+			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			m_pRTChain->RenderBeginPass(0);
 			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
 			m_pCamera->SetReflection(true);
 			m_pCamera->Update();
 			Render();
-			m_RTChain->RenderEndPass();
-			m_RTChain->RenderEnd();
+			m_pRTChain->RenderEndPass();
+			m_pRTChain->RenderEnd();
 
-			m_RTChain->GetRenderTarget(0)->SetEnabled(true);
-			m_RTChain->GetRenderTarget(1)->SetEnabled(true);
-			m_RTChain->GetRenderTarget(2)->SetEnabled(false);
-			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-			m_RTChain->RenderBeginPass(0);
+			m_pRTChain->GetRenderTarget(0)->SetEnabled(true);
+			m_pRTChain->GetRenderTarget(1)->SetEnabled(true);
+			m_pRTChain->GetRenderTarget(2)->SetEnabled(false);
+			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			m_pRTChain->RenderBeginPass(0);
 			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0L);
 			m_pCamera->SetReflection(false);
 			m_pCamera->Update();
 			Render();
-			m_RTChain->RenderEndPass();
-			m_RTChain->RenderEnd();
+			m_pRTChain->RenderEndPass();
+			m_pRTChain->RenderEnd();
+		}
+		else if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
+		{
+			DisplayNormalProcessPtrVec::iterator iNormalProcess = m_pNormalProcesses->begin();
+			DisplayNormalProcessPtrVec::iterator iEnd = m_pNormalProcesses->end();
+			while (iEnd != iNormalProcess)
+			{
+				m_pCurrentNormalProcess = *iNormalProcess;
+				m_pCurrentNormalProcess->Update();
+
+				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+				m_pRTChain->RenderBeginPass(0);
+				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0L);
+				m_pCamera->Update();
+				Render();
+				m_pRTChain->RenderEndPass();
+				m_pRTChain->RenderEnd();
+
+				++iNormalProcess;
+			}
+			m_pCurrentNormalProcess = NULL;
+			m_pNormalProcesses = NULL;
 		}
 		else
 		{
-			m_RTChain->GetRenderTarget(0)->SetEnabled(true);
-			m_RTChain->GetRenderTarget(1)->SetEnabled(true);
-			m_RTChain->GetRenderTarget(2)->SetEnabled(true);
-			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-			m_RTChain->RenderBeginPass(0);
+			m_pRTChain->GetRenderTarget(0)->SetEnabled(true);
+			m_pRTChain->GetRenderTarget(1)->SetEnabled(true);
+			m_pRTChain->GetRenderTarget(2)->SetEnabled(true);
+			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			m_pRTChain->RenderBeginPass(0);
 			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
 			m_pCamera->Update();
 			Render();
-			m_RTChain->RenderEndPass();
-			m_RTChain->RenderEnd();
+			m_pRTChain->RenderEndPass();
+			m_pRTChain->RenderEnd();
 		}
 
 		if ((NULL != m_pPostProcesses) && (false == m_pPostProcesses->empty()))
 		{
 			// Apply post processes effects
-			m_RTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
+			m_pRTChain->EnableAllRenderTargets();
+			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
 			DisplayPostProcessPtrVec::iterator iPostProcess = m_pPostProcesses->begin();
 			DisplayPostProcessPtrVec::iterator iEnd = m_pPostProcesses->end();
 			while (iEnd != iPostProcess)
 			{
 				DisplayPostProcessPtr pPostProcess = *iPostProcess;
-				pPostProcess->Process();
+				pPostProcess->Update();
 				++iPostProcess;
 			}
-			m_RTChain->RenderEnd();
+			m_pRTChain->RenderEnd();
+			m_pPostProcesses = NULL;
 		}
 
 		// copy back to back buffer
 		if (SUCCEEDED( m_pDevice->BeginScene()))
 		{
-			TexturePtr pPrevTarget = static_cast<TexturePtr>(m_RTChain->GetTexture(0)->GetBase());
+			TexturePtr pPrevTarget = static_cast<TexturePtr>(m_pRTChain->GetTexture(0)->GetBase());
 			m_pEffectPP->SetTechnique("RenderScene");
 			m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
 			UINT cPasses;
@@ -354,8 +386,6 @@ namespace ElixirEngine
 		}
 
 		m_pDevice->Present(NULL, NULL, NULL, NULL);
-
-		m_pPostProcesses = NULL;
 	}
 
 	void Display::Release()
@@ -438,11 +468,11 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
-			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "RTChainTest", m_uWidth, m_uHeight, D3DFMT_A8R8G8B8, 3 };
+			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "RTChainTest", m_uWidth, m_uHeight, D3DFORMAT(_rWindowData.m_uDXGBufferFormat), _rWindowData.m_uDXGBufferCount };
 			m_pPostProcessGeometry = new DisplayRenderTargetGeometry(*this);
-			m_RTChain = new DisplayRenderTargetChain(*this);
+			m_pRTChain = new DisplayRenderTargetChain(*this);
 			bResult =  m_pPostProcessGeometry->Create(boost::any(&oRTGCInfo))
-				&& m_RTChain->Create(boost::any(&oRTCCInfo))
+				&& m_pRTChain->Create(boost::any(&oRTCCInfo))
 				&& m_pMaterialManager->LoadEffect("MRT", "data/effects/simplepost.fx")
 				&& (m_pDispFXPP = m_pMaterialManager->GetEffect("MRT"))
 				&& (m_pEffectPP = m_pDispFXPP->GetEffect());
@@ -454,10 +484,10 @@ namespace ElixirEngine
 
 	void Display::CloseVideo()
 	{
-		if (NULL != m_RTChain)
+		if (NULL != m_pRTChain)
 		{
-			m_RTChain->Release();
-			m_RTChain = NULL;
+			m_pRTChain->Release();
+			m_pRTChain = NULL;
 		}
 		if (NULL != m_pPostProcessGeometry)
 		{
@@ -623,18 +653,23 @@ namespace ElixirEngine
 
 	void Display::MRTRenderBeginPass(UIntRef _uIndex)
 	{
-		if (NULL != m_RTChain)
+		if (NULL != m_pRTChain)
 		{
-			m_RTChain->RenderBeginPass(_uIndex);
+			m_pRTChain->RenderBeginPass(_uIndex);
 		}
 	}
 
 	void Display::MRTRenderEndPass()
 	{
-		if (NULL != m_RTChain)
+		if (NULL != m_pRTChain)
 		{
-			m_RTChain->RenderEndPass();
+			m_pRTChain->RenderEndPass();
 		}
+	}
+
+	void Display::SetNormalProcessesList(DisplayNormalProcessPtrVecPtr _pNormalProcesses)
+	{
+		m_pNormalProcesses = _pNormalProcesses;
 	}
 
 	void Display::SetPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses)
@@ -645,6 +680,16 @@ namespace ElixirEngine
 	DisplayObjectPtr Display::GetPostProcessGeometry()
 	{
 		return m_pPostProcessGeometry;
+	}
+
+	DisplayRenderTargetChainPtr Display::GetRenderTargetChain()
+	{
+		return m_pRTChain;
+	}
+
+	DisplayNormalProcessPtr Display::GetCurrentNormalProcess()
+	{
+		return m_pCurrentNormalProcess;
 	}
 
 	void Display::RenderUpdate()

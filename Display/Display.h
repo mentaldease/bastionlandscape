@@ -152,8 +152,11 @@ namespace ElixirEngine
 
 		void MRTRenderBeginPass(UIntRef _uIndex);
 		void MRTRenderEndPass();
+		void SetNormalProcessesList(DisplayNormalProcessPtrVecPtr _pNormalProcesses);
 		void SetPostProcessesList(DisplayPostProcessPtrVecPtr _pPostProcesses);
 		DisplayObjectPtr GetPostProcessGeometry();
+		DisplayRenderTargetChainPtr GetRenderTargetChain();
+		DisplayNormalProcessPtr GetCurrentNormalProcess();
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
@@ -176,18 +179,19 @@ namespace ElixirEngine
 		DisplayTextureManagerPtr		m_pTextureManager;
 		DisplaySurfaceManagerPtr		m_pSurfaceManager;
 		MatrixPtr						m_pWorldMatrix;
-		Matrix							m_oWorldInvTransposeMatrix;
-		unsigned int					m_uWidth;
-		unsigned int					m_uHeight;
 		DisplayPostProcessPtrVecPtr		m_pPostProcesses;
 		DisplayEffectPtr				m_pDispFXPP;
 		EffectPtr						m_pEffectPP;
 		DisplayRenderTargetGeometryPtr	m_pPostProcessGeometry;
-		DisplayRenderTargetChainPtr		m_RTChain;
+		DisplayRenderTargetChainPtr		m_pRTChain;
+		DisplayNormalProcessPtrVecPtr	m_pNormalProcesses;
+		DisplayNormalProcessPtr			m_pCurrentNormalProcess;
+		Matrix							m_oWorldInvTransposeMatrix;
+		unsigned int					m_uWidth;
+		unsigned int					m_uHeight;
 
 	private:
 	};
-
 }
 
 #endif // __DISPLAY_H__

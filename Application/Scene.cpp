@@ -16,6 +16,8 @@ namespace BastionGame
 		m_mMaterials(),
 		m_mPostProcesses(),
 		m_vPostProcesses(),
+		m_mNormalProcesses(),
+		m_vNormalProcesses(),
 		m_strName()
 	{
 
@@ -38,7 +40,8 @@ namespace BastionGame
 			bResult = oConfig.GetValue(string("scene.name"), m_strName)
 				&& CreateLoadMaterials(oConfig)
 				&& CreateLoadLandscapes(oConfig)
-				&& CreateLoadPostProcesses(oConfig);
+				&& CreateLoadPostProcesses(oConfig)
+				&& CreateLoadNormalProcesses(oConfig);
 		}
 
 		oConfig.Release();
@@ -54,10 +57,6 @@ namespace BastionGame
 		{
 			iPair->second->Update();
 			++iPair;
-		}
-		if (false == m_vPostProcesses.empty())
-		{
-			m_rApplication.GetDisplay()->SetPostProcessesList(&m_vPostProcesses);
 		}
 	}
 
@@ -93,6 +92,18 @@ namespace BastionGame
 			m_mPostProcesses.erase(m_mPostProcesses.begin());
 		}
 		m_vPostProcesses.clear();
+	}
+
+	void Scene::PreUpdate()
+	{
+		if (false == m_vPostProcesses.empty())
+		{
+			m_rApplication.GetDisplay()->SetPostProcessesList(&m_vPostProcesses);
+		}
+		if (false == m_vNormalProcesses.empty())
+		{
+			m_rApplication.GetDisplay()->SetNormalProcessesList(&m_vNormalProcesses);
+		}
 	}
 
 	bool Scene::CreateLoadMaterials(Config& _rConfig)
@@ -280,6 +291,53 @@ namespace BastionGame
 		{
 			pPostProcess->Release();
 			delete pPostProcess;
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadNormalProcesses(Config& _rConfig)
+	{
+		const unsigned int uBufferSize = 1024;
+		char szBuffer[uBufferSize];
+		const int uCount = _rConfig.GetCount("scene.normalprocesses");
+		bool bResult = true;
+
+		for (int i = 0 ; uCount > i ; ++i)
+		{
+			_snprintf(szBuffer, uBufferSize, "scene.normalprocesses.[%u]", i);
+			ConfigShortcutPtr pShortcut = _rConfig.GetShortcut(string(szBuffer));
+			if (NULL == pShortcut)
+			{
+				bResult = false;
+				break;
+			}
+			bResult = CreateLoadNormalProcess(_rConfig, pShortcut);
+			if (false == bResult)
+			{
+				break;
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadNormalProcess(Config& _rConfig, ConfigShortcutPtr pShortcut)
+	{
+		DisplayNormalProcessPtr pNormalProcess = new DisplayNormalProcess(*m_rApplication.GetDisplay());
+		DisplayNormalProcess::CreateInfo oNPCInfo = { &_rConfig, pShortcut };
+		bool bResult = pNormalProcess->Create(boost::any(&oNPCInfo));
+
+
+		if (false != bResult)
+		{
+			m_mNormalProcesses[pNormalProcess->GetNameKey()] = pNormalProcess;
+			m_vNormalProcesses.push_back(pNormalProcess);
+		}
+		else
+		{
+			pNormalProcess->Release();
+			delete pNormalProcess;
 		}
 
 		return bResult;

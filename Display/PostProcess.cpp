@@ -39,7 +39,8 @@ namespace ElixirEngine
 
 	void DisplayPostProcess::Update()
 	{
-
+		RenderObjectFunction oROF(m_pMaterial);
+		oROF(m_pDisplayObject);
 	}
 
 	void DisplayPostProcess::Release()
@@ -49,11 +50,5 @@ namespace ElixirEngine
 			m_rDisplay.GetMaterialManager()->UnloadMaterial(m_uMaterialNameKey);
 			m_pMaterial = NULL;
 		}
-	}
-
-	void DisplayPostProcess::Process()
-	{
-		RenderObjectFunction oROF(m_pMaterial);
-		oROF(m_pDisplayObject);
 	}
 }

@@ -29,6 +29,8 @@ namespace ElixirEngine
 		bool			m_bFullScreen;
 		unsigned int	m_uDXColorFormat;
 		unsigned int	m_uDXDepthFormat;
+		unsigned int	m_uDXGBufferFormat;
+		unsigned int	m_uDXGBufferCount;
 		float			m_fZNear;
 		float			m_fZFar;
 	};

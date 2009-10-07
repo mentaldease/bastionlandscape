@@ -41,6 +41,10 @@ scene =
 		{
 			name = "basicblur00";
 			path = "data/materials/basicblurpost00.material";
+		},
+		{
+			name = "water01";
+			path = "data/materials/waterpost00.material";
 		}
 	);
 	landscapes =
@@ -98,20 +102,24 @@ scene =
 	(
 		{
 			name = "reflection";
-			render_target_type_0 = "tex2d";
-			render_target_name_0 = "reflection";
+			render_target_count = 1;
+			//render_target_type_0 = "tex2d";
+			//render_target_name_0 = "reflection";
+			render_target_type_0 = "gbuffer";
+			render_target_index_0 = 2;
 		},
 		{
 			name = "base";
+			render_target_count = 2;
 			render_target_type_0 = "gbuffer";
-			render_target_name_0 = "gbuffer0";
+			render_target_index_0 = 0;
 			render_target_type_1 = "gbuffer";
-			render_target_name_1 = "gbuffer1";
+			render_target_index_1 = 1;
 		}
 	);
-	/*
 	postprocesses =
 	(
+		/*
 		{
 			name = "monochrome";
 			material = "monochrome00";
@@ -128,6 +136,10 @@ scene =
 			name = "dofcombine";
 			material = "dofcombine00";
 		}
+		*/
+		{
+			name = "water";
+			material = "water01";
+		}
 	);
-	*/
 };

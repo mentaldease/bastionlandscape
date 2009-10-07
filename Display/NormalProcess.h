@@ -1,7 +1,8 @@
-#ifndef __POSTPROCESS_H__
-#define __POSTPROCESS_H__
+#ifndef __NORMALPROCESS_H__
+#define __NORMALPROCESS_H__
 
 #include "../Core/Core.h"
+#include "../Core/Config.h"
 #include "../Display/DisplayTypes.h"
 
 namespace ElixirEngine
@@ -10,35 +11,39 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class DisplayPostProcess : public CoreObject
+	class DisplayNormalProcess : public CoreObject
 	{
 	public:
 		struct CreateInfo
 		{
-			string	m_strName;
-			Key		m_uMaterialNameKey;
-			bool	m_bImmediateWrite;
+			ConfigPtr			m_pConfig;
+			ConfigShortcutPtr	m_pShortcut;
 		};
 		typedef CreateInfo* CreateInfoPtr;
 
 	public:
-		DisplayPostProcess(DisplayRef _rDisplay);
-		virtual ~DisplayPostProcess();
+		DisplayNormalProcess(DisplayRef _rDisplay);
+		virtual ~DisplayNormalProcess();
 
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
 
+		Key GetNameKey();
+
 	protected:
-		string				m_strName;
-		DisplayRef			m_rDisplay;
-		DisplayMaterialPtr	m_pMaterial;
-		DisplayObjectPtr	m_pDisplayObject;
-		Key					m_uMaterialNameKey;
-		bool				m_bImmediateWrite;
+		static Key s_uTypeTex2DKey;
+		static Key s_uTypeGBufferKey;
+
+	protected:
+		DisplayRef				m_rDisplay;
+		Key						m_uNameKey;
+		KeyVec					m_vRTTypes;
+		KeyVec					m_vRTNames;
+		DisplayTexturePtrMap	m_mTextures;
 
 	private:
 	};
 }
 
-#endif // __POSTPROCESS_H__
+#endif // __NORMALPROCESS_H__

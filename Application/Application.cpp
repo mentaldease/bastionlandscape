@@ -1,10 +1,5 @@
 #include "stdafx.h"
 #include "../Application/Application.h"
-#include "../Display/Camera.h"
-#include "../Display/Effect.h"
-#include "../Display/EffectParam.h"
-#include "../Display/Camera.h"
-
 #include "../Application/Scene.h"
 
 namespace BastionGame
@@ -21,7 +16,7 @@ namespace BastionGame
 			m_pCamera(NULL),
 			m_rDisplay(_rDisplay),
 			m_oReflection(),
-			m_uUserMatrix00Key(MakeKey(string("USERMATRIX00")))
+			m_uReflectionKey(MakeKey(string("reflection")))
 		{
 
 		}
@@ -39,33 +34,39 @@ namespace BastionGame
 
 		virtual void Update()
 		{
-			//m_pCamera = m_rDisplay.GetCurrentCamera();
-			if (NULL != m_pCamera)
+			m_pCamera = m_rDisplay.GetCurrentCamera();
+			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
 			{
+				MatrixPtr pProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);
+				MatrixPtr pView = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
+				MatrixPtr pViewInv = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
+				MatrixPtr pViewProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
+
+				// Create a reflection matrix and multiply it with the view matrix
 				Plane reflect_plane;
 				Matrix reflect_matrix;
 				reflect_plane.a = 0.0f;
 				reflect_plane.b = 1.0f;
 				reflect_plane.c = 0.0f;
-				reflect_plane.d = 0.0f;
-				// Create a reflection matrix and multiply it with the view matrix
+				reflect_plane.d = 50.0f;
 				D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
-				Matrix oView = *m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
-				D3DXMatrixMultiply(&oView, &oView, &reflect_matrix);
+				D3DXMatrixMultiply(pView, pView, &reflect_matrix);
 
-				Matrix oViewInv;
-				MatrixPtr pProjection = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);
-				D3DXMatrixMultiply(&m_oReflection, D3DXMatrixInverse(&oViewInv, NULL, &oView), pProjection);
+				// Update inverse(view) and view*projection matrices
+				D3DXMatrixMultiply(pViewProj, D3DXMatrixInverse(pViewInv, NULL, pView), pProj);
 
+				// setup clipping plane
+				Matrix oVP = *pViewProj;
 				Plane clip_plane = reflect_plane;
-				Matrix oVP = m_oReflection;
-				D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
-				D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
+				//D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
+				//D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
 				D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
 				m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
 				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
-
-				m_rDisplay.GetMaterialManager()->SetMatrixBySemantic(m_uUserMatrix00Key, &m_oReflection);
+			}
+			else if (NULL != m_pCamera)
+			{
+				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 			}
 		}
 
@@ -73,7 +74,7 @@ namespace BastionGame
 		DisplayCameraPtr	m_pCamera;
 		DisplayRef			m_rDisplay;
 		Matrix				m_oReflection;
-		Key					m_uUserMatrix00Key;
+		Key					m_uReflectionKey;
 
 	private:
 	};
@@ -127,6 +128,7 @@ namespace BastionGame
 				oConfig.GetValue(string("config.graphics.height"), sHeight);
 				oConfig.GetValue(string("config.graphics.depth_near"), m_oWindow.m_fZNear);
 				oConfig.GetValue(string("config.graphics.depth_far"), m_oWindow.m_fZFar);
+				oConfig.GetValue(string("config.graphics.gbuffer_count"), m_oWindow.m_uDXGBufferCount);
 				m_oWindow.m_oClientRect.right = sWidth;
 				m_oWindow.m_oClientRect.bottom = sHeight;
 				string strFormat;
@@ -137,6 +139,10 @@ namespace BastionGame
 				if (false != oConfig.GetValue(string("config.graphics.depth_format"), strFormat))
 				{
 					m_oWindow.m_uDXDepthFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXDepthFormat));
+				}
+				if (false != oConfig.GetValue(string("config.graphics.gbuffer_format"), strFormat))
+				{
+					m_oWindow.m_uDXGBufferFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXGBufferFormat));
 				}
 			}
 			oConfig.Release();
@@ -371,6 +377,7 @@ namespace BastionGame
 			m_fRelativeTime += fElapsedTime;
 			m_pInput->Update();
 			UpdateSpectatorCamera(fElapsedTime);
+			m_pScene->PreUpdate();
 			m_pDisplay->UpdateRequest(m_pScene);
 			m_pDisplay->Update();
 		}
