@@ -8,6 +8,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	typedef std::size_t Key;
+	typedef vector<Key> KeyVec;
 
 	template<typename T>
 	inline Key MakeKey(const T& _rData)
@@ -32,15 +33,20 @@ namespace ElixirEngine
 
 	typedef void*				VoidPtr;
 	typedef vector<VoidPtr>		VoidPtrVec;
+
 	typedef unsigned int		UInt;
 	typedef UInt*				UIntPtr;
 	typedef UInt&				UIntRef;
+	typedef vector<UInt>		UIntVec;
+
 	typedef unsigned char		Byte;
 	typedef Byte*				BytePtr;
 	typedef Byte&				ByteRef;
+
 	typedef float*				FloatPtr;
 	typedef float&				FloatRef;
 	typedef map<Key, FloatPtr>	FloatPtrMap;
+
 	typedef bool*				BoolPtr;
 	typedef bool&				BoolRef;
 

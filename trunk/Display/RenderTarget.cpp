@@ -411,4 +411,29 @@ namespace ElixirEngine
 		DisplayRenderTargetPtr pResult = (_uRTIndex < m_vGBuffer.size()) ? m_vGBuffer[_uRTIndex] : NULL;
 		return pResult;
 	}
+
+	void DisplayRenderTargetChain::EnableAllRenderTargets()
+	{
+		DisplayRenderTargetPtrVec::iterator iRT = m_vGBuffer.begin();
+		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
+		UInt uIndex = 0;
+		while (iEnd != iRT)
+		{
+			(*iRT)->SetIndex(uIndex);
+			(*iRT)->SetEnabled(true);
+			++iRT;
+			++uIndex;
+		}
+	}
+
+	void DisplayRenderTargetChain::DisableAllRenderTargets()
+	{
+		DisplayRenderTargetPtrVec::iterator iRT = m_vGBuffer.begin();
+		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
+		while (iEnd != iRT)
+		{
+			(*iRT)->SetEnabled(false);
+			++iRT;
+		}
+	}
 }

@@ -26,6 +26,8 @@ namespace ElixirEngine
 		m_bFullScreen(false),
 		m_uDXColorFormat(0),
 		m_uDXDepthFormat(0),
+		m_uDXGBufferFormat(0),
+		m_uDXGBufferCount(0),
 		m_fZNear(1.0f),
 		m_fZFar(100.0f)
 	{

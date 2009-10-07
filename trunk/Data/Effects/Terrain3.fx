@@ -114,13 +114,13 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
 	Output.Position = mul(In.vPos, g_mWorldViewProjection);
-	Output.Position3 = Output.Position.xyz;
 	Output.Position.z *= Output.Position.w;
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
 	Output.UV = In.vUV * 10.0f;
 	Output.UV2 = In.vUV2;
+	Output.Position3 = Output.Position.xyz;
 
 	return Output;    
 }

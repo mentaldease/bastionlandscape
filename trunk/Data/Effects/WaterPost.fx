@@ -1,18 +1,67 @@
 // Water pixel shader
 // Copyright (C) Wojciech Toman 2009
 
-sampler heightMap		: TEX2D00; //register(s0);
-sampler backBufferMap	: RT2D00; //register(s1);
-sampler positionMap		: RT2D01; //register(s2);
-sampler normalMap		: TEX2D01; //register(s3);
-sampler foamMap			: TEX2D02; //register(s4);
-sampler reflectionMap	: TEX2D03; //register(s5);
+texture t2dheightMap		: NOISETEX;
+texture t2dbackBufferMap	: RT2D00;
+texture t2dpositionMap		: RT2D01;
+texture t2dnormalMap		: TEX2D00;
+texture t2dfoamMap			: TEX2D01;
+texture t2dreflectionMap	: RT2D02;
+
+sampler2D heightMap = sampler_state {
+    Texture = <t2dheightMap>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+sampler2D backBufferMap = sampler_state {
+    Texture = <t2dbackBufferMap>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+sampler2D positionMap = sampler_state {
+    Texture = <t2dpositionMap>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+sampler2D normalMap = sampler_state {
+    Texture = <t2dnormalMap>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+sampler2D foamMap = sampler_state {
+    Texture = <t2dfoamMap>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+sampler2D reflectionMap = sampler_state {
+    Texture = <t2dreflectionMap>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
 
 // We need this matrix to restore position in world space
 float4x4 matViewInverse	: VIEWINV;
 
 // Level at which water surface begins
-float waterLevel = 0.0f;
+float waterLevel = 100.0f;
 
 // Position of the camera
 float4 cameraPos		: CAMERAPOS;
@@ -23,7 +72,7 @@ float4 cameraPos		: CAMERAPOS;
 float fadeSpeed = 0.15f;
 
 // Timer
-float timer;
+float timer : TIME;
 
 // Normals scaling factor
 float normalScale = 1.0f;

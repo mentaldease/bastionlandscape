@@ -46,6 +46,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	m_oWindow.m_oClientRect.bottom = 480;
 	m_oWindow.m_uDXColorFormat = D3DFMT_A8R8G8B8;
 	m_oWindow.m_uDXDepthFormat = D3DFMT_D24S8;
+	m_oWindow.m_uDXGBufferFormat = D3DFMT_A8R8G8B8;
+	m_oWindow.m_uDXGBufferCount = 1;
 	m_oWindow.m_fZNear = 1.0f;
 	m_oWindow.m_fZFar = 1000.0f;
 	m_oWindow.m_bFullScreen = false;

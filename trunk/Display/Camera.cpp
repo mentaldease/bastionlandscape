@@ -109,7 +109,7 @@ namespace ElixirEngine
 			reflect_plane.a = 0.0f;
 			reflect_plane.b = 1.0f;
 			reflect_plane.c = 0.0f;
-			reflect_plane.d = 0.0f;
+			reflect_plane.d = 100.0f;
 			// Create a reflection matrix and multiply it with the view matrix
 			D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
 			D3DXMatrixMultiply(&m_oMView, &m_oMView, &reflect_matrix);

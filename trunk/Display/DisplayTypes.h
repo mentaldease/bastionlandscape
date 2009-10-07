@@ -83,6 +83,10 @@ namespace ElixirEngine
 	typedef DisplayIndexBuffer& DisplayIndexBufferRef;
 	typedef vector<DisplayIndexBufferPtr> DisplayIndexBufferPtrVec;
 
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class DisplayCamera;
 	typedef DisplayCamera* DisplayCameraPtr;
 	typedef DisplayCamera& DisplayCameraRef;
@@ -174,6 +178,14 @@ namespace ElixirEngine
 	typedef DisplayPostProcessPtrVec* DisplayPostProcessPtrVecPtr;
 	typedef map<Key, DisplayPostProcessPtr> DisplayPostProcessPtrMap;
 	typedef DisplayPostProcessPtrMap* DisplayPostProcessPtrMapPtr;
+
+	class DisplayNormalProcess;
+	typedef DisplayNormalProcess* DisplayNormalProcessPtr;
+	typedef DisplayNormalProcess& DisplayNormalProcessRef;
+	typedef vector<DisplayNormalProcessPtr> DisplayNormalProcessPtrVec;
+	typedef DisplayNormalProcessPtrVec* DisplayNormalProcessPtrVecPtr;
+	typedef map<Key, DisplayNormalProcessPtr> DisplayNormalProcessPtrMap;
+	typedef DisplayNormalProcessPtrMap* DisplayNormalProcessPtrMapPtr;
 }
 
 #endif // __DISPLAYTYPES_H__

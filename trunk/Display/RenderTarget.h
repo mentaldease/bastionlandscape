@@ -165,6 +165,9 @@ namespace ElixirEngine
 		DisplayTexturePtr GetTexture(const UInt _uRTIndex);
 		DisplayRenderTargetPtr GetRenderTarget(const UInt _uRTIndex);
 
+		void EnableAllRenderTargets();
+		void DisableAllRenderTargets();
+
 	protected:
 		DisplayRenderTargetPtrVec	m_vGBuffer;
 		DisplayRef					m_rDisplay;

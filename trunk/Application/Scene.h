@@ -25,12 +25,16 @@ namespace BastionGame
 		virtual void Update();
 		virtual void Release();
 
+		void PreUpdate();
+
 	protected:
 		bool CreateLoadMaterials(Config& _rConfig);
 		bool CreateLoadLandscapes(Config& _rConfig);
 		bool CreateLoadLandscape(Config& _rConfig, ConfigShortcutPtr pShortcut);
 		bool CreateLoadPostProcesses(Config& _rConfig);
 		bool CreateLoadPostProcess(Config& _rConfig, ConfigShortcutPtr pShortcut);
+		bool CreateLoadNormalProcesses(Config& _rConfig);
+		bool CreateLoadNormalProcess(Config& _rConfig, ConfigShortcutPtr pShortcut);
 
 	protected:
 		ApplicationRef				m_rApplication;
@@ -39,6 +43,8 @@ namespace BastionGame
 		DisplayMaterialPtrMap		m_mMaterials;
 		DisplayPostProcessPtrMap	m_mPostProcesses;
 		DisplayPostProcessPtrVec	m_vPostProcesses;
+		DisplayNormalProcessPtrMap	m_mNormalProcesses;
+		DisplayNormalProcessPtrVec	m_vNormalProcesses;
 		string						m_strName;
 
 	private:
