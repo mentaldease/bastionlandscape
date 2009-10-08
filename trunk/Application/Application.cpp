@@ -48,7 +48,7 @@ namespace BastionGame
 				reflect_plane.a = 0.0f;
 				reflect_plane.b = 1.0f;
 				reflect_plane.c = 0.0f;
-				reflect_plane.d = 50.0f;
+				reflect_plane.d = 100.0f;
 				D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
 				D3DXMatrixMultiply(pView, pView, &reflect_matrix);
 
@@ -58,15 +58,15 @@ namespace BastionGame
 				// setup clipping plane
 				Matrix oVP = *pViewProj;
 				Plane clip_plane = reflect_plane;
-				//D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
-				//D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
+				D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
+				D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
 				D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
-				m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
-				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
+				//m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
+				//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
 			}
 			else if (NULL != m_pCamera)
 			{
-				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
+				//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 			}
 		}
 

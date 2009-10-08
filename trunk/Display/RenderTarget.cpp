@@ -419,8 +419,8 @@ namespace ElixirEngine
 		UInt uIndex = 0;
 		while (iEnd != iRT)
 		{
-			(*iRT)->SetIndex(uIndex);
 			(*iRT)->SetEnabled(true);
+			(*iRT)->SetIndex(uIndex);
 			++iRT;
 			++uIndex;
 		}

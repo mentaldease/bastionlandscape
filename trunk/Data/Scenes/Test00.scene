@@ -106,15 +106,17 @@ scene =
 			//render_target_type_0 = "tex2d";
 			//render_target_name_0 = "reflection";
 			render_target_type_0 = "gbuffer";
-			render_target_index_0 = 2;
+			render_target_index_0 = 3;
 		},
 		{
 			name = "base";
-			render_target_count = 2;
+			render_target_count = 3;
 			render_target_type_0 = "gbuffer";
 			render_target_index_0 = 0;
 			render_target_type_1 = "gbuffer";
 			render_target_index_1 = 1;
+			render_target_type_2 = "gbuffer";
+			render_target_index_2 = 2;
 		}
 	);
 	postprocesses =
@@ -135,7 +137,7 @@ scene =
 		{
 			name = "dofcombine";
 			material = "dofcombine00";
-		}
+		},
 		*/
 		{
 			name = "water";

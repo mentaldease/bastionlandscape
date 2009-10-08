@@ -4,9 +4,9 @@
 texture t2dheightMap		: NOISETEX;
 texture t2dbackBufferMap	: RT2D00;
 texture t2dpositionMap		: RT2D01;
-texture t2dnormalMap		: TEX2D00;
-texture t2dfoamMap			: TEX2D01;
-texture t2dreflectionMap	: RT2D02;
+texture t2dnormalMap		: RT2D02;
+texture t2dreflectionMap	: RT2D03;
+texture t2dfoamMap			: TEX2D00;
 
 sampler2D heightMap = sampler_state {
     Texture = <t2dheightMap>;
@@ -197,7 +197,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	float depth = 0.0f;
 
 	
-	// If we are underwater let's leave out complex computations
+	// If we are underwater let's leave out complex computationsd
 	if(level >= cameraPos.y)
 		return float4(color2, 1.0f);
 	

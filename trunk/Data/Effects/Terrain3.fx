@@ -13,6 +13,7 @@ float4x4 g_mWorldInvTransp		: WORLDINVTRANSPOSE;
 float g_fMorphFactor			: MORPHFACTOR;
 float4 g_vLightDir				: LIGHTDIR;
 float4 g_vAtlasInfo				: ATLASDIFFUSEINFO;
+float4x4 g_vView				: VIEW;
 
 texture AtlasDiffuseTexture : ATLASDIFFUSETEX;
 sampler2D AtlasDiffuseSampler = sampler_state {
@@ -114,13 +115,14 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
 	Output.Position = mul(In.vPos, g_mWorldViewProjection);
+	Output.Position3 = mul(In.vPos, g_vView).xyz;
+	Output.Position3 = In.vPos.xyz;
 	Output.Position.z *= Output.Position.w;
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
 	Output.UV = In.vUV * 10.0f;
 	Output.UV2 = In.vUV2;
-	Output.Position3 = Output.Position.xyz;
 
 	return Output;    
 }
@@ -184,6 +186,7 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 	Output.vColor *= saturate(dot(In.Light, In.Normal));
 	Output.vColor.a = 1.0f;
 
+	Output.vNormal = float4(In.Normal, 1.0f);
 	Output.vPosition = float4(In.Position3, 1.0f);
 
 	return Output;
