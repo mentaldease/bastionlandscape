@@ -285,34 +285,7 @@ namespace ElixirEngine
 		m_pDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
 
 		// Render scene to buffers
-		if (false)
-		{
-			m_pRTChain->GetRenderTarget(0)->SetEnabled(false);
-			m_pRTChain->GetRenderTarget(1)->SetEnabled(false);
-			m_pRTChain->GetRenderTarget(2)->SetEnabled(true);
-			m_pRTChain->GetRenderTarget(2)->SetIndex(0);
-			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-			m_pRTChain->RenderBeginPass(0);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);
-			m_pCamera->SetReflection(true);
-			m_pCamera->Update();
-			Render();
-			m_pRTChain->RenderEndPass();
-			m_pRTChain->RenderEnd();
-
-			m_pRTChain->GetRenderTarget(0)->SetEnabled(true);
-			m_pRTChain->GetRenderTarget(1)->SetEnabled(true);
-			m_pRTChain->GetRenderTarget(2)->SetEnabled(false);
-			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-			m_pRTChain->RenderBeginPass(0);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0L);
-			m_pCamera->SetReflection(false);
-			m_pCamera->Update();
-			Render();
-			m_pRTChain->RenderEndPass();
-			m_pRTChain->RenderEnd();
-		}
-		else if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
+		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
 		{
 			DisplayNormalProcessPtrVec::iterator iNormalProcess = m_pNormalProcesses->begin();
 			DisplayNormalProcessPtrVec::iterator iEnd = m_pNormalProcesses->end();
@@ -336,9 +309,7 @@ namespace ElixirEngine
 		}
 		else
 		{
-			m_pRTChain->GetRenderTarget(0)->SetEnabled(true);
-			m_pRTChain->GetRenderTarget(1)->SetEnabled(true);
-			m_pRTChain->GetRenderTarget(2)->SetEnabled(true);
+			m_pRTChain->EnableAllRenderTargets();
 			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 			m_pRTChain->RenderBeginPass(0);
 			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0L);

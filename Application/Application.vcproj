@@ -209,6 +209,54 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<Filter
+			Name="Effect Files"
+			>
+			<File
+				RelativePath="..\Data\Effects\Basic.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\BasicBlurPost.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\DofCombinePost.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\InversePost.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\MonochromePost.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\Ocean.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\SimplePost.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\Terrain.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\Terrain2.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\Terrain3.fx"
+				>
+			</File>
+			<File
+				RelativePath="..\Data\Effects\WaterPost.fx"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

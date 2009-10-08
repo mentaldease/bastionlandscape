@@ -180,6 +180,70 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class DisplayEffectParamVIEW : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamVIEW(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial),
+			m_pView(NULL)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamVIEW()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			m_pView = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
+			if (NULL != m_pView)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pView);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEW(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		MatrixPtr	m_pView;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class DisplayEffectParamVIEWINV : public DisplayEffectParam
 	{
 	public:
