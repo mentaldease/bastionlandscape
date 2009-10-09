@@ -1,6 +1,8 @@
 // Water pixel shader
 // Copyright (C) Wojciech Toman 2009
 
+float4 g_vFrustumCorners[8] : FRUSTUMCORNERS;
+
 texture t2dheightMap		: NOISETEX;
 texture t2dbackBufferMap	: RT2D00;
 texture t2dpositionMap		: RT2D01;
@@ -148,8 +150,9 @@ float2 wind = {-0.3f, 0.7f};
 // VertexShader results
 struct VertexOutput
 {
-	float4 position : POSITION0;
-	float2 texCoord : TEXCOORD0;
+	float4 position		: POSITION0;
+	float2 texCoord		: TEXCOORD0;
+	float3 texCoord2	: TEXCOORD1;
 };
 
 struct PS_OUTPUT
@@ -159,6 +162,24 @@ struct PS_OUTPUT
 	float4 position: COLOR2;
 };
 
+// Vertex shader for rendering a full-screen quad
+void QuadVS (	in float3 in_vPositionOS				: POSITION,
+				in float3 in_vTexCoordAndCornerIndex	: TEXCOORD0,
+				out float4 out_vPositionCS				: POSITION,
+				out float2 out_vTexCoord				: TEXCOORD0,
+				out float3 out_vFrustumCornerVS			: TEXCOORD1	)
+{
+	out_vPositionCS = float4(in_vPositionOS, 1.0f);
+
+	// Pass along the texture coordinate and the position
+	// of the frustum corner in view-space.  This frustum corner
+    // position is interpolated so that the pixel shader always
+    // has a ray from camera->far-clip plane
+	out_vTexCoord = in_vTexCoordAndCornerIndex.xy;
+	//float3x3 matViewInverse3x3 = (float3x3)matViewInverse;
+	//out_vFrustumCornerVS = mul(g_vFrustumCorners[in_vTexCoordAndCornerIndex.z], matViewInverse3x3);
+	out_vFrustumCornerVS = g_vFrustumCorners[in_vTexCoordAndCornerIndex.z];
+}
 
 float3x3 compute_tangent_frame(float3 N, float3 P, float2 UV)
 {
@@ -187,12 +208,19 @@ float fresnelTerm(float3 normal, float3 eyeVec)
 		return saturate(fresnel * (1.0f - saturate(R0)) + R0 - refractionStrength);
 }
 
+float3 VSPositionFromDepth(float2 vTexCoord, float3 vFrustumRayVS)
+{
+	float fPixelDepth = tex2D(positionMap, vTexCoord).r;
+	return fPixelDepth * vFrustumRayVS;
+}
+
 float4 RenderScenePS(VertexOutput IN): COLOR0
 {
 	float3 color2 = tex2D(backBufferMap, IN.texCoord).rgb;
 	float3 color = color2;
 	
-	float3 position = mul(float4(tex2D(positionMap, IN.texCoord).xyz, 1.0f), matViewInverse).xyz;
+	//float3 position = mul(float4(tex2D(positionMap, IN.texCoord).xyz, 1.0f), matViewInverse).xyz;
+	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord2);
 	float level = waterLevel;
 	float depth = 0.0f;
 
@@ -335,7 +363,8 @@ technique RenderScene
 {
     pass P0
     {          
-        VertexShader = null;
+        //VertexShader = null;
+		VertexShader = compile vs_3_0 QuadVS();
         PixelShader  = compile ps_3_0 RenderScenePS();
         ZEnable = false;
     }

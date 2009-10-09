@@ -34,7 +34,7 @@ namespace BastionGame
 
 		virtual void Update()
 		{
-			m_pCamera = m_rDisplay.GetCurrentCamera();
+			//m_pCamera = m_rDisplay.GetCurrentCamera();
 			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
 			{
 				MatrixPtr pProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);

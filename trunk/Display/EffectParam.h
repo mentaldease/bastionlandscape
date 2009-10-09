@@ -3,6 +3,7 @@
 
 #include "../Display/DisplayTypes.h"
 #include "../Display/Texture.h"
+#include "../Display/Camera.h"
 #include "../Core/Config.h"
 
 namespace ElixirEngine
@@ -1024,6 +1025,78 @@ namespace ElixirEngine
 	protected:
 		DisplayTexturePtr	m_pTexture;
 		Key					m_uSemanticKey;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamFRUSTUMCORNERS : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamFRUSTUMCORNERS(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamFRUSTUMCORNERS()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+			if (false != bResult)
+			{
+				m_uSemanticKey = MakeKey(strSemanticName);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			Vector3* pData = m_rDisplayMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
+			if (NULL != pData)
+			{
+				for (UInt i = 0 ; DisplayCamera::EFrustumCorner_COUNT > i ; ++i)
+				{
+					m_aData[i] = Vector4(pData[i].x, pData[i].y, pData[i].z, 0.0f);
+				}
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVectorArray(m_hData, m_aData, DisplayCamera::EFrustumCorner_COUNT);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamFRUSTUMCORNERS(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		Vector4	m_aData[DisplayCamera::EFrustumCorner_COUNT];
+		Key		m_uSemanticKey;
 
 	private:
 	};

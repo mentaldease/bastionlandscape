@@ -10,8 +10,8 @@ namespace ElixirEngine
 	const VertexElement	DisplayRenderTargetGeometry::Vertex::s_aDecl[4] =
 	{
 		{ 0, 0,  D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITIONT, 0 },
-		{ 0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
-		{ 0, 24, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  1 },
+		{ 0, 16, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
+		{ 0, 28, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  1 },
 		D3DDECL_END()
 	};
 
@@ -38,10 +38,10 @@ namespace ElixirEngine
 
 		const Vertex aQuad[4] =
 		{
-			{ -0.5f,					-0.5f,						0.5f,	1.0f,	0.0f,	0.0f,	0.0f,	0.0f },
-			{ -0.5f,					pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	0.0f,	1.0f },
-			{ pInfo->m_uWidth - 0.5f,	-0.5f,						0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	0.0f },
-			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	1.0f }
+			{ -0.5f,					-0.5f,						0.5f,	1.0f,	0.0f,	0.0f,	0.0f,	0.0f,	0.0f,	0.0f },
+			{ -0.5f,					pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	2.0f,	0.0f,	1.0f,	2.0f },
+			{ pInfo->m_uWidth - 0.5f,	-0.5f,						0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	1.0f,	0.0f,	1.0f },
+			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	3.0f,	1.0f,	1.0f,	3.0f }
 		};
 		memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
 

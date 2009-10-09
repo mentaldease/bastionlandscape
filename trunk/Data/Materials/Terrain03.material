@@ -1,0 +1,42 @@
+# libconfig formatted file
+# Basic based material
+
+material =
+{
+	name = "terrain03";
+	effect = "data/effects/terrain4.fx";
+	technique = "RenderScene";
+	params =
+	(
+		{
+			semantic = "WORLDVIEWPROJ";
+		},
+		{
+			semantic = "WORLDINVTRANSPOSE";
+		},
+		{
+			semantic = "LIGHTDIR";
+		},
+		{
+			semantic = "ATLASDIFFUSETEX";
+		},
+		{
+			semantic = "ATLASLUTTEX";
+		},
+		{
+			semantic = "NOISETEX";
+		},
+		{
+			semantic = "ATLASDIFFUSEINFO";
+		},
+		{
+			semantic = "MORPHFACTOR";
+		},
+		{
+			semantic = "VIEW";
+		},
+		{
+			semantic = "WORLD";
+		}
+	);
+};

@@ -27,6 +27,10 @@ scene =
 			path = "data/materials/terrain02.material";
 		},
 		{
+			name = "terrain03";
+			path = "data/materials/terrain03.material";
+		},
+		{
 			name = "monochrome00";
 			path = "data/materials/monochromepost00.material";
 		},
@@ -69,7 +73,7 @@ scene =
 			object_type = "landscape";
 			name = "ground";
 			vertex_format = "default";
-			material = "terrain02";
+			material = "terrain03";
 			grid_size = 16;
 			grid_chunk_size = 16;
 			position_x = 0.0;
