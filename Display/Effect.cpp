@@ -292,6 +292,7 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("ATLASDIFFUSEINFO"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("NOISETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("CAMERAPOS"))] = boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("FRUSTUMCORNERS"))] = boost::bind(&DisplayEffectParamFRUSTUMCORNERS::CreateParam, _1);
 		// render target texture
 		m_mParamCreators[MakeKey(string("RT2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("RT2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);

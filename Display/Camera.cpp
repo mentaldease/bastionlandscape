@@ -36,11 +36,14 @@ namespace ElixirEngine
 		m_oMRotation(),
 		m_oVPosition(0.0f, 0.0f, 0.0f),
 		m_oVRotation(0.0f, 0.0f, 0.0f),
+		m_oViewport(),
 		m_fFovy(0.0f),
 		m_fAspectRatio(0.0f),
 		m_fPixelSize(0.0f),
-		m_oViewport(),
+		m_fNear(0.0f),
+		m_fFar(0.0f),
 		m_uCameraPosKey(MakeKey(string("CAMERAPOS"))),
+		m_uFrustumCornersKey(MakeKey(string("FRUSTUMCORNERS"))),
 		m_bReflection(false)
 	{
 
@@ -70,6 +73,8 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
+			m_fNear = pInfo->m_fZNear;
+			m_fFar = pInfo->m_fZFar;
 			m_fFovy = pInfo->m_fDegreeFovy * (D3DX_PI / 180.0f);
 			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : (float)m_oViewport.Width / (float)m_oViewport.Height;
 			D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, pInfo->m_fZNear, pInfo->m_fZFar);
@@ -131,8 +136,6 @@ namespace ElixirEngine
 			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 		}
 
-		m_rDisplay.GetMaterialManager()->SetVector3BySemantic(m_uCameraPosKey, &m_oVPosition);
-
 		CoreObjectPtrVec::iterator iListener = m_vListeners.begin();
 		CoreObjectPtrVec::iterator iEnd = m_vListeners.end();
 		while (iEnd != iListener)
@@ -142,6 +145,9 @@ namespace ElixirEngine
 		}
 
 		ExtractFrustumPlanes();
+		ExtractFrustumCorners();
+		m_rDisplay.GetMaterialManager()->SetVector3BySemantic(m_uCameraPosKey, &m_oVPosition);
+		m_rDisplay.GetMaterialManager()->SetVector3BySemantic(m_uFrustumCornersKey, m_aFrustumCorners);
 	}
 
 	void DisplayCamera::Release()
@@ -317,35 +323,35 @@ namespace ElixirEngine
 	void DisplayCamera::ExtractFrustumPlanes()
 	{
 		// Left clipping plane
-		m_aFrustumPlanes[0].a = m_oMViewProj._14 + m_oMViewProj._11;
-		m_aFrustumPlanes[0].b = m_oMViewProj._24 + m_oMViewProj._21;
-		m_aFrustumPlanes[0].c = m_oMViewProj._34 + m_oMViewProj._31;
-		m_aFrustumPlanes[0].d = m_oMViewProj._44 + m_oMViewProj._41;
+		m_aFrustumPlanes[EFrustumPlane_LEFT].a = m_oMViewProj._14 + m_oMViewProj._11;
+		m_aFrustumPlanes[EFrustumPlane_LEFT].b = m_oMViewProj._24 + m_oMViewProj._21;
+		m_aFrustumPlanes[EFrustumPlane_LEFT].c = m_oMViewProj._34 + m_oMViewProj._31;
+		m_aFrustumPlanes[EFrustumPlane_LEFT].d = m_oMViewProj._44 + m_oMViewProj._41;
 		// Right clipping plane
-		m_aFrustumPlanes[1].a = m_oMViewProj._14 - m_oMViewProj._11;
-		m_aFrustumPlanes[1].b = m_oMViewProj._24 - m_oMViewProj._21;
-		m_aFrustumPlanes[1].c = m_oMViewProj._34 - m_oMViewProj._31;
-		m_aFrustumPlanes[1].d = m_oMViewProj._44 - m_oMViewProj._41;
+		m_aFrustumPlanes[EFrustumPlane_RIGHT].a = m_oMViewProj._14 - m_oMViewProj._11;
+		m_aFrustumPlanes[EFrustumPlane_RIGHT].b = m_oMViewProj._24 - m_oMViewProj._21;
+		m_aFrustumPlanes[EFrustumPlane_RIGHT].c = m_oMViewProj._34 - m_oMViewProj._31;
+		m_aFrustumPlanes[EFrustumPlane_RIGHT].d = m_oMViewProj._44 - m_oMViewProj._41;
 		// Top clipping plane
-		m_aFrustumPlanes[2].a = m_oMViewProj._14 - m_oMViewProj._12;
-		m_aFrustumPlanes[2].b = m_oMViewProj._24 - m_oMViewProj._22;
-		m_aFrustumPlanes[2].c = m_oMViewProj._34 - m_oMViewProj._32;
-		m_aFrustumPlanes[2].d = m_oMViewProj._44 - m_oMViewProj._42;
+		m_aFrustumPlanes[EFrustumPlane_TOP].a = m_oMViewProj._14 - m_oMViewProj._12;
+		m_aFrustumPlanes[EFrustumPlane_TOP].b = m_oMViewProj._24 - m_oMViewProj._22;
+		m_aFrustumPlanes[EFrustumPlane_TOP].c = m_oMViewProj._34 - m_oMViewProj._32;
+		m_aFrustumPlanes[EFrustumPlane_TOP].d = m_oMViewProj._44 - m_oMViewProj._42;
 		// Bottom clipping plane
-		m_aFrustumPlanes[3].a = m_oMViewProj._14 + m_oMViewProj._12;
-		m_aFrustumPlanes[3].b = m_oMViewProj._24 + m_oMViewProj._22;
-		m_aFrustumPlanes[3].c = m_oMViewProj._34 + m_oMViewProj._32;
-		m_aFrustumPlanes[3].d = m_oMViewProj._44 + m_oMViewProj._42;
+		m_aFrustumPlanes[EFrustumPlane_BOTTOM].a = m_oMViewProj._14 + m_oMViewProj._12;
+		m_aFrustumPlanes[EFrustumPlane_BOTTOM].b = m_oMViewProj._24 + m_oMViewProj._22;
+		m_aFrustumPlanes[EFrustumPlane_BOTTOM].c = m_oMViewProj._34 + m_oMViewProj._32;
+		m_aFrustumPlanes[EFrustumPlane_BOTTOM].d = m_oMViewProj._44 + m_oMViewProj._42;
 		// Near clipping plane
-		m_aFrustumPlanes[4].a = m_oMViewProj._13;
-		m_aFrustumPlanes[4].b = m_oMViewProj._23;
-		m_aFrustumPlanes[4].c = m_oMViewProj._33;
-		m_aFrustumPlanes[4].d = m_oMViewProj._43;
+		m_aFrustumPlanes[EFrustumPlane_NEAR].a = m_oMViewProj._13;
+		m_aFrustumPlanes[EFrustumPlane_NEAR].b = m_oMViewProj._23;
+		m_aFrustumPlanes[EFrustumPlane_NEAR].c = m_oMViewProj._33;
+		m_aFrustumPlanes[EFrustumPlane_NEAR].d = m_oMViewProj._43;
 		// Far clipping plane
-		m_aFrustumPlanes[5].a = m_oMViewProj._14 - m_oMViewProj._13;
-		m_aFrustumPlanes[5].b = m_oMViewProj._24 - m_oMViewProj._23;
-		m_aFrustumPlanes[5].c = m_oMViewProj._34 - m_oMViewProj._33;
-		m_aFrustumPlanes[5].d = m_oMViewProj._44 - m_oMViewProj._43;
+		m_aFrustumPlanes[EFrustumPlane_FAR].a = m_oMViewProj._14 - m_oMViewProj._13;
+		m_aFrustumPlanes[EFrustumPlane_FAR].b = m_oMViewProj._24 - m_oMViewProj._23;
+		m_aFrustumPlanes[EFrustumPlane_FAR].c = m_oMViewProj._34 - m_oMViewProj._33;
+		m_aFrustumPlanes[EFrustumPlane_FAR].d = m_oMViewProj._44 - m_oMViewProj._43;
 
 		const Vector3 oZero(0.0f, 0.0f, 0.0f);
 		for (int i = 0 ; 6 > i ; ++i)
@@ -353,6 +359,30 @@ namespace ElixirEngine
 			D3DXPlaneNormalize(&m_aFrustumNormals[i], &m_aFrustumPlanes[i]);
 			m_aFrustumDistances[i] = DistanceToPoint(m_aFrustumNormals[i], oZero);
 		}
+	}
+
+	void DisplayCamera::ExtractFrustumCorners()
+	{
+		const float fNearQuadHeight = 2.0f * tan(m_fFovy / 2.0f) * m_fNear;
+		const float fNearQuadWidth = fNearQuadHeight * m_fAspectRatio;
+		const float fFarQuadHeight = 2.0f * tan(m_fFovy / 2.0f) * m_fFar;
+		const float fFarQuadWidth = fFarQuadHeight * m_fAspectRatio;
+
+		Vector3 oFrontDir;
+		Vector3 oRightDir;
+		Vector3 oUpDir;
+		GetDirs(oFrontDir, oRightDir, oUpDir, true);
+		const Vector3 oFarCenter = m_oVPosition + oFrontDir * m_fFar;
+		const Vector3 oNearCenter = m_oVPosition + oFrontDir * m_fNear;
+
+		m_aFrustumCorners[EFrustumCorner_FARTOPLEFT] = oFarCenter + (oUpDir * (fFarQuadHeight / 2.0f)) - (oRightDir * (fFarQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_FARTOPRIGHT] = oFarCenter + (oUpDir * (fFarQuadHeight / 2.0f)) + (oRightDir * (fFarQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_FARBOTTOMLEFT] = oFarCenter - (oUpDir * (fFarQuadHeight / 2.0f)) - (oRightDir * (fFarQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_FARBOTTOMRIGHT] = oFarCenter - (oUpDir * (fFarQuadHeight / 2.0f)) + (oRightDir * (fFarQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_NEARTOPLEFT] = oNearCenter + (oUpDir * (fNearQuadHeight / 2.0f)) - (oRightDir * (fNearQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_NEARTOPRIGHT] = oNearCenter + (oUpDir * (fNearQuadHeight / 2.0f)) + (oRightDir * (fNearQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_NEARBOTTOMLEFT] = oNearCenter - (oUpDir * (fNearQuadHeight / 2.0f)) - (oRightDir * (fNearQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_NEARBOTTOMRIGHT] = oNearCenter - (oUpDir * (fNearQuadHeight / 2.0f)) + (oRightDir * (fNearQuadWidth / 2.0f));
 	}
 
 	float DisplayCamera::DistanceToPoint(const Plane &_rPlane, const Vector3& _rPoint)

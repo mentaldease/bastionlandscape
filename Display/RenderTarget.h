@@ -26,8 +26,8 @@ namespace ElixirEngine
 		struct Vertex
 		{
 			float x, y, z, rhw;
-			float tu, tv;       // Texcoord for post-process source
-			float tu2, tv2;     // Texcoord for the original scene
+			float tu, tv, tw;       // Texcoord for post-process source
+			float tu2, tv2, tw2;     // Texcoord for the original scene
 
 			const static VertexElement	s_aDecl[4];
 		};

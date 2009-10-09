@@ -63,6 +63,19 @@ namespace ElixirEngine
 			EFrustumPlane_COUNT // last enum member
 		};
 
+		enum EFrustumCorner
+		{
+			EFrustumCorner_FARTOPLEFT,
+			EFrustumCorner_FARTOPRIGHT,
+			EFrustumCorner_FARBOTTOMLEFT,
+			EFrustumCorner_FARBOTTOMRIGHT,
+			EFrustumCorner_NEARTOPLEFT,
+			EFrustumCorner_NEARTOPRIGHT,
+			EFrustumCorner_NEARBOTTOMLEFT,
+			EFrustumCorner_NEARBOTTOMRIGHT,
+			EFrustumCorner_COUNT // last enum member
+		};
+
 		enum ECollision
 		{
 			ECollision_OUT,
@@ -102,6 +115,7 @@ namespace ElixirEngine
 	protected:
 		void UpdatePixelSize();
 		void ExtractFrustumPlanes();
+		void ExtractFrustumCorners();
 		float DistanceToPoint(const Plane &_rPlane, const Vector3& _rPoint);
 		EHalfSpace PointSideOfPlane(const Plane &_rPlane, const Vector3& _rPoint);
 
@@ -117,16 +131,20 @@ namespace ElixirEngine
 		Vector3				m_oVPosition;
 		Vector3				m_oVRotation;
 
+		Viewport			m_oViewport;
 		float				m_fFovy;
 		float				m_fAspectRatio;
 		float				m_fPixelSize;
-		Viewport			m_oViewport;
+		float				m_fNear;
+		float				m_fFar;
 
 		Plane				m_aFrustumPlanes[EFrustumPlane_COUNT];
 		Plane				m_aFrustumNormals[EFrustumPlane_COUNT];
 		float				m_aFrustumDistances[EFrustumPlane_COUNT];
+		Vector3				m_aFrustumCorners[EFrustumCorner_COUNT];
 
 		Key					m_uCameraPosKey;
+		Key					m_uFrustumCornersKey;
 
 		CoreObjectPtrVec	m_vListeners;
 
