@@ -34,7 +34,7 @@ namespace BastionGame
 
 		virtual void Update()
 		{
-			//m_pCamera = m_rDisplay.GetCurrentCamera();
+			m_pCamera = m_rDisplay.GetCurrentCamera();
 			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
 			{
 				MatrixPtr pProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);
@@ -61,12 +61,12 @@ namespace BastionGame
 				D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
 				D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
 				D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
-				//m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
-				//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
+				m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
+				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
 			}
 			else if (NULL != m_pCamera)
 			{
-				//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
+				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 			}
 		}
 
@@ -417,7 +417,7 @@ namespace BastionGame
 			rCamRot.x += m_oMouseInfo.lY * fCameraRotSpeed;
 		}
 
-		m_pDisplay->GetCurrentCamera()->GetDirs( oCamFrontDir, oCamRightDir, oCamUpDir, true );
+		m_pDisplay->GetCurrentCamera()->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
 		if (!((m_aKeysInfo[DIK_RSHIFT]) || (m_aKeysInfo[DIK_LSHIFT])))
 		{
 			rCamPos += oCamFrontDir * ( m_aKeysInfo[DIK_UP] | m_aKeysInfo[DIK_W] ? 1.0f : 0.0f ) * fCameraMoveSpeed;

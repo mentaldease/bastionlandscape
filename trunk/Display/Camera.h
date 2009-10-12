@@ -3,13 +3,14 @@
 
 #include "../Display/Display.h"
 
+#define CAMERA_VIEWINV_AS_VIEW	1
+
 namespace ElixirEngine
 {
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	static const float s_fDegToRad = D3DX_PI / 180.0f;
 	static const unsigned int s_uCameraFrustumPlanesCount = 6;
 
 	//-----------------------------------------------------------------------------------------------
@@ -100,7 +101,7 @@ namespace ElixirEngine
 
 		Vector3& GetPosition();
 		Vector3& GetRotation();
-		void GetDirs(Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir, const bool _bInv = false);
+		void GetDirs(Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir);
 		MatrixPtr GetMatrix(const EMatrix& _eMatrix);
 
 		const float& GetPixelSize() const;

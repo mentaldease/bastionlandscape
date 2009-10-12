@@ -309,6 +309,70 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class DisplayEffectParamVIEWPROJ : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamVIEWPROJ(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial),
+			m_pViewProj(NULL)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamVIEWPROJ()
+		{
+
+		}
+
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			if (false != bResult)
+			{
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				bResult = (NULL != m_hData);
+			}
+
+			return bResult;
+		}
+
+		virtual bool Use()
+		{
+			m_pViewProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
+			if (NULL != m_pViewProj)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pViewProj);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEWPROJ(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		MatrixPtr	m_pViewProj;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class DisplayEffectParamWORLDINVTRANSPOSE : public DisplayEffectParam
 	{
 	public:
