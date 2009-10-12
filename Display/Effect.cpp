@@ -280,6 +280,7 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("WORLD"))] = boost::bind(&DisplayEffectParamWORLD::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("VIEW"))] = boost::bind(&DisplayEffectParamVIEW::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("VIEWINV"))] = boost::bind(&DisplayEffectParamVIEWINV::CreateParam, _1);
+		m_mParamCreators[MakeKey(string("VIEWPROJ"))] = boost::bind(&DisplayEffectParamVIEWPROJ::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("WORLDINVTRANSPOSE"))] = boost::bind(&DisplayEffectParamWORLDINVTRANSPOSE::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("TIME"))] = boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("ENVIRONMENTTEX"))] = boost::bind(&DisplayEffectParamENVIRONMENTTEX::CreateParam, _1);

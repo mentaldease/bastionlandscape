@@ -75,7 +75,7 @@ namespace ElixirEngine
 		{
 			m_fNear = pInfo->m_fZNear;
 			m_fFar = pInfo->m_fZFar;
-			m_fFovy = pInfo->m_fDegreeFovy * (D3DX_PI / 180.0f);
+			m_fFovy = D3DXToRadian(pInfo->m_fDegreeFovy);
 			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : (float)m_oViewport.Width / (float)m_oViewport.Height;
 			D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, pInfo->m_fZNear, pInfo->m_fZFar);
 			// the two following instructions lower z-fighting artifacts
@@ -95,9 +95,9 @@ namespace ElixirEngine
 			static Matrix oYRot;
 			static Matrix oZRot;
 			static Matrix oTemp;
-			D3DXMatrixRotationX(&oXRot, m_oVRotation.x * s_fDegToRad);
-			D3DXMatrixRotationY(&oYRot, m_oVRotation.y * s_fDegToRad);
-			D3DXMatrixRotationZ(&oZRot, m_oVRotation.z * s_fDegToRad);
+			D3DXMatrixRotationX(&oXRot, D3DXToRadian(m_oVRotation.x));
+			D3DXMatrixRotationY(&oYRot, D3DXToRadian(m_oVRotation.y));
+			D3DXMatrixRotationZ(&oZRot, D3DXToRadian(m_oVRotation.z));
 			D3DXMatrixMultiply(&oTemp, &oXRot, &oYRot);
 			D3DXMatrixMultiply(&m_oMRotation, &oTemp, &oZRot);
 		}
@@ -119,7 +119,12 @@ namespace ElixirEngine
 			D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
 			D3DXMatrixMultiply(&m_oMView, &m_oMView, &reflect_matrix);
 
-			D3DXMatrixMultiply(&m_oMViewProj, D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView), &m_oMProjection);
+			D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView);
+#if CAMERA_VIEWINV_AS_VIEW
+			D3DXMatrixMultiply(&m_oMViewProj, &m_oMViewInv, &m_oMProjection);
+#else // CAMERA_VIEWINV_AS_VIEW
+			D3DXMatrixMultiply(&m_oMViewProj, &m_oMView, &m_oMProjection);
+#endif // CAMERA_VIEWINV_AS_VIEW
 
 			Plane clip_plane = reflect_plane;
 			Matrix oVP = m_oMViewProj;
@@ -132,7 +137,12 @@ namespace ElixirEngine
 		else
 		{
 			D3DXMatrixMultiply(&m_oMView, &m_oMRotation, &m_oMPosition);
-			D3DXMatrixMultiply(&m_oMViewProj, D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView), &m_oMProjection);
+			D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView);
+#if CAMERA_VIEWINV_AS_VIEW
+			D3DXMatrixMultiply(&m_oMViewProj, &m_oMViewInv, &m_oMProjection);
+#else // CAMERA_VIEWINV_AS_VIEW
+			D3DXMatrixMultiply(&m_oMViewProj, &m_oMView, &m_oMProjection);
+#endif // CAMERA_VIEWINV_AS_VIEW
 			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
 		}
 
@@ -165,9 +175,13 @@ namespace ElixirEngine
 		return m_oVRotation;
 	}
 
-	void DisplayCamera::GetDirs(Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir, const bool _bInv)
+	void DisplayCamera::GetDirs(Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir)
 	{
-		Matrix& rMatrix = ( false == _bInv ) ? m_oMView : m_oMViewInv;
+#if CAMERA_VIEWINV_AS_VIEW
+		Matrix& rMatrix = m_oMViewInv;
+#else // CAMERA_VIEWINV_AS_VIEW
+		Matrix& rMatrix = m_oMView;
+#endif // CAMERA_VIEWINV_AS_VIEW
 
 		_oFrontDir.x = rMatrix._13;
 		_oFrontDir.y = rMatrix._23;
@@ -188,11 +202,19 @@ namespace ElixirEngine
 		{
 			case EMatrix_VIEW:
 			{
+#if CAMERA_VIEWINV_AS_VIEW
+				return &m_oMViewInv;
+#else // CAMERA_VIEWINV_AS_VIEW
 				return &m_oMView;
+#endif // CAMERA_VIEWINV_AS_VIEW
 			}
 			case EMatrix_VIEWINV:
 			{
+#if CAMERA_VIEWINV_AS_VIEW
+				return &m_oMView;
+#else // CAMERA_VIEWINV_AS_VIEW
 				return &m_oMViewInv;
+#endif // CAMERA_VIEWINV_AS_VIEW
 			}
 			case EMatrix_PROJ:
 			{
@@ -371,7 +393,7 @@ namespace ElixirEngine
 		Vector3 oFrontDir;
 		Vector3 oRightDir;
 		Vector3 oUpDir;
-		GetDirs(oFrontDir, oRightDir, oUpDir, true);
+		GetDirs(oFrontDir, oRightDir, oUpDir);
 		const Vector3 oFarCenter = m_oVPosition + oFrontDir * m_fFar;
 		const Vector3 oNearCenter = m_oVPosition + oFrontDir * m_fNear;
 

@@ -32,6 +32,9 @@ material =
 			semantic = "VIEWINV";
 		},
 		{
+			semantic = "VIEWPROJ";
+		},
+		{
 			semantic = "CAMERAPOS";
 		},
 		{

@@ -168,6 +168,8 @@ namespace ElixirEngine
 		void EnableAllRenderTargets();
 		void DisableAllRenderTargets();
 
+		void Clear();
+
 	protected:
 		DisplayRenderTargetPtrVec	m_vGBuffer;
 		DisplayRef					m_rDisplay;

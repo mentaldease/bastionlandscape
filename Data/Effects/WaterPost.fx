@@ -2,6 +2,9 @@
 // Copyright (C) Wojciech Toman 2009
 
 float4 g_vFrustumCorners[8] : FRUSTUMCORNERS;
+float4x4 matViewProj		: VIEWPROJ;
+float4x4 matViewInverse		: VIEWINV;
+float4 cameraPos			: CAMERAPOS;
 
 texture t2dheightMap		: NOISETEX;
 texture t2dbackBufferMap	: RT2D00;
@@ -59,14 +62,8 @@ sampler2D reflectionMap = sampler_state {
     AddressV = Wrap;
 };
 
-// We need this matrix to restore position in world space
-float4x4 matViewInverse	: VIEWINV;
-
 // Level at which water surface begins
 float waterLevel = 100.0f;
-
-// Position of the camera
-float4 cameraPos		: CAMERAPOS;
 
 // How fast will colours fade out. You can also think about this
 // values as how clear water is. Therefore use smaller values (eg. 0.05f)
@@ -125,8 +122,6 @@ float4x4 matReflection =
 	{0.0f, 0.0f, 0.0f, 1.0f}
 };
 
-float4x4 matViewProj;
-
 float shininess = 0.7f;
 float specular_intensity = 0.32;
 
@@ -163,22 +158,16 @@ struct PS_OUTPUT
 };
 
 // Vertex shader for rendering a full-screen quad
-void QuadVS (	in float3 in_vPositionOS				: POSITION,
-				in float3 in_vTexCoordAndCornerIndex	: TEXCOORD0,
-				out float4 out_vPositionCS				: POSITION,
-				out float2 out_vTexCoord				: TEXCOORD0,
-				out float3 out_vFrustumCornerVS			: TEXCOORD1	)
+VertexOutput QuadVS (	in float4 in_vPositionOS				: POSITION,
+						in float3 in_vTexCoordAndCornerIndex	: TEXCOORD0)
 {
-	out_vPositionCS = float4(in_vPositionOS, 1.0f);
+	VertexOutput Output = (VertexOutput)0;
 
-	// Pass along the texture coordinate and the position
-	// of the frustum corner in view-space.  This frustum corner
-    // position is interpolated so that the pixel shader always
-    // has a ray from camera->far-clip plane
-	out_vTexCoord = in_vTexCoordAndCornerIndex.xy;
-	//float3x3 matViewInverse3x3 = (float3x3)matViewInverse;
-	//out_vFrustumCornerVS = mul(g_vFrustumCorners[in_vTexCoordAndCornerIndex.z], matViewInverse3x3);
-	out_vFrustumCornerVS = g_vFrustumCorners[in_vTexCoordAndCornerIndex.z];
+	Output.position = in_vPositionOS;
+	Output.texCoord = in_vTexCoordAndCornerIndex.xy;
+	Output.texCoord2 = g_vFrustumCorners[(int)in_vTexCoordAndCornerIndex.z].xyz;
+
+	return Output;
 }
 
 float3x3 compute_tangent_frame(float3 N, float3 P, float2 UV)
@@ -219,8 +208,8 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	float3 color2 = tex2D(backBufferMap, IN.texCoord).rgb;
 	float3 color = color2;
 	
-	//float3 position = mul(float4(tex2D(positionMap, IN.texCoord).xyz, 1.0f), matViewInverse).xyz;
 	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord2);
+	//position = mul(float4(position, 1.0f), matViewInverse).xyz;
 	float level = waterLevel;
 	float depth = 0.0f;
 
@@ -352,7 +341,8 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	if(position.y > level)
 		color = color2;
 
-	return float4(color, 1.0f);
+	//return float4(color, 1.0f);
+	return float4(tex2D(positionMap, IN.texCoord).rrr, 1.0f);
 }
 
 //--------------------------------------------------------------------------------------
