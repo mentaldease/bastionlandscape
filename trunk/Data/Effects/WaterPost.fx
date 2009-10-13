@@ -4,7 +4,9 @@
 float4 g_vFrustumCorners[8] : FRUSTUMCORNERS;
 float4x4 matViewProj		: VIEWPROJ;
 float4x4 matViewInverse		: VIEWINV;
+float4x4 matView			: VIEW;
 float4 cameraPos			: CAMERAPOS;
+float timer					: TIME;
 
 texture t2dheightMap		: NOISETEX;
 texture t2dbackBufferMap	: RT2D00;
@@ -69,9 +71,6 @@ float waterLevel = 100.0f;
 // values as how clear water is. Therefore use smaller values (eg. 0.05f)
 // to have crystal clear water and bigger to achieve "muddy" water.
 float fadeSpeed = 0.15f;
-
-// Timer
-float timer : TIME;
 
 // Normals scaling factor
 float normalScale = 1.0f;
@@ -197,10 +196,11 @@ float fresnelTerm(float3 normal, float3 eyeVec)
 		return saturate(fresnel * (1.0f - saturate(R0)) + R0 - refractionStrength);
 }
 
-float3 VSPositionFromDepth(float2 vTexCoord, float3 vFrustumRayVS)
+float3 VSPositionFromDepth(float2 vTexCoord, float3 vFrustumRayWS)
 {
 	float fPixelDepth = tex2D(positionMap, vTexCoord).r;
-	return fPixelDepth * vFrustumRayVS;
+	float3 PositionViewSpace = fPixelDepth * vFrustumRayWS;
+	return PositionViewSpace;
 }
 
 float4 RenderScenePS(VertexOutput IN): COLOR0
@@ -209,7 +209,6 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	float3 color = color2;
 	
 	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord2);
-	//position = mul(float4(position, 1.0f), matViewInverse).xyz;
 	float level = waterLevel;
 	float depth = 0.0f;
 
@@ -280,7 +279,8 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		texCoord = IN.texCoord.xy;
 		texCoord.x += sin(timer * 0.002f + 3.0f * abs(position.y)) * (refractionScale * min(depth2, 1.0f));
 		float3 refraction = tex2D(backBufferMap, texCoord).rgb;
-		if(mul(float4(tex2D(positionMap, texCoord).xyz, 1.0f), matViewInverse).y > level)
+		//if(mul(float4(tex2D(positionMap, texCoord).xyz, 1.0f), matViewInverse).y > level)
+		if(VSPositionFromDepth(texCoord, IN.texCoord2).y > level)
 			refraction = color2;
 
 		float4x4 matTextureProj = mul(matViewProj, matReflection);
@@ -336,13 +336,14 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		color = saturate(color + max(specular, foam * sunColor));
 		
 		color = lerp(refraction, color, saturate(depth * shoreHardness));
+		color = float3(1.0f, 1.0f, 1.0f);
 	}
 	
 	if(position.y > level)
 		color = color2;
 
-	//return float4(color, 1.0f);
-	return float4(tex2D(positionMap, IN.texCoord).rrr, 1.0f);
+	return float4(color, 1.0f);
+	//return float4(tex2D(positionMap, IN.texCoord).rrr, 1.0);
 }
 
 //--------------------------------------------------------------------------------------
