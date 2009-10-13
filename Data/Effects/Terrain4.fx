@@ -15,6 +15,7 @@ float4 g_vLightDir				: LIGHTDIR;
 float4 g_vAtlasInfo				: ATLASDIFFUSEINFO;
 float4x4 g_mView				: VIEW;
 float4x4 g_mWorld				: WORLD;
+float4x4 g_mViewInv				: VIEWINV;
 
 texture AtlasDiffuseTexture : ATLASDIFFUSETEX;
 sampler2D AtlasDiffuseSampler = sampler_state {
@@ -190,7 +191,7 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 	Output.vColor.a = 1.0f;
 
 	Output.vNormal = float4(In.Normal, 1.0f);
-	float fDepth = -In.Position3 / 10000.0f;
+	float fDepth = In.Position3 / 10000.0f;
 	Output.vPosition = float4(fDepth, 1.0f, 1.0f, 1.0f);
 
 	return Output;

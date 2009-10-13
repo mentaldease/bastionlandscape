@@ -36,6 +36,9 @@ material =
 			semantic = "VIEW";
 		},
 		{
+			semantic = "VIEWINV";
+		},
+		{
 			semantic = "WORLD";
 		}
 	);

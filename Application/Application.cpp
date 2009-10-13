@@ -38,8 +38,8 @@ namespace BastionGame
 			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
 			{
 				MatrixPtr pProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);
-				MatrixPtr pView = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
-				MatrixPtr pViewInv = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
+				MatrixPtr pView = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
+				MatrixPtr pViewInv = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
 				MatrixPtr pViewProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
 
 				// Create a reflection matrix and multiply it with the view matrix
