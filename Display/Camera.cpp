@@ -333,6 +333,11 @@ namespace ElixirEngine
 		m_bReflection = _bState;
 	}
 
+	Vector3Ptr DisplayCamera::GetFrustumCorners()
+	{
+		return m_aFrustumCorners;
+	}
+
 	void DisplayCamera::UpdatePixelSize()
 	{
 		//const float fFovx = m_fFovy * m_fAspectRatio;

@@ -94,6 +94,10 @@ namespace ElixirEngine
 					if (false != bResult)
 					{
 						bResult = SUCCEEDED(m_pTexture->GetLevelDesc(0, &m_aSurfaceDescs[0]));
+						if (false == bResult)
+						{
+							break;
+						}
 					}
 					break;
 				}

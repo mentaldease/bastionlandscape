@@ -113,6 +113,8 @@ namespace ElixirEngine
 
 		void SetReflection(const bool _bState);
 
+		Vector3Ptr GetFrustumCorners();
+
 	protected:
 		void UpdatePixelSize();
 		void ExtractFrustumPlanes();

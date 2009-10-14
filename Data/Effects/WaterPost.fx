@@ -147,6 +147,7 @@ struct VertexOutput
 	float4 position		: POSITION0;
 	float2 texCoord		: TEXCOORD0;
 	float3 texCoord2	: TEXCOORD1;
+	float3 texCoord3	: TEXCOORD2;
 };
 
 struct PS_OUTPUT
@@ -203,12 +204,17 @@ float3 VSPositionFromDepth(float2 vTexCoord, float3 vFrustumRayWS)
 	return PositionViewSpace;
 }
 
+float4 GetNormal(float4 vNormal)
+{
+	return float4(vNormal.xzy * 2.0f - float3(1.0f, 1.0f, 1.0f), 1.0f);
+}
+
 float4 RenderScenePS(VertexOutput IN): COLOR0
 {
 	float3 color2 = tex2D(backBufferMap, IN.texCoord).rgb;
 	float3 color = color2;
 	
-	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord2);
+	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord3);
 	float level = waterLevel;
 	float depth = 0.0f;
 
@@ -259,19 +265,19 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		
 		texCoord = surfacePoint.xz * 1.6 + wind * timer * 0.00016;
 		float3x3 tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal0a = normalize(mul(2.0f * tex2D(normalMap, texCoord) - 1.0f, tangentFrame));
+		float3 normal0a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 
 		texCoord = surfacePoint.xz * 0.8 + wind * timer * 0.00008;
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal1a = normalize(mul(2.0f * tex2D(normalMap, texCoord) - 1.0f, tangentFrame));
+		float3 normal1a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
 		texCoord = surfacePoint.xz * 0.4 + wind * timer * 0.00004;
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal2a = normalize(mul(2.0f * tex2D(normalMap, texCoord) - 1.0f, tangentFrame));
+		float3 normal2a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
 		texCoord = surfacePoint.xz * 0.1 + wind * timer * 0.00002;
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal3a = normalize(mul(2.0f * tex2D(normalMap, texCoord) - 1.0f, tangentFrame));
+		float3 normal3a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
 		float3 normal = normalize(normal0a * normalModifier.x + normal1a * normalModifier.y +
 								  normal2a * normalModifier.z + normal3a * normalModifier.w);
@@ -279,8 +285,9 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		texCoord = IN.texCoord.xy;
 		texCoord.x += sin(timer * 0.002f + 3.0f * abs(position.y)) * (refractionScale * min(depth2, 1.0f));
 		float3 refraction = tex2D(backBufferMap, texCoord).rgb;
-		//if(mul(float4(tex2D(positionMap, texCoord).xyz, 1.0f), matViewInverse).y > level)
-		if(VSPositionFromDepth(texCoord, IN.texCoord2).y > level)
+		//if (mul(float4(tex2D(positionMap, texCoord).xyz, 1.0f), matViewInverse).y > level)
+		if (VSPositionFromDepth(texCoord, IN.texCoord3).y > level)
+		//if (mul(float4(VSPositionFromDepth(texCoord, IN.texCoord3).xyz, 1.0f), matViewInverse).y > level)
 			refraction = color2;
 
 		float4x4 matTextureProj = mul(matViewProj, matReflection);
@@ -336,14 +343,15 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		color = saturate(color + max(specular, foam * sunColor));
 		
 		color = lerp(refraction, color, saturate(depth * shoreHardness));
-		color = float3(1.0f, 1.0f, 1.0f);
+		//color = float3(1.0f, 1.0f, 1.0f);
 	}
 	
 	if(position.y > level)
 		color = color2;
 
 	return float4(color, 1.0f);
-	//return float4(tex2D(positionMap, IN.texCoord).rrr, 1.0);
+	//return float4(tex2D(normalMap, IN.texCoord).rgb, 1.0);
+	//return float4(tex2D(positionMap, IN.texCoord).rgb, 1.0);
 }
 
 //--------------------------------------------------------------------------------------
@@ -354,8 +362,8 @@ technique RenderScene
 {
     pass P0
     {          
-        //VertexShader = null;
-		VertexShader = compile vs_3_0 QuadVS();
+        VertexShader = null;
+		//VertexShader = compile vs_3_0 QuadVS();
         PixelShader  = compile ps_3_0 RenderScenePS();
         ZEnable = false;
     }
