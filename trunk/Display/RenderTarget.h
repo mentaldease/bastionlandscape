@@ -26,10 +26,11 @@ namespace ElixirEngine
 		struct Vertex
 		{
 			float x, y, z, rhw;
-			float tu, tv, tw;       // Texcoord for post-process source
-			float tu2, tv2, tw2;     // Texcoord for the original scene
+			float tu, tv, tw;		// Texcoord for post-process source
+			float tu2, tv2, tw2;	// Texcoord for the original scene
+			float tu3, tv3, tw3;	// Frustum coordinates
 
-			const static VertexElement	s_aDecl[4];
+			const static VertexElement	s_aDecl[5];
 		};
 
 	public:

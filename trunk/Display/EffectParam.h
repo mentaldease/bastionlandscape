@@ -980,6 +980,16 @@ namespace ElixirEngine
 			{
 				bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "value", m_strPath);
 			}
+			if (false != bResult)
+			{
+				DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
+				pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D);
+				m_pTexture = pTextureManager->Get(m_strName);
+				//if (string("waterpost00_foamMap") == m_strName)
+				//{
+				//	D3DXSaveTextureToFile(L"data/Debug.jpg", D3DXIFF_JPG, m_pTexture->GetBase(), NULL);
+				//}
+			}
 
 			return bResult;
 		}
@@ -989,10 +999,8 @@ namespace ElixirEngine
 			if (NULL == m_pTexture)
 			{
 				DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
-				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D))
-				{
-					m_pTexture = pTextureManager->Get(m_strName);
-				}
+				pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D);
+				m_pTexture = pTextureManager->Get(m_strName);
 			}
 			if (NULL != m_pTexture)
 			{

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "../Display/RenderTarget.h"
+#include "../Display/Camera.h"
 
 namespace ElixirEngine
 {
@@ -7,11 +8,12 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	const VertexElement	DisplayRenderTargetGeometry::Vertex::s_aDecl[4] =
+	const VertexElement	DisplayRenderTargetGeometry::Vertex::s_aDecl[5] =
 	{
 		{ 0, 0,  D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITIONT, 0 },
 		{ 0, 16, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
 		{ 0, 28, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  1 },
+		{ 0, 40, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  2 },
 		D3DDECL_END()
 	};
 
@@ -80,6 +82,14 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetGeometry::Render()
 	{
+		Vector3Ptr pFrustumCorners = m_rDisplay.GetCurrentCamera()->GetFrustumCorners();
+		for (UInt i = 0 ; 4 > i ; ++i)
+		{
+			Vector3Ptr pCorner = &pFrustumCorners[UInt(m_aQuad[i].tw2)];
+			m_aQuad[i].tu3 = pCorner->x;
+			m_aQuad[i].tv3 = pCorner->y;
+			m_aQuad[i].tw3 = pCorner->z;
+		}
 		m_rDisplay.GetDevicePtr()->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, m_aQuad, sizeof(Vertex));
 	}
 

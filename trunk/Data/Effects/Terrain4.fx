@@ -190,7 +190,8 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 	Output.vColor *= saturate(dot(In.Light, In.Normal));
 	Output.vColor.a = 1.0f;
 
-	Output.vNormal = float4(In.Normal, 1.0f);
+	float3 vNormal = (In.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;
+	Output.vNormal = float4(vNormal, 1.0f);
 	float fDepth = In.Position3 / 10000.0f;
 	Output.vPosition = float4(fDepth, 1.0f, 1.0f, 1.0f);
 

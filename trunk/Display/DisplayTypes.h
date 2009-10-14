@@ -20,6 +20,9 @@ namespace ElixirEngine
 	typedef D3DXVECTOR2						Vector2;
 	typedef D3DXVECTOR3						Vector3;
 	typedef D3DXVECTOR4						Vector4;
+	typedef Vector2*						Vector2Ptr;
+	typedef Vector3*						Vector3Ptr;
+	typedef Vector4*						Vector4Ptr;
 	typedef map<Key, Vector2*>				Vector2PtrMap;
 	typedef map<Key, Vector3*>				Vector3PtrMap;
 	typedef map<Key, Vector4*>				Vector4PtrMap;
