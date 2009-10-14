@@ -17,9 +17,34 @@ namespace ElixirEngine
 	public:
 		struct CreateInfo
 		{
+			CreateInfo()
+				:	m_pConfig(NULL),
+				m_pShortcut(NULL),
+				m_pDisplayMaterial(NULL),
+				m_hSemantic(NULL),
+				m_uSemanticKey(0)
+			{
+			}
+
+			CreateInfo(
+				ConfigPtr			_pConfig,
+				ConfigShortcutPtr	_pShortcut,
+				DisplayMaterialPtr	_pDisplayMaterial,
+				Handle				_hSemantic,
+				Key					_uSemanticKey)
+			:	m_pConfig(_pConfig),
+				m_pShortcut(_pShortcut),
+				m_pDisplayMaterial(_pDisplayMaterial),
+				m_hSemantic(_hSemantic),
+				m_uSemanticKey(_uSemanticKey)
+			{
+			}
+
 			ConfigPtr			m_pConfig;
 			ConfigShortcutPtr	m_pShortcut;
 			DisplayMaterialPtr	m_pDisplayMaterial;
+			Handle				m_hSemantic;
+			Key					m_uSemanticKey;
 		};
 
 	public:
@@ -35,11 +60,32 @@ namespace ElixirEngine
 
 		}
 
+		virtual bool Create(const boost::any& _rConfig)
+		{
+			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
+			string strSemanticName;
+			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
+
+			m_uSemanticKey = pInfo->m_uSemanticKey;
+			m_hData = pInfo->m_hSemantic;
+
+			if (false != bResult)
+			{
+				m_uSemanticKey = MakeKey(strSemanticName);
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
+			}
+
+			bResult = ((NULL != m_hData) && (0 != m_uSemanticKey));
+
+			return bResult;
+		}
+
 		virtual bool Use() = 0;
 
 	protected:
 		DisplayMaterialRef	m_rDisplayMaterial;
 		Handle				m_hData;
+		Key					m_uSemanticKey;
 
 	private:
 	};
@@ -63,21 +109,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamWORLDVIEWPROJ()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -132,21 +163,6 @@ namespace ElixirEngine
 
 		}
 
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-
-			return bResult;
-		}
-
 		virtual bool Use()
 		{
 			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldMatrix();
@@ -194,21 +210,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamVIEW()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -260,21 +261,6 @@ namespace ElixirEngine
 
 		}
 
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-
-			return bResult;
-		}
-
 		virtual bool Use()
 		{
 			m_pViewInv = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
@@ -324,21 +310,6 @@ namespace ElixirEngine
 
 		}
 
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-
-			return bResult;
-		}
-
 		virtual bool Use()
 		{
 			m_pViewProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
@@ -386,21 +357,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamWORLDINVTRANSPOSE()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -460,7 +416,8 @@ namespace ElixirEngine
 
 			if (false != bResult)
 			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				m_uSemanticKey = MakeKey(strSemanticName);
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
 				bResult = (NULL != m_hData);
 			}
 			if (false != bResult)
@@ -541,7 +498,8 @@ namespace ElixirEngine
 
 			if (false != bResult)
 			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				m_uSemanticKey = MakeKey(strSemanticName);
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
 				bResult = (NULL != m_hData);
 			}
 			if (false != bResult)
@@ -613,25 +571,6 @@ namespace ElixirEngine
 
 		}
 
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-			}
-
-			return bResult;
-		}
-
 		virtual bool Use()
 		{
 			m_pData = m_rDisplayMaterial.GetMaterialManager().GetFloatBySemantic(m_uSemanticKey);
@@ -658,7 +597,6 @@ namespace ElixirEngine
 
 	protected:
 		FloatPtr	m_pData;
-		Key			m_uSemanticKey;
 
 	private:
 	};
@@ -679,25 +617,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamVECTOR2()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -729,7 +648,6 @@ namespace ElixirEngine
 	protected:
 		Vector4		m_oData;
 		Vector2*	m_pData;
-		Key			m_uSemanticKey;
 
 	private:
 	};
@@ -750,25 +668,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamVECTOR3()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -801,7 +700,6 @@ namespace ElixirEngine
 	protected:
 		Vector4		m_oData;
 		Vector3*	m_pData;
-		Key			m_uSemanticKey;
 
 	private:
 	};
@@ -822,25 +720,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamVECTOR4()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -869,7 +748,6 @@ namespace ElixirEngine
 
 	protected:
 		Vector4*	m_pData;
-		Key			m_uSemanticKey;
 
 	private:
 	};
@@ -890,25 +768,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamMATRIX()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -937,7 +796,6 @@ namespace ElixirEngine
 
 	protected:
 		MatrixPtr	m_pData;
-		Key			m_uSemanticKey;
 
 	private:
 	};
@@ -969,7 +827,7 @@ namespace ElixirEngine
 
 			if (false != bResult)
 			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
+				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(MakeKey(string(strSemanticName)));
 				bResult = (NULL != m_hData);
 			}
 			if (false != bResult)
@@ -979,16 +837,6 @@ namespace ElixirEngine
 			if (false != bResult)
 			{
 				bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "value", m_strPath);
-			}
-			if (false != bResult)
-			{
-				DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
-				pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D);
-				m_pTexture = pTextureManager->Get(m_strName);
-				//if (string("waterpost00_foamMap") == m_strName)
-				//{
-				//	D3DXSaveTextureToFile(L"data/Debug.jpg", D3DXIFF_JPG, m_pTexture->GetBase(), NULL);
-				//}
 			}
 
 			return bResult;
@@ -1050,25 +898,6 @@ namespace ElixirEngine
 
 		}
 
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-			}
-
-			return bResult;
-		}
-
 		virtual bool Use()
 		{
 			DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
@@ -1096,7 +925,6 @@ namespace ElixirEngine
 
 	protected:
 		DisplayTexturePtr	m_pTexture;
-		Key					m_uSemanticKey;
 
 	private:
 	};
@@ -1117,25 +945,6 @@ namespace ElixirEngine
 		virtual ~DisplayEffectParamFRUSTUMCORNERS()
 		{
 
-		}
-
-		virtual bool Create(const boost::any& _rConfig)
-		{
-			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-			string strSemanticName;
-			bool bResult = pInfo->m_pConfig->GetValue(pInfo->m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_hData = pInfo->m_pDisplayMaterial->GetEffect()->GetEffect()->GetParameterBySemantic(NULL, strSemanticName.c_str());
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-			}
-
-			return bResult;
 		}
 
 		virtual bool Use()
@@ -1168,7 +977,6 @@ namespace ElixirEngine
 
 	protected:
 		Vector4	m_aData[DisplayCamera::EFrustumCorner_COUNT];
-		Key		m_uSemanticKey;
 
 	private:
 	};

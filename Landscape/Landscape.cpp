@@ -311,6 +311,12 @@ namespace ElixirEngine
 			m_vVertexBuffers.pop_back();
 		}
 
+		while (false == m_vVertexesIndependent.empty())
+		{
+			delete[] m_vVertexesIndependent.back();
+			m_vVertexesIndependent.pop_back();
+		}
+
 		while (false == m_vVertexes.empty())
 		{
 			delete[] m_vVertexes.back();
@@ -475,11 +481,13 @@ namespace ElixirEngine
 				VertexIndependentPtr pVertex = pVertexes;
 				DisplaySurface::UVInfo oUVInfo;
 				Byte aRGBA[4];
+				// DO NOT USE (1.0f > v) or (1.0f > u) as break conditions !!
+				// In some cases round errors will set ++pVertex out of bound long before the double 'for' finishes.
 				// for landscape height
-				for (float v = 0.0f ; 1.0f > v ; v += fVStep)
+				for (float v = 0.0f, vv = 0.0f ; float(uLODRowCount) > vv ; v += fVStep, ++vv)
 				{
 					// for landscape width
-					for (float u = 0.0f ; 1.0f > u ; u += fUStep)
+					for (float u = 0.0f, uu = 0.0f ; float(uLODVertexPerRowCount) > uu ; u += fUStep, ++uu)
 					{
 						// translate vertex (x, z) as texture coords (u, v)
 						// get pixel data from surface GetDataUV(u, v, info)
@@ -511,12 +519,19 @@ namespace ElixirEngine
 						}
 						++pVertex;
 					}
+					if (false == bResult)
+					{
+						break;
+					}
 				}
-				// update morph info
+				if (false != bResult)
+				{
 #if LANDSCAPE_USE_MORPHING
-				ComputeVertexIndependentMorphs(m_oGlobalInfo.m_pLODs[k]);
+					// update morph info
+					ComputeVertexIndependentMorphs(m_oGlobalInfo.m_pLODs[k]);
 #endif // LANDSCAPE_USE_MORPHING
-				ComputeVertexIndependentNormals(m_oGlobalInfo.m_pLODs[k]);
+					ComputeVertexIndependentNormals(m_oGlobalInfo.m_pLODs[k]);
+				}
 			}
 			// release heightmap surface
 			pSurface->Unlock();

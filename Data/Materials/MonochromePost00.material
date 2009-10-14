@@ -6,10 +6,4 @@ material =
 	name = "monochromepost00";
 	effect = "data/effects/MonochromePost.fx";
 	technique = "RenderScene";
-	params =
-	(
-		{
-			semantic = "RT2D00";
-		}
-	);
 };

@@ -6,34 +6,4 @@ material =
 	name = "terrain02";
 	effect = "data/effects/terrain3.fx";
 	technique = "RenderScene";
-	params =
-	(
-		{
-			semantic = "WORLDVIEWPROJ";
-		},
-		{
-			semantic = "WORLDINVTRANSPOSE";
-		},
-		{
-			semantic = "LIGHTDIR";
-		},
-		{
-			semantic = "ATLASDIFFUSETEX";
-		},
-		{
-			semantic = "ATLASLUTTEX";
-		},
-		{
-			semantic = "NOISETEX";
-		},
-		{
-			semantic = "ATLASDIFFUSEINFO";
-		},
-		{
-			semantic = "MORPHFACTOR";
-		},
-		{
-			semantic = "VIEW";
-		}
-	);
 };

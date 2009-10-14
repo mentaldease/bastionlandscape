@@ -55,6 +55,11 @@ namespace ElixirEngine
 				int a = 0;
 				++a;
 			}
+			else
+			{
+				GetParameters();
+			}
+
 			if (NULL != pCompilErrors)
 			{
 				pCompilErrors->Release();
@@ -105,6 +110,56 @@ namespace ElixirEngine
 		return m_pEffect;
 	}
 
+	Handle DisplayEffect::GetHandleBySemanticKey(const Key& _uKey)
+	{
+		HandleMap::iterator iHandle = m_mHandles.find(_uKey);
+		return ((m_mHandles.end() != iHandle) ? iHandle->second : NULL);
+	}
+
+	HandleMapRef DisplayEffect::GetHandles()
+	{
+		return m_mHandles;
+	}
+
+	bool DisplayEffect::GetParameters()
+	{
+		EffectDesc oEffectDesc;
+		bool bResult = SUCCEEDED(m_pEffect->GetDesc(&oEffectDesc));
+
+		if (false != bResult)
+		{
+			EffectParamDesc oParamDesc;
+			Key uSemanticKey;
+			Handle hParam;
+
+			for (UInt i = 0 ; oEffectDesc.Parameters > i ; ++i)
+			{
+				hParam = m_pEffect->GetParameter(NULL, i);
+				bResult = (NULL != hParam) && SUCCEEDED(m_pEffect->GetParameterDesc(hParam, &oParamDesc));
+				if (false == bResult)
+				{
+					break;
+				}
+				if (NULL != oParamDesc.Semantic)
+				{
+					uSemanticKey = MakeKey(string(oParamDesc.Semantic));
+					bResult = (NULL == GetHandleBySemanticKey(uSemanticKey));
+				}
+				else
+				{
+					continue;
+				}
+				if (false == bResult)
+				{
+					break;
+				}
+				m_mHandles[uSemanticKey] = hParam;
+			}
+		}
+
+		return bResult;
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -139,11 +194,14 @@ namespace ElixirEngine
 			const int uCount = pInfo->m_pConfig->GetCount("material.params");
 			string strSemanticValue;
 
+			// pre-store all config info for parameters
+			map<Key, ConfigShortcutPtr> mConfigParams;
 			for (int i = 0 ; uCount > i ; ++i)
 			{
 				_snprintf(szBuffer, uBufferSize, "material.params.[%u]", i);
 				ConfigShortcutPtr pShortcut = pInfo->m_pConfig->GetShortcut(string(szBuffer));
-				if (NULL == pShortcut)
+				bResult = (NULL != pShortcut);
+				if (false == bResult)
 				{
 					break;
 				}
@@ -154,15 +212,55 @@ namespace ElixirEngine
 					break;
 				}
 
-				DisplayEffectParam::CreateInfo oDEPCInfo = { pInfo->m_pConfig, pShortcut, this };
-				DisplayEffectParamPtr pParam = m_rMaterialManager.CreateParam(strSemanticValue, boost::any(&oDEPCInfo));
-				if (NULL == pParam)
+				const Key uSemanticKey = MakeKey(strSemanticValue);
+				bResult = (mConfigParams.end() == mConfigParams.find(uSemanticKey));
+				if (false == bResult)
 				{
-					bResult = false;
 					break;
 				}
 
-				m_vParams.push_back(pParam);
+				mConfigParams[uSemanticKey] = pShortcut;
+			}
+
+			// create parameters
+			if (false != bResult)
+			{
+				HandleMapRef rHandles = m_pEffect->GetHandles();
+				HandleMap::iterator iHandle = rHandles.begin();
+				HandleMap::iterator iEnd = rHandles.end();
+				while (iEnd != iHandle)
+				{
+					const Key uSemanticKey = iHandle->first;
+					map<Key, ConfigShortcutPtr>::iterator iParam = mConfigParams.find(uSemanticKey);
+					ConfigShortcutPtr pShortcut = (mConfigParams.end() != iParam) ? iParam->second : NULL;
+					DisplayEffectParam::CreateInfo oDEPCInfo(pInfo->m_pConfig, pShortcut, this, iHandle->second, uSemanticKey);
+					DisplayEffectParamPtr pParam = m_rMaterialManager.CreateParam(uSemanticKey, boost::any(&oDEPCInfo));
+					if (NULL == pParam)
+					{
+						bResult = false;
+						break;
+					}
+					if (mConfigParams.end() != iParam)
+					{
+						mConfigParams.erase(iParam);
+					}
+					m_vParams.push_back(pParam);
+					++iHandle;
+				}
+			}
+
+			// check all material declared parameters have been created
+			if (false != bResult)
+			{
+				bResult = mConfigParams.empty();
+				map<Key, ConfigShortcutPtr>::iterator iParam = mConfigParams.begin();
+				map<Key, ConfigShortcutPtr>::iterator iEnd = mConfigParams.end();
+				while (iEnd != iParam)
+				{
+					ConfigShortcutPtr pShortcut = iParam->second;
+					pInfo->m_pConfig->GetValue(pShortcut, "semantic", strSemanticValue);
+					++iParam;
+				}
 			}
 		}
 
@@ -482,11 +580,17 @@ namespace ElixirEngine
 	DisplayEffectParamPtr DisplayMaterialManager::CreateParam(const string& _strSemanticName, const boost::any& _rConfig)
 	{
 		const Key uKey = MakeKey(_strSemanticName);
+		return CreateParam(uKey, _rConfig);
+	}
+
+	DisplayEffectParamPtr DisplayMaterialManager::CreateParam(const Key& _uSemanticNameKey, const boost::any& _rConfig)
+	{
+		CreateParamFuncMap::iterator iCreateParamFunc = m_mParamCreators.find(_uSemanticNameKey);
 		DisplayEffectParamPtr pResult = NULL;
 
-		CreateParamFunc pCreateParam = m_mParamCreators[uKey];
-		if (NULL != pCreateParam)
+		if (m_mParamCreators.end() != iCreateParamFunc)
 		{
+			CreateParamFunc pCreateParam = iCreateParamFunc->second;
 			pResult = pCreateParam(_rConfig);
 		}
 

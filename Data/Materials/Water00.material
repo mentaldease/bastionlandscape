@@ -9,21 +9,6 @@ material =
 	params =
 	(
 		{
-			semantic = "WORLDVIEWPROJ";
-		},
-		{
-			semantic = "WORLD";
-		},
-		{
-			semantic = "VIEWINV";
-		},
-		{
-			semantic = "TIME";
-		},
-		{
-			semantic = "WORLDINVTRANSPOSE";
-		},
-		{
 			semantic = "ENVIRONMENTTEX";
 			name = "CloudyHillsCubemap2";
 			value = "data/textures/CloudyHillsCubemap2.dds";

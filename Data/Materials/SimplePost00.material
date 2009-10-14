@@ -6,10 +6,4 @@ material =
 	name = "simplepost00";
 	effect = "data/effects/SimplePost.fx";
 	technique = "RenderScene";
-	params =
-	(
-		{
-			semantic = "RT2D00";
-		}
-	);
 };

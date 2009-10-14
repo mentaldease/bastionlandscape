@@ -9,21 +9,9 @@ material =
 	params =
 	(
 		{
-			semantic = "WORLDVIEWPROJ";
-		},
-		{
-			semantic = "WORLDINVTRANSPOSE";
-		},
-		{
-			semantic = "LIGHTDIR";
-		},
-		{
 			semantic = "DIFFUSETEX";
 			name = "diffuse00";
 			value = "data/landscapes/land01.tga";
-		},
-		{
-			semantic = "MORPHFACTOR";
 		}
 	);
 };

@@ -32,10 +32,17 @@ namespace ElixirEngine
 
 		virtual EffectPtr GetEffect();
 
+		Handle GetHandleBySemanticKey(const Key& _uKey);
+		HandleMapRef GetHandles();
+
+	protected:
+		bool GetParameters();
+
 	protected:
 		DisplayRef				m_rDisplay;
 		EffectPtr				m_pEffect;
 		DisplayMaterialPtrVec	m_vRenderList;
+		HandleMap				m_mHandles;
 
 	private:
 	};
@@ -103,6 +110,7 @@ namespace ElixirEngine
 		DisplayEffectPtr GetEffect(const string& _strName);
 
 		DisplayEffectParamPtr CreateParam(const string& _strSemanticName, const boost::any& _rConfig);
+		DisplayEffectParamPtr CreateParam(const Key& _uSemanticNameKey, const boost::any& _rConfig);
 		void ReleaseParam(DisplayEffectParamPtr _pParam);
 
 		void UnloadAll();
