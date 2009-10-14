@@ -438,7 +438,7 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
-			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "RTChainTest", m_uWidth, m_uHeight, D3DFORMAT(_rWindowData.m_uDXGBufferFormat), _rWindowData.m_uDXGBufferCount };
+			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "GBUFFERS", m_uWidth, m_uHeight, D3DFORMAT(_rWindowData.m_uDXGBufferFormat), _rWindowData.m_uDXGBufferCount };
 			m_pPostProcessGeometry = new DisplayRenderTargetGeometry(*this);
 			m_pRTChain = new DisplayRenderTargetChain(*this);
 			bResult =  m_pPostProcessGeometry->Create(boost::any(&oRTGCInfo))

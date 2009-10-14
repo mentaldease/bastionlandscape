@@ -69,7 +69,7 @@ int ParamID = 0x0003;		/* Used by Max to select the correct parser */
 #define LIGHT_COORDS "World"
 // #define OBJECT_SPACE_LIGHTS /* Define if LIGHT_COORDS is "Object" */
 
-float Script : STANDARDSGLOBAL <
+float Script /*: STANDARDSGLOBAL*/ <
     string UIWidget = "none";
     string ScriptClass = "object";
     string ScriptOrder = "standard";

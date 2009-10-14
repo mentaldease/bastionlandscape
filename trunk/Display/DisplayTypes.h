@@ -38,8 +38,14 @@ namespace ElixirEngine
 	typedef IDirect3DIndexBuffer9			IndexBuffer;
 	typedef IndexBuffer*					IndexBufferPtr;
 	typedef ID3DXEffect*					EffectPtr;
+	typedef D3DXEFFECT_DESC					EffectDesc;
+	typedef D3DXPARAMETER_DESC				EffectParamDesc;
+	typedef EffectParamDesc*				EffectParamDescPtr;
+	typedef EffectDesc*						EffectDescPtr;
 	typedef LPD3DXBUFFER					BufferPtr;
 	typedef D3DXHANDLE						Handle;
+	typedef map<Key, Handle>				HandleMap;
+	typedef HandleMap&						HandleMapRef;
 	typedef D3DVIEWPORT9					Viewport;
 	typedef Viewport*						ViewportPtr;
 	typedef Viewport&						ViewportRef;

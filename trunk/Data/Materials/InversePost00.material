@@ -6,10 +6,4 @@ material =
 	name = "inversepost00";
 	effect = "data/effects/InversePost.fx";
 	technique = "RenderScene";
-	params =
-	(
-		{
-			semantic = "RT2D00";
-		}
-	);
 };

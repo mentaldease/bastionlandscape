@@ -40,7 +40,7 @@ namespace ElixirEngine
 		template<typename T>
 		bool GetValue(const string& _strPath, T& _rValue)
 		{
-			return m_pConfig->lookupValue(_strPath, _rValue);
+			return (NULL != m_pConfig) ? m_pConfig->lookupValue(_strPath, _rValue) : NULL;
 		}
 
 		int GetCount(const string& _strPath);
@@ -49,7 +49,7 @@ namespace ElixirEngine
 		template<typename T>
 		bool GetValue(ConfigShortcutPtr _pShorcut, const string& _strPath, T& _rValue)
 		{
-			return _pShorcut->lookupValue(_strPath, _rValue);
+			return (NULL != _pShorcut) ? _pShorcut->lookupValue(_strPath, _rValue) : false;
 		}
 
 	protected:

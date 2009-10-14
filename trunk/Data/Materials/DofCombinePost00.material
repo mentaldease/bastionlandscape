@@ -6,16 +6,4 @@ material =
 	name = "dofcombinepost00";
 	effect = "data/effects/DofCombinePost.fx";
 	technique = "RenderScene";
-	params =
-	(
-		{
-			semantic = "RT2D00";
-		},
-		{
-			semantic = "RT2D01";
-		},
-		{
-			semantic = "ORT2D00";
-		}
-	);
 };

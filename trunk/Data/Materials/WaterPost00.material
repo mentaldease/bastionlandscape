@@ -9,42 +9,9 @@ material =
 	params =
 	(
 		{
-			semantic = "RT2D00";
-		},
-		{
-			semantic = "RT2D01";
-		},
-		{
-			semantic = "RT2D02";
-		},
-		{
-			semantic = "RT2D03";
-		},
-		{
-			semantic = "NOISETEX";
-		},
-		{
 			semantic = "TEX2D00";
 			name = "waterpost00_foamMap";
 			value = "data/textures/waterpost00_foamMap.jpg";
-		},
-		{
-			semantic = "VIEWINV";
-		},
-		{
-			semantic = "VIEW";
-		},
-		{
-			semantic = "VIEWPROJ";
-		},
-		{
-			semantic = "CAMERAPOS";
-		},
-		{
-			semantic = "TIME";
-		},
-		{
-			semantic = "FRUSTUMCORNERS";
 		}
 	);
 };
