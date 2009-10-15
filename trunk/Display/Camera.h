@@ -102,6 +102,7 @@ namespace ElixirEngine
 		Vector3& GetPosition();
 		Vector3& GetRotation();
 		void GetDirs(Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir);
+		void GetDirs(const Matrix& _rMatrix, Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir);
 		MatrixPtr GetMatrix(const EMatrix& _eMatrix);
 
 		const float& GetPixelSize() const;

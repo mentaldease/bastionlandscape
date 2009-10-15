@@ -281,9 +281,6 @@ namespace ElixirEngine
 
 	void Display::Update()
 	{
-		//m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
-		m_pDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
-
 		// Render scene to buffers
 		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
 		{
@@ -295,6 +292,8 @@ namespace ElixirEngine
 			{
 				m_pCurrentNormalProcess = *iNormalProcess;
 				m_pCurrentNormalProcess->Update();
+
+				m_pDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0);
 
 				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 				m_pCamera->Update();
@@ -369,7 +368,7 @@ namespace ElixirEngine
 		}
 	}
 
-	bool Display::OpenVideo(const WindowData& _rWindowData)
+	bool Display::OpenVideo(WindowData& _rWindowData)
 	{
 		bool bResult = (NULL == m_pDevice);
 		HRESULT hResult;
@@ -438,7 +437,7 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
-			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "GBUFFERS", m_uWidth, m_uHeight, D3DFORMAT(_rWindowData.m_uDXGBufferFormat), _rWindowData.m_uDXGBufferCount };
+			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "GBUFFERS", m_uWidth, m_uHeight, D3DFORMAT(_rWindowData.m_uDXGBufferFormat), _rWindowData.m_uDXGBufferCount, _rWindowData.m_aDXGBufferFormat };
 			m_pPostProcessGeometry = new DisplayRenderTargetGeometry(*this);
 			m_pRTChain = new DisplayRenderTargetChain(*this);
 			bResult =  m_pPostProcessGeometry->Create(boost::any(&oRTGCInfo))

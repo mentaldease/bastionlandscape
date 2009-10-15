@@ -47,6 +47,8 @@ sampler2D NoiseSampler = sampler_state {
     AddressV = Wrap;
 };
 
+float4 g_vFloatToRGBAFactors = float4(1.0, 256.0, 65536.0, 16777216.0);
+
 //--------------------------------------------------------------------------------------
 // Structs
 //--------------------------------------------------------------------------------------
@@ -78,7 +80,7 @@ struct VS_OUTPUT
 	float3 Light		: TEXCOORD1;
 	float3 Normal		: TEXCOORD2;  // vertex normal
 	float2 UV2			: TEXCOORD3;
-	float  Position3	: TEXCOORD4;  // vertex position
+	float  PositionZ	: TEXCOORD4;  // vertex position
 };
 
 struct PS_OUTPUT
@@ -107,7 +109,7 @@ VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 	Output.UV = In.vUV;
 	Output.UV2 = In.vUV2;
 
-	//Output.Position3 = Output.Position.xyz;
+	//Output.PositionZ = Output.Position.xyz;
 
 	return Output;    
 }
@@ -126,7 +128,7 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 
 	float4x4 matWorldView = mul(g_mWorld, g_mView);
     float4 vPositionVS = mul(In.vPos, matWorldView);
-	Output.Position3 = vPositionVS.z;
+	Output.PositionZ = vPositionVS.z * vPositionVS.w;
 
 	return Output;    
 }
@@ -192,7 +194,7 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 
 	float3 vNormal = (In.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;
 	Output.vNormal = float4(vNormal, 1.0f);
-	float fDepth = In.Position3 / 10000.0f;
+	float fDepth = In.PositionZ / 10000.0f;
 	Output.vPosition = float4(fDepth, 1.0f, 1.0f, 1.0f);
 
 	return Output;

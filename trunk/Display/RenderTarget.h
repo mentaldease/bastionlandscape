@@ -28,9 +28,10 @@ namespace ElixirEngine
 			float x, y, z, rhw;
 			float tu, tv, tw;		// Texcoord for post-process source
 			float tu2, tv2, tw2;	// Texcoord for the original scene
-			float tu3, tv3, tw3;	// Frustum coordinates
+			float tu3, tv3, tw3;	// Frustum far coordinates
+			float tu4, tv4, tw4;	// Frustum near coordinates
 
-			const static VertexElement	s_aDecl[5];
+			const static VertexElement	s_aDecl[6];
 		};
 
 	public:
@@ -143,11 +144,12 @@ namespace ElixirEngine
 	public:
 		struct CreateInfo
 		{
-			string		m_strName;
-			UInt		m_uWidth;
-			UInt		m_uHeight;
-			D3DFORMAT	m_uFormat;
-			UInt		m_uBufferCount;
+			string			m_strName;
+			UInt			m_uWidth;
+			UInt			m_uHeight;
+			D3DFORMAT		m_uFormat;
+			UInt			m_uBufferCount;
+			const UIntPtr	m_pFormats;
 		};
 
 	public:

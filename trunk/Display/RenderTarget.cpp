@@ -8,12 +8,13 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	const VertexElement	DisplayRenderTargetGeometry::Vertex::s_aDecl[5] =
+	const VertexElement	DisplayRenderTargetGeometry::Vertex::s_aDecl[6] =
 	{
 		{ 0, 0,  D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITIONT, 0 },
 		{ 0, 16, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
 		{ 0, 28, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  1 },
 		{ 0, 40, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  2 },
+		{ 0, 52, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  3 },
 		D3DDECL_END()
 	};
 
@@ -40,10 +41,10 @@ namespace ElixirEngine
 
 		const Vertex aQuad[4] =
 		{
-			{ -0.5f,					-0.5f,						0.5f,	1.0f,	0.0f,	0.0f,	0.0f,	0.0f,	0.0f,	0.0f },
-			{ -0.5f,					pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	2.0f,	0.0f,	1.0f,	2.0f },
-			{ pInfo->m_uWidth - 0.5f,	-0.5f,						0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	1.0f,	0.0f,	1.0f },
-			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	3.0f,	1.0f,	1.0f,	3.0f }
+			{ -0.5f,					-0.5f,						0.5f,	1.0f,	0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT),		0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT)		},
+			{ -0.5f,					pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT),		0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT)	},
+			{ pInfo->m_uWidth - 0.5f,	-0.5f,						0.5f,	1.0f,	1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT),		1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT)	},
+			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT),	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT)	}
 		};
 		memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
 
@@ -85,10 +86,15 @@ namespace ElixirEngine
 		Vector3Ptr pFrustumCorners = m_rDisplay.GetCurrentCamera()->GetFrustumCorners();
 		for (UInt i = 0 ; 4 > i ; ++i)
 		{
-			Vector3Ptr pCorner = &pFrustumCorners[UInt(m_aQuad[i].tw2)];
-			m_aQuad[i].tu3 = pCorner->x;
-			m_aQuad[i].tv3 = pCorner->y;
-			m_aQuad[i].tw3 = pCorner->z;
+			Vertex& rVertex = m_aQuad[i];
+			Vector3Ptr pFarCorner = &pFrustumCorners[UInt(rVertex.tw)];
+			Vector3Ptr pNearCorner = &pFrustumCorners[UInt(rVertex.tw) + 4];
+			rVertex.tu3 = pFarCorner->x;
+			rVertex.tv3 = pFarCorner->y;
+			rVertex.tw3 = pFarCorner->z;
+			rVertex.tu4 = pNearCorner->x;
+			rVertex.tv4 = pNearCorner->y;
+			rVertex.tw4 = pNearCorner->z;
 		}
 		m_rDisplay.GetDevicePtr()->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, m_aQuad, sizeof(Vertex));
 	}
@@ -331,7 +337,8 @@ namespace ElixirEngine
 		for (UInt i = 0 ; pInfo->m_uBufferCount > i ; ++i)
 		{
 			const string strRTName = boost::str(boost::format("%1%_buffer%2%") % pInfo->m_strName % i);
-			DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, i };
+			//DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, i };
+			DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, D3DFORMAT(pInfo->m_pFormats[i]), i };
 			DisplayRenderTargetPtr pRT = new DisplayRenderTarget(m_rDisplay);
 			bResult = pRT->Create(boost::any(&oRTRTCInfo));
 			if (false == bResult)
