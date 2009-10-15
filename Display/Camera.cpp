@@ -182,18 +182,23 @@ namespace ElixirEngine
 #else // CAMERA_VIEWINV_AS_VIEW
 		Matrix& rMatrix = m_oMView;
 #endif // CAMERA_VIEWINV_AS_VIEW
+		GetDirs(rMatrix, _oFrontDir, _oRightDir, _oUpDir);
+	}
 
-		_oFrontDir.x = rMatrix._13;
-		_oFrontDir.y = rMatrix._23;
-		_oFrontDir.z = rMatrix._33;
 
-		_oRightDir.x = rMatrix._11;
-		_oRightDir.y = rMatrix._21;
-		_oRightDir.z = rMatrix._31;
+	void DisplayCamera::GetDirs(const Matrix& _rMatrix, Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir)
+	{
+		_oFrontDir.x = _rMatrix._13;
+		_oFrontDir.y = _rMatrix._23;
+		_oFrontDir.z = _rMatrix._33;
 
-		_oUpDir.x = rMatrix._12;
-		_oUpDir.y = rMatrix._22;
-		_oUpDir.z = rMatrix._32;
+		_oRightDir.x = _rMatrix._11;
+		_oRightDir.y = _rMatrix._21;
+		_oRightDir.z = _rMatrix._31;
+
+		_oUpDir.x = _rMatrix._12;
+		_oUpDir.y = _rMatrix._22;
+		_oUpDir.z = _rMatrix._32;
 	}
 
 	MatrixPtr DisplayCamera::GetMatrix(const EMatrix& _eMatrix)
@@ -390,10 +395,12 @@ namespace ElixirEngine
 
 	void DisplayCamera::ExtractFrustumCorners()
 	{
-		const float fNearQuadHeight = 2.0f * tan(m_fFovy / 2.0f) * m_fNear;
-		const float fNearQuadWidth = fNearQuadHeight * m_fAspectRatio;
-		const float fFarQuadHeight = 2.0f * tan(m_fFovy / 2.0f) * m_fFar;
-		const float fFarQuadWidth = fFarQuadHeight * m_fAspectRatio;
+		//const float fHalfNearQuadHeight = (2.0f * tan(m_fFovy / 2.0f) * m_fNear) / 2.0f;
+		//const float fHalfFarQuadHeight = (2.0f * tan(m_fFovy / 2.0f) * m_fFar) / 2.0f;
+		const float fHalfNearQuadHeight = tan(m_fFovy / 2.0f) * m_fNear;
+		const float fHalfFarQuadHeight = tan(m_fFovy / 2.0f) * m_fFar;
+		const float fHalfNearQuadWidth = fHalfNearQuadHeight * m_fAspectRatio;
+		const float fHalfFarQuadWidth = fHalfFarQuadHeight * m_fAspectRatio;
 
 		Vector3 oFrontDir;
 		Vector3 oRightDir;
@@ -402,14 +409,14 @@ namespace ElixirEngine
 		const Vector3 oFarCenter = m_oVPosition + oFrontDir * m_fFar;
 		const Vector3 oNearCenter = m_oVPosition + oFrontDir * m_fNear;
 
-		m_aFrustumCorners[EFrustumCorner_FARTOPLEFT] = oFarCenter + (oUpDir * (fFarQuadHeight / 2.0f)) - (oRightDir * (fFarQuadWidth / 2.0f));
-		m_aFrustumCorners[EFrustumCorner_FARTOPRIGHT] = oFarCenter + (oUpDir * (fFarQuadHeight / 2.0f)) + (oRightDir * (fFarQuadWidth / 2.0f));
-		m_aFrustumCorners[EFrustumCorner_FARBOTTOMLEFT] = oFarCenter - (oUpDir * (fFarQuadHeight / 2.0f)) - (oRightDir * (fFarQuadWidth / 2.0f));
-		m_aFrustumCorners[EFrustumCorner_FARBOTTOMRIGHT] = oFarCenter - (oUpDir * (fFarQuadHeight / 2.0f)) + (oRightDir * (fFarQuadWidth / 2.0f));
-		m_aFrustumCorners[EFrustumCorner_NEARTOPLEFT] = oNearCenter + (oUpDir * (fNearQuadHeight / 2.0f)) - (oRightDir * (fNearQuadWidth / 2.0f));
-		m_aFrustumCorners[EFrustumCorner_NEARTOPRIGHT] = oNearCenter + (oUpDir * (fNearQuadHeight / 2.0f)) + (oRightDir * (fNearQuadWidth / 2.0f));
-		m_aFrustumCorners[EFrustumCorner_NEARBOTTOMLEFT] = oNearCenter - (oUpDir * (fNearQuadHeight / 2.0f)) - (oRightDir * (fNearQuadWidth / 2.0f));
-		m_aFrustumCorners[EFrustumCorner_NEARBOTTOMRIGHT] = oNearCenter - (oUpDir * (fNearQuadHeight / 2.0f)) + (oRightDir * (fNearQuadWidth / 2.0f));
+		m_aFrustumCorners[EFrustumCorner_FARTOPLEFT] = oFarCenter + (oUpDir * fHalfFarQuadHeight) - (oRightDir * fHalfFarQuadWidth);
+		m_aFrustumCorners[EFrustumCorner_FARTOPRIGHT] = oFarCenter + (oUpDir * fHalfFarQuadHeight) + (oRightDir * fHalfFarQuadWidth);
+		m_aFrustumCorners[EFrustumCorner_FARBOTTOMLEFT] = oFarCenter - (oUpDir * fHalfFarQuadHeight) - (oRightDir * fHalfFarQuadWidth);
+		m_aFrustumCorners[EFrustumCorner_FARBOTTOMRIGHT] = oFarCenter - (oUpDir * fHalfFarQuadHeight) + (oRightDir * fHalfFarQuadWidth);
+		m_aFrustumCorners[EFrustumCorner_NEARTOPLEFT] = oNearCenter + (oUpDir * fHalfNearQuadHeight) - (oRightDir * fHalfNearQuadWidth);
+		m_aFrustumCorners[EFrustumCorner_NEARTOPRIGHT] = oNearCenter + (oUpDir * fHalfNearQuadHeight) + (oRightDir * fHalfNearQuadWidth);
+		m_aFrustumCorners[EFrustumCorner_NEARBOTTOMLEFT] = oNearCenter - (oUpDir * fHalfNearQuadHeight) - (oRightDir * fHalfNearQuadWidth);
+		m_aFrustumCorners[EFrustumCorner_NEARBOTTOMRIGHT] = oNearCenter - (oUpDir * fHalfNearQuadHeight) + (oRightDir * fHalfNearQuadWidth);
 	}
 
 	float DisplayCamera::DistanceToPoint(const Plane &_rPlane, const Vector3& _rPoint)

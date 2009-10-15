@@ -11,7 +11,8 @@ float timer					: TIME;
 texture t2dheightMap		: NOISETEX;
 texture t2dbackBufferMap	: RT2D00;
 texture t2dpositionMap		: RT2D01;
-texture t2dnormalMap		: RT2D02;
+//texture t2dnormalMap		: RT2D02;
+texture t2dnormalMap		: TEX2D01;
 texture t2dreflectionMap	: RT2D03;
 texture t2dfoamMap			: TEX2D00;
 
@@ -141,6 +142,8 @@ float refractionScale = 0.005f;
 float2 wind = {-0.3f, 0.7f};
 
 
+float4 g_vRGBAToFloatFactors = float4(1.0, 0.00390625, 0.0000152587890625, 0.000000059604644775390625);
+
 // VertexShader results
 struct VertexOutput
 {
@@ -148,13 +151,14 @@ struct VertexOutput
 	float2 texCoord		: TEXCOORD0;
 	float3 texCoord2	: TEXCOORD1;
 	float3 texCoord3	: TEXCOORD2;
+	float3 texCoord4	: TEXCOORD3;
 };
 
 struct PS_OUTPUT
 {
-	float4 diffuse: COLOR0;
-	float4 normal: COLOR1;
-	float4 position: COLOR2;
+	float4 diffuse	: COLOR0;
+	float4 normal	: COLOR1;
+	float4 position	: COLOR2;
 };
 
 // Vertex shader for rendering a full-screen quad
@@ -168,6 +172,12 @@ VertexOutput QuadVS (	in float4 in_vPositionOS				: POSITION,
 	Output.texCoord2 = g_vFrustumCorners[(int)in_vTexCoordAndCornerIndex.z].xyz;
 
 	return Output;
+}
+
+float GetTimer(float fFactor)
+{
+	//return timer * fFactor;
+	return timer;
 }
 
 float3x3 compute_tangent_frame(float3 N, float3 P, float2 UV)
@@ -197,11 +207,11 @@ float fresnelTerm(float3 normal, float3 eyeVec)
 		return saturate(fresnel * (1.0f - saturate(R0)) + R0 - refractionStrength);
 }
 
-float3 VSPositionFromDepth(float2 vTexCoord, float3 vFrustumRayWS)
+float3 VSPositionFromDepth(float2 vTexCoord, float3 vFrustumFarPointWS, float3 vFrustumNearPointWS)
 {
 	float fPixelDepth = tex2D(positionMap, vTexCoord).r;
-	float3 PositionViewSpace = fPixelDepth * vFrustumRayWS;
-	return PositionViewSpace;
+	float3 vPosition = vFrustumNearPointWS + fPixelDepth * (vFrustumFarPointWS - vFrustumNearPointWS);
+	return vPosition;
 }
 
 float4 GetNormal(float4 vNormal)
@@ -214,7 +224,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	float3 color2 = tex2D(backBufferMap, IN.texCoord).rgb;
 	float3 color = color2;
 	
-	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord3);
+	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord3, IN.texCoord4);
 	float level = waterLevel;
 	float depth = 0.0f;
 
@@ -239,7 +249,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		float2 texCoord;
 		for(int i = 0; i < 10; ++i)
 		{
-			texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1f) * scale + timer * 0.000005f * wind;
+			texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1f) * scale + GetTimer(0.000005f) * wind;
 			
 			float bias = tex2D(heightMap, texCoord).r;
 	
@@ -263,19 +273,19 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 										   normalScale,
 										   (normal3 - normal4) * maxAmplitude));   
 		
-		texCoord = surfacePoint.xz * 1.6 + wind * timer * 0.00016;
+		texCoord = surfacePoint.xz * 1.6 + wind * GetTimer(0.00016);
 		float3x3 tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
 		float3 normal0a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 
-		texCoord = surfacePoint.xz * 0.8 + wind * timer * 0.00008;
+		texCoord = surfacePoint.xz * 0.8 + wind * GetTimer(0.00008);
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
 		float3 normal1a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
-		texCoord = surfacePoint.xz * 0.4 + wind * timer * 0.00004;
+		texCoord = surfacePoint.xz * 0.4 + wind * GetTimer(0.00004);
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
 		float3 normal2a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
-		texCoord = surfacePoint.xz * 0.1 + wind * timer * 0.00002;
+		texCoord = surfacePoint.xz * 0.1 + wind * GetTimer(0.00002);
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
 		float3 normal3a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
@@ -283,11 +293,11 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 								  normal2a * normalModifier.z + normal3a * normalModifier.w);
 		
 		texCoord = IN.texCoord.xy;
-		texCoord.x += sin(timer * 0.002f + 3.0f * abs(position.y)) * (refractionScale * min(depth2, 1.0f));
+		texCoord.x += sin(GetTimer(0.002f) + 3.0f * abs(position.y)) * (refractionScale * min(depth2, 1.0f));
 		float3 refraction = tex2D(backBufferMap, texCoord).rgb;
 		//if (mul(float4(tex2D(positionMap, texCoord).xyz, 1.0f), matViewInverse).y > level)
-		if (VSPositionFromDepth(texCoord, IN.texCoord3).y > level)
-		//if (mul(float4(VSPositionFromDepth(texCoord, IN.texCoord3).xyz, 1.0f), matViewInverse).y > level)
+		if (VSPositionFromDepth(texCoord, IN.texCoord3, IN.texCoord4).y > level)
+		//if (mul(float4(VSPositionFromDepth(texCoord, IN.texCoord3, IN.texCoord4).xyz, 1.0f), matViewInverse).y > level)
 			refraction = color2;
 
 		float4x4 matTextureProj = mul(matViewProj, matReflection);
@@ -313,8 +323,8 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 
 		float foam = 0.0f;		
 
-		texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + timer * 0.00001f * wind + sin(timer * 0.001 + position.x) * 0.005;
-		float2 texCoord2 = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + timer * 0.00002f * wind + sin(timer * 0.001 + position.z) * 0.005;
+		texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + GetTimer(0.00001f) * wind + sin(GetTimer(0.001) + position.x) * 0.005;
+		float2 texCoord2 = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + GetTimer(0.00002f) * wind + sin(GetTimer(0.001) + position.z) * 0.005;
 		
 		if(depth2 < foamExistence.x)
 			foam = (tex2D(foamMap, texCoord) + tex2D(foamMap, texCoord2)) * 0.5f;
@@ -339,10 +349,11 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		specular = (1.0f - fresnel) * saturate(-lightDir.y) * ((pow(dotSpec, 512.0f)) * (shininess * 1.8f + 0.2f))* sunColor;
 		specular += specular * 25 * saturate(shininess - 0.05f) * sunColor;		
 
-		color = lerp(refraction, reflect, fresnel);
-		color = saturate(color + max(specular, foam * sunColor));
-		
-		color = lerp(refraction, color, saturate(depth * shoreHardness));
+		color = refraction;
+		//color = lerp(refraction, reflect, fresnel);
+		//color = saturate(color + max(specular, foam * sunColor));
+		color = saturate(color + foam);
+		//color = lerp(refraction, color, saturate(depth * shoreHardness));
 		//color = float3(1.0f, 1.0f, 1.0f);
 	}
 	
@@ -350,8 +361,6 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		color = color2;
 
 	return float4(color, 1.0f);
-	//return float4(tex2D(normalMap, IN.texCoord).rgb, 1.0);
-	//return float4(tex2D(positionMap, IN.texCoord).rgb, 1.0);
 }
 
 //--------------------------------------------------------------------------------------

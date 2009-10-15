@@ -38,8 +38,8 @@ namespace BastionGame
 			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
 			{
 				MatrixPtr pProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);
-				MatrixPtr pView = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
-				MatrixPtr pViewInv = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
+				MatrixPtr pView = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
+				MatrixPtr pViewInv = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
 				MatrixPtr pViewProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
 
 				// Create a reflection matrix and multiply it with the view matrix
@@ -58,8 +58,8 @@ namespace BastionGame
 				// setup clipping plane
 				Matrix oVP = *pViewProj;
 				Plane clip_plane = reflect_plane;
-				D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
-				D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
+				//D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
+				//D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
 				D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
 				m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
 				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
@@ -131,6 +131,9 @@ namespace BastionGame
 				oConfig.GetValue(string("config.graphics.gbuffer_count"), m_oWindow.m_uDXGBufferCount);
 				m_oWindow.m_oClientRect.right = sWidth;
 				m_oWindow.m_oClientRect.bottom = sHeight;
+
+				m_oWindow.m_uDXGBufferCount = (WindowData::c_uMaxBuffers < m_oWindow.m_uDXGBufferCount) ? WindowData::c_uMaxBuffers : m_oWindow.m_uDXGBufferCount;
+
 				string strFormat;
 				if (false != oConfig.GetValue(string("config.graphics.color_format"), strFormat))
 				{
@@ -143,6 +146,15 @@ namespace BastionGame
 				if (false != oConfig.GetValue(string("config.graphics.gbuffer_format"), strFormat))
 				{
 					m_oWindow.m_uDXGBufferFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXGBufferFormat));
+				}
+				for (UInt i = 0 ; m_oWindow.m_uDXGBufferCount > i ; ++i)
+				{
+					string strRTType = boost::str(boost::format("config.graphics.gbuffer%1%_format") % i);
+					m_oWindow.m_aDXGBufferFormat[i] = m_oWindow.m_uDXGBufferFormat;
+					if (false != oConfig.GetValue(strRTType, strFormat))
+					{
+						m_oWindow.m_aDXGBufferFormat[i] = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_aDXGBufferFormat[i]));
+					}
 				}
 			}
 			oConfig.Release();

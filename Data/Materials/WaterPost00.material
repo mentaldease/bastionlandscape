@@ -12,6 +12,11 @@ material =
 			semantic = "TEX2D00";
 			name = "waterpost00_foamMap";
 			value = "data/textures/waterpost00_foamMap.jpg";
+		},
+		{
+			semantic = "TEX2D01";
+			name = "waterpost00_normalMap";
+			value = "data/textures/waterpost00_normalMap.dds";
 		}
 	);
 };

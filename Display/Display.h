@@ -127,7 +127,7 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		bool OpenVideo(const WindowData& _rWindowData);
+		bool OpenVideo(WindowData& _rWindowData);
 		void CloseVideo();
 
 		void UpdateRequest(CoreObjectPtr _pCoreObject);
