@@ -1,6 +1,11 @@
 // Water pixel shader
 // Copyright (C) Wojciech Toman 2009
 
+#define FOAM_MAP foamMap
+#define HEIGHT_MAP normalMap
+//#define GET_NORMAL(vInput) float4((vInput).xzy * 2.0f - float3(1.0f, 1.0f, 1.0f), 1.0f)
+#define GET_NORMAL(vInput) vInput
+
 float4 g_vFrustumCorners[8] : FRUSTUMCORNERS;
 float4x4 matViewProj		: VIEWPROJ;
 float4x4 matViewInverse		: VIEWINV;
@@ -11,7 +16,6 @@ float timer					: TIME;
 texture t2dheightMap		: NOISETEX;
 texture t2dbackBufferMap	: RT2D00;
 texture t2dpositionMap		: RT2D01;
-//texture t2dnormalMap		: RT2D02;
 texture t2dnormalMap		: TEX2D01;
 texture t2dreflectionMap	: RT2D03;
 texture t2dfoamMap			: TEX2D00;
@@ -66,7 +70,7 @@ sampler2D reflectionMap = sampler_state {
 };
 
 // Level at which water surface begins
-float waterLevel = 100.0f;
+float waterLevel = 130.0f;
 
 // How fast will colours fade out. You can also think about this
 // values as how clear water is. Therefore use smaller values (eg. 0.05f)
@@ -142,8 +146,6 @@ float refractionScale = 0.005f;
 float2 wind = {-0.3f, 0.7f};
 
 
-float4 g_vRGBAToFloatFactors = float4(1.0, 0.00390625, 0.0000152587890625, 0.000000059604644775390625);
-
 // VertexShader results
 struct VertexOutput
 {
@@ -161,23 +163,9 @@ struct PS_OUTPUT
 	float4 position	: COLOR2;
 };
 
-// Vertex shader for rendering a full-screen quad
-VertexOutput QuadVS (	in float4 in_vPositionOS				: POSITION,
-						in float3 in_vTexCoordAndCornerIndex	: TEXCOORD0)
-{
-	VertexOutput Output = (VertexOutput)0;
-
-	Output.position = in_vPositionOS;
-	Output.texCoord = in_vTexCoordAndCornerIndex.xy;
-	Output.texCoord2 = g_vFrustumCorners[(int)in_vTexCoordAndCornerIndex.z].xyz;
-
-	return Output;
-}
-
 float GetTimer(float fFactor)
 {
-	//return timer * fFactor;
-	return timer;
+	return (timer * 10000.0f) * fFactor;
 }
 
 float3x3 compute_tangent_frame(float3 N, float3 P, float2 UV)
@@ -214,11 +202,6 @@ float3 VSPositionFromDepth(float2 vTexCoord, float3 vFrustumFarPointWS, float3 v
 	return vPosition;
 }
 
-float4 GetNormal(float4 vNormal)
-{
-	return float4(vNormal.xzy * 2.0f - float3(1.0f, 1.0f, 1.0f), 1.0f);
-}
-
 float4 RenderScenePS(VertexOutput IN): COLOR0
 {
 	float3 color2 = tex2D(backBufferMap, IN.texCoord).rgb;
@@ -251,7 +234,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		{
 			texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1f) * scale + GetTimer(0.000005f) * wind;
 			
-			float bias = tex2D(heightMap, texCoord).r;
+			float bias = tex2D(HEIGHT_MAP, texCoord).r;
 	
 			bias *= 0.1f;
 			level += bias * maxAmplitude;
@@ -264,10 +247,10 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		
 		eyeVecNorm = normalize(cameraPos.xyz - surfacePoint);
 		
-		float normal1 = tex2D(heightMap, (texCoord + float2(-1, 0) / 256)).r;
-		float normal2 = tex2D(heightMap, (texCoord + float2(1, 0) / 256)).r;
-		float normal3 = tex2D(heightMap, (texCoord + float2(0, -1) / 256)).r;
-		float normal4 = tex2D(heightMap, (texCoord + float2(0, 1) / 256)).r;
+		float normal1 = tex2D(HEIGHT_MAP, (texCoord + float2(-1, 0) / 256)).r;
+		float normal2 = tex2D(HEIGHT_MAP, (texCoord + float2(1, 0) / 256)).r;
+		float normal3 = tex2D(HEIGHT_MAP, (texCoord + float2(0, -1) / 256)).r;
+		float normal4 = tex2D(HEIGHT_MAP, (texCoord + float2(0, 1) / 256)).r;
 		
 		float3 myNormal = normalize(float3((normal1 - normal2) * maxAmplitude,
 										   normalScale,
@@ -275,19 +258,19 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		
 		texCoord = surfacePoint.xz * 1.6 + wind * GetTimer(0.00016);
 		float3x3 tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal0a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+		float3 normal0a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 
 		texCoord = surfacePoint.xz * 0.8 + wind * GetTimer(0.00008);
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal1a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+		float3 normal1a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
 		texCoord = surfacePoint.xz * 0.4 + wind * GetTimer(0.00004);
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal2a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+		float3 normal2a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
 		texCoord = surfacePoint.xz * 0.1 + wind * GetTimer(0.00002);
 		tangentFrame = compute_tangent_frame(myNormal, eyeVecNorm, texCoord);
-		float3 normal3a = normalize(mul(2.0f * GetNormal(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+		float3 normal3a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
 		
 		float3 normal = normalize(normal0a * normalModifier.x + normal1a * normalModifier.y +
 								  normal2a * normalModifier.z + normal3a * normalModifier.w);
@@ -295,9 +278,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		texCoord = IN.texCoord.xy;
 		texCoord.x += sin(GetTimer(0.002f) + 3.0f * abs(position.y)) * (refractionScale * min(depth2, 1.0f));
 		float3 refraction = tex2D(backBufferMap, texCoord).rgb;
-		//if (mul(float4(tex2D(positionMap, texCoord).xyz, 1.0f), matViewInverse).y > level)
-		if (VSPositionFromDepth(texCoord, IN.texCoord3, IN.texCoord4).y > level)
-		//if (mul(float4(VSPositionFromDepth(texCoord, IN.texCoord3, IN.texCoord4).xyz, 1.0f), matViewInverse).y > level)
+		if (mul(float4(VSPositionFromDepth(texCoord, IN.texCoord3, IN.texCoord4).xyz, 1.0f), matViewInverse).y > level)
 			refraction = color2;
 
 		float4x4 matTextureProj = mul(matViewProj, matReflection);
@@ -327,17 +308,17 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		float2 texCoord2 = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + GetTimer(0.00002f) * wind + sin(GetTimer(0.001) + position.z) * 0.005;
 		
 		if(depth2 < foamExistence.x)
-			foam = (tex2D(foamMap, texCoord) + tex2D(foamMap, texCoord2)) * 0.5f;
+			foam = (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f;
 		else if(depth2 < foamExistence.y)
 		{
-			foam = lerp((tex2D(foamMap, texCoord) + tex2D(foamMap, texCoord2)) * 0.5f, 0.0f,
+			foam = lerp((tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f, 0.0f,
 						 (depth2 - foamExistence.x) / (foamExistence.y - foamExistence.x));
 			
 		}
 		
 		if(maxAmplitude - foamExistence.z > 0.0001f)
 		{
-			foam += (tex2D(foamMap, texCoord) + tex2D(foamMap, texCoord2)) * 0.5f * 
+			foam += (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f * 
 				saturate((level - (waterLevel + foamExistence.z)) / (maxAmplitude - foamExistence.z));
 		}
 
@@ -351,10 +332,8 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 
 		color = refraction;
 		//color = lerp(refraction, reflect, fresnel);
-		//color = saturate(color + max(specular, foam * sunColor));
-		color = saturate(color + foam);
-		//color = lerp(refraction, color, saturate(depth * shoreHardness));
-		//color = float3(1.0f, 1.0f, 1.0f);
+		color = saturate(color + max(specular, foam * sunColor));
+		color = lerp(refraction, color, saturate(depth * shoreHardness));
 	}
 	
 	if(position.y > level)
@@ -372,7 +351,6 @@ technique RenderScene
     pass P0
     {          
         VertexShader = null;
-		//VertexShader = compile vs_3_0 QuadVS();
         PixelShader  = compile ps_3_0 RenderScenePS();
         ZEnable = false;
     }

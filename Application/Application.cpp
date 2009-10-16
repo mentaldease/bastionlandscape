@@ -48,7 +48,7 @@ namespace BastionGame
 				reflect_plane.a = 0.0f;
 				reflect_plane.b = 1.0f;
 				reflect_plane.c = 0.0f;
-				reflect_plane.d = 100.0f;
+				reflect_plane.d = 130.0f;
 				D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
 				D3DXMatrixMultiply(pView, pView, &reflect_matrix);
 
