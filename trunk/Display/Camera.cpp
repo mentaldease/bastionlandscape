@@ -90,6 +90,14 @@ namespace ElixirEngine
 
 	void DisplayCamera::Update()
 	{
+		CoreObjectPtrVec::iterator iListener = m_vListeners.begin();
+		CoreObjectPtrVec::iterator iEnd = m_vListeners.end();
+		while (iEnd != iListener)
+		{
+			(*iListener)->Update();
+			++iListener;
+		}
+
 		{
 			static Matrix oXRot;
 			static Matrix oYRot;
@@ -114,7 +122,7 @@ namespace ElixirEngine
 			reflect_plane.a = 0.0f;
 			reflect_plane.b = 1.0f;
 			reflect_plane.c = 0.0f;
-			reflect_plane.d = 100.0f;
+			reflect_plane.d = 130.0f;
 			// Create a reflection matrix and multiply it with the view matrix
 			D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
 			D3DXMatrixMultiply(&m_oMView, &m_oMView, &reflect_matrix);
@@ -133,6 +141,7 @@ namespace ElixirEngine
 			D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
 			m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
 			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
+			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 		}
 		else
 		{
@@ -144,14 +153,7 @@ namespace ElixirEngine
 			D3DXMatrixMultiply(&m_oMViewProj, &m_oMView, &m_oMProjection);
 #endif // CAMERA_VIEWINV_AS_VIEW
 			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-		}
-
-		CoreObjectPtrVec::iterator iListener = m_vListeners.begin();
-		CoreObjectPtrVec::iterator iEnd = m_vListeners.end();
-		while (iEnd != iListener)
-		{
-			(*iListener)->Update();
-			++iListener;
+			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 		}
 
 		ExtractFrustumPlanes();

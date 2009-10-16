@@ -344,6 +344,55 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class DisplayEffectParamPROJ : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamPROJ(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial),
+			m_pProj(NULL)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamPROJ()
+		{
+
+		}
+
+		virtual bool Use()
+		{
+			m_pProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_PROJ);
+			if (NULL != m_pProj)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pProj);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamPROJ(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		MatrixPtr	m_pProj;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class DisplayEffectParamWORLDINVTRANSPOSE : public DisplayEffectParam
 	{
 	public:
