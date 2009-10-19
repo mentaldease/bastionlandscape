@@ -141,7 +141,7 @@ namespace ElixirEngine
 			D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
 			m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
 			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
-			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+			//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 		}
 		else
 		{
@@ -153,7 +153,7 @@ namespace ElixirEngine
 			D3DXMatrixMultiply(&m_oMViewProj, &m_oMView, &m_oMProjection);
 #endif // CAMERA_VIEWINV_AS_VIEW
 			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+			//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 		}
 
 		ExtractFrustumPlanes();
