@@ -1,7 +1,11 @@
 // Water pixel shader
 // Copyright (C) Wojciech Toman 2009
 
-#define WATERPOST_EXPERIMENTAL	1
+#define WATERPOST_EXPERIMENTAL	0
+#define WATERPOST_EXPERIMENTAL2	1
+#define USE_FOAM				1
+#define SPECULAR_SIMPLIFIED		1
+#define NO_BIG_DEPTH			1
 
 #define FOAM_MAP foamMap
 #define HEIGHT_MAP normalMap
@@ -343,7 +347,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 //			reflect = tex2D(backBufferMap, float2(texCoord.x, 1 - IN.texCoord.y));
 		float4x4 matTextureProj = mul(mul(matView, matProj), matReflection);
 		
-		float3 waterPosition = float3(position.x, 0, position.z);
+		float3 waterPosition = float3(position.x, waterLevel, position.z);
 		float4 texCoordProj = mul(float4(waterPosition, 1.0f), matTextureProj);
 //		texCoord = surfacePoint.xz * 0.04;
 		reflect = tex2Dproj(backBufferMap, texCoordProj);
@@ -379,6 +383,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		}
 
 		color = (1.0f - fresnel) * reflect + fresnel * refraction;
+		refraction = color;
 //		color = color *	total * dot(normalize(normal), float3(0,1,0)) + kS;
 
 		//color = total * dot(normalize(normal), float3(0,1,0)) + kS;
@@ -391,6 +396,144 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 //		color = normal;
 //		color = depth / visibility;
 		//color = saturate(color + foam);
+#elif WATERPOST_EXPERIMENTAL2
+		float3 eyeVec = position - cameraPos;
+		float diff = level - position.y;
+		float cameraDepth = cameraPos.y - position.y;
+		
+		// Find intersection with water surface
+		float3 eyeVecNorm = normalize(eyeVec);
+		float t = (level - cameraPos.y) / eyeVecNorm.y;
+		float3 surfacePoint = cameraPos + eyeVecNorm * t;
+		
+		eyeVecNorm = normalize(eyeVecNorm);
+		
+		float2 texCoord;
+		for(int i = 0; i < 10; ++i)
+		{
+			texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1f) * scale + GetTimer(0.000005f) * wind;
+			
+			float bias = tex2D(HEIGHT_MAP, texCoord).r;
+	
+			bias *= 0.1f;
+			level += bias * maxAmplitude;
+			t = (level - cameraPos.y) / eyeVecNorm.y;
+			surfacePoint = cameraPos + eyeVecNorm * t;
+		}
+		
+		depth = length(position - surfacePoint);
+		float depth2 = surfacePoint.y - position.y;
+		
+		eyeVecNorm = normalize(cameraPos - surfacePoint);
+		
+		float normal1 = tex2D(HEIGHT_MAP, (texCoord + float2(-1, 0) / 256)).r;
+		float normal2 = tex2D(HEIGHT_MAP, (texCoord + float2(1, 0) / 256)).r;
+		float normal3 = tex2D(HEIGHT_MAP, (texCoord + float2(0, -1) / 256)).r;
+		float normal4 = tex2D(HEIGHT_MAP, (texCoord + float2(0, 1) / 256)).r;
+		
+		float3 myNormal = normalize(float3((normal1 - normal2) * maxAmplitude,
+										   normalScale + 50 * normalScale * saturate(0.15f - dot(eyeVecNorm, float3(0.0f, 1.0f, 0.0f))),
+										   (normal3 - normal4) * maxAmplitude));   
+		
+		texCoord = surfacePoint.xz * 1.6 + wind * GetTimer(0.00016);
+		float3x3 tangentFrame = COMPUTE_TANGENT_FRAME(myNormal, eyeVecNorm, texCoord);
+		float3 normal0a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+
+		texCoord = surfacePoint.xz * 0.8 + wind * GetTimer(0.00008);
+		tangentFrame = COMPUTE_TANGENT_FRAME(myNormal, eyeVecNorm, texCoord);
+		float3 normal1a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+		
+		texCoord = surfacePoint.xz * 0.4 + wind * GetTimer(0.00004);
+		tangentFrame = COMPUTE_TANGENT_FRAME(myNormal, eyeVecNorm, texCoord);
+		float3 normal2a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+		
+		texCoord = surfacePoint.xz * 0.1 + wind * GetTimer(0.00002);
+		tangentFrame = COMPUTE_TANGENT_FRAME(myNormal, eyeVecNorm, texCoord);
+		float3 normal3a = normalize(mul(2.0f * GET_NORMAL(tex2D(normalMap, texCoord)) - 1.0f, tangentFrame));
+		
+		float3 normal = normalize(normal0a * normalModifier.x + normal1a * normalModifier.y +
+								  normal2a * normalModifier.z + normal3a * normalModifier.w);
+
+		texCoord = IN.texCoord.xy;
+		texCoord.x += sin(GetTimer(0.002f) + 3.0f * abs(position.y)) * (refractionScale * min(depth2, 1.0f));
+		float3 refraction = tex2D(backBufferMap, texCoord).rgb;
+		//if(mul(float4(tex2D(positionMap, texCoord).xyz, 1.0f), matViewInverse).y > level)
+		if(mul(float4(VSPositionFromDepth(texCoord, IN.texCoord3, IN.texCoord4).xyz, 1.0f), matView).y > level)
+			refraction = color2;
+
+		float4x4 matTextureProj = mul(matViewProj, matReflection);
+		//float4x4 matTextureProj = mul(mul(matViewInverse, matProj), matReflection);
+
+		float3 waterPosition = surfacePoint.xyz;
+		waterPosition.y -= (level - waterLevel);
+		float4 texCoordProj = mul(float4(waterPosition, 1.0f), matTextureProj);
+
+		float4 dPos;
+		dPos.x = texCoordProj.x + displace * normal.x;
+		dPos.z = texCoordProj.z + displace * normal.z;
+		dPos.yw = texCoordProj.yw;
+		texCoordProj = dPos;
+
+		float3 reflect = tex2Dproj(reflectionMap, texCoordProj);
+
+		float fresnel = fresnelTerm(normal, eyeVecNorm);
+
+		float3 depthN = depth * fadeSpeed;
+#ifdef NO_BIG_DEPTH
+		float3 waterCol = depthColour - saturate(depthColour * depth2 / extinction);
+		/// @todo check if / 3.0 below is not a better solution
+		waterCol = saturate(saturate(length(sunColor) / 2.0f) * waterCol);
+		refraction = lerp(refraction, waterCol, saturate(depthN / visibility));
+#else
+		float3 waterCol = lerp(depthColour, bigDepthColour, saturate(depth2 / extinction));
+		/// @todo check if / 3.0 below is not a better solution
+		waterCol = saturate(saturate(length(sunColor) / 2.0f) * waterCol);
+
+		waterCol = saturate(length(sunColor) / sunScale);
+		refraction = lerp(lerp(refraction, depthColour * waterCol, saturate(depthN / visibility)),
+						  bigDepthColour * waterCol, saturate(depth2 / extinction));
+#endif
+
+		float foam = 0.0f;		
+#ifdef USE_FOAM
+		texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + GetTimer(0.00001f) * wind + sin(GetTimer(0.001) + position.x) * 0.005;
+		float2 texCoord2 = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + GetTimer(0.00002f) * wind + sin(GetTimer(0.001) + position.z) * 0.005;
+		
+		if(depth2 < foamExistence.x)
+			foam = (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f;
+		else if(depth2 < foamExistence.y)
+		{
+			foam = lerp((tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f, 0.0f,
+						 (depth2 - foamExistence.x) / (foamExistence.y - foamExistence.x));
+			
+		}
+
+		if(maxAmplitude - foamExistence.z > 0.0001f)
+		{
+			foam += (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f * 
+				saturate((level - (waterLevel + foamExistence.z)) / (maxAmplitude - foamExistence.z));
+		}
+#endif
+
+		half3 specular = 0.0f;
+#ifdef SPECULAR_SIMPLIFIED
+		float3 H = normalize(eyeVecNorm - lightDir);
+		
+		float e = shininess * 64.0f;
+		float kD = saturate(dot(normal, -lightDir)); 
+		specular = kD * specular_intensity * pow( saturate( dot( normal, H ) ), e ) * sqrt( ( e + 1 ) / 2 );
+		specular *= sunColor;
+#else
+		// CryTek's way
+		half3 mirrorEye = (2.0f * dot(eyeVecNorm, normal) * normal - eyeVecNorm);
+		half dotSpec = saturate(dot(mirrorEye.xyz, -lightDir) * 0.5f + 0.5f);
+		specular = (1.0f - fresnel) * saturate(-lightDir.y) * ((pow(dotSpec, 512.0f)) * (shininess * 1.8f + 0.2f))* sunColor;
+		specular += specular * 25 * saturate(shininess - 0.05f) * sunColor;
+#endif
+
+		color = lerp(refraction, reflect, fresnel);
+		color = saturate(color + max(specular, foam * sunColor));
+		color = lerp(refraction, color, saturate(depth * shoreHardness));
 #else // WATERPOST_EXPERIMENTAL
 		float3 eyeVec = position - cameraPos.xyz;
 		float diff = level - position.y;
