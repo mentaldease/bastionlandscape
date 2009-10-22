@@ -454,12 +454,12 @@ namespace ElixirEngine
 		}
 	}
 
-	void DisplayRenderTargetChain::Clear()
+	void DisplayRenderTargetChain::Clear(const UInt _uClearColor)
 	{
 		EnableAllRenderTargets();
 		RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 		RenderBeginPass(0);
-		m_rDisplay.GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(128, 128, 128), 1.0f, 0L);
+		m_rDisplay.GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, _uClearColor, 1.0f, 0L);
 		RenderEndPass();
 		RenderEnd();
 	}

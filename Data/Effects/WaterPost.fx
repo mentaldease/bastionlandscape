@@ -2,7 +2,7 @@
 // Copyright (C) Wojciech Toman 2009
 
 #define WATERPOST_EXPERIMENTAL	0
-#define USE_FOAM				0
+#define USE_FOAM				1
 #define SPECULAR_SIMPLIFIED		1
 #define NO_BIG_DEPTH			1
 
@@ -78,7 +78,7 @@ sampler2D reflectionMap = sampler_state {
 };
 
 // Level at which water surface begins
-float waterLevel = 130.0f;
+float waterLevel : WATERLEVEL;// = 130.0f;
 
 // How fast will colours fade out. You can also think about this
 // values as how clear water is. Therefore use smaller values (eg. 0.05f)
@@ -96,7 +96,7 @@ float R0 = 0.5f;
 float maxAmplitude = 1.0f;
 
 // Direction of the light
-float3 lightDir = {0.0f, 1.0f, 0.0f};
+float3 g_vLightDir : LIGHTDIR; //= {0.0f, 1.0f, 0.0f};
 
 // Colour of the sun
 float3 sunColor = {1.0f, 1.0f, 1.0f};
@@ -256,7 +256,8 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	float level = waterLevel;
 	float depth = 0.0f;
 
-	
+	float3 lightDir = -g_vLightDir;
+
 	// If we are underwater let's leave out complex computationsd
 	if(level >= cameraPos.y)
 		return float4(color2, 1.0f);
@@ -488,21 +489,23 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 #if USE_FOAM
 		texCoord = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + GetTimer(0.00001f) * wind + sin(GetTimer(0.001) + position.x) * 0.005;
 		float2 texCoord2 = (surfacePoint.xz + eyeVecNorm.xz * 0.1) * 0.05 + GetTimer(0.00002f) * wind + sin(GetTimer(0.001) + position.z) * 0.005;
-		
+
+		// coastal foam - ground part
 		if(depth2 < foamExistence.x)
 			foam = (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f;
+		// coastal foam - water part
 		else if(depth2 < foamExistence.y)
 		{
 			foam = lerp((tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f, 0.0f,
 						 (depth2 - foamExistence.x) / (foamExistence.y - foamExistence.x));
-			
 		}
-		
-		if(maxAmplitude - foamExistence.z > 0.0001f)
-		{
-			foam += (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f * 
-				saturate((level - (waterLevel + foamExistence.z)) / (maxAmplitude - foamExistence.z));
-		}
+
+		// water foam
+		//if(maxAmplitude - foamExistence.z > 0.0001f)
+		//{
+		//	foam += (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f * 
+		//		saturate((level - (waterLevel + foamExistence.z)) / (maxAmplitude - foamExistence.z));
+		//}
 #endif // USE_FOAM
 
 		half3 specular = 0.0f;
