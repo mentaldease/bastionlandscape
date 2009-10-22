@@ -2,7 +2,8 @@
 // Defines
 //--------------------------------------------------------------------------------------
 
-#define TERRAIN2_USE_NOISE	1
+#define TERRAIN2_USE_NOISE		1
+#define CAMERA_LINEARIZED_DEPTH	0
 
 //--------------------------------------------------------------------------------------
 // Global variables
@@ -100,7 +101,6 @@ VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 
 	float4 vMorph = In.vPos2 + (In.vPos - In.vPos2) * g_fMorphFactor;
 	Output.Position = mul( vMorph, g_mWorldViewProjection );
-	Output.Position.z *= Output.Position.w;
 	float4 cRed = float4(1.0f, 0.0f, 0.0f, 1.0f);
 	float4 cMorph = cRed + (In.vDiffuse - cRed) * g_fMorphFactor;
 	Output.Diffuse = cMorph;
@@ -109,7 +109,14 @@ VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 	Output.UV = In.vUV;
 	Output.UV2 = In.vUV2;
 
-	//Output.PositionZ = Output.Position.xyz;
+	float4x4 matWorldView = mul(g_mWorld, g_mView);
+    float4 vPositionVS = mul(In.vPos, matWorldView);
+#if CAMERA_LINEARIZED_DEPTH
+	Output.Position.z *= Output.Position.w;
+	Output.PositionZ = vPositionVS.z * vPositionVS.w;
+#else // CAMERA_LINEARIZED_DEPTH
+	Output.PositionZ = vPositionVS.z;
+#endif // CAMERA_LINEARIZED_DEPTH
 
 	return Output;    
 }
@@ -119,7 +126,6 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
 	Output.Position = mul(In.vPos, g_mWorldViewProjection);
-	Output.Position.z *= Output.Position.w;
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
@@ -128,7 +134,12 @@ VS_OUTPUT RenderSceneVS( VS_INPUT In )
 
 	float4x4 matWorldView = mul(g_mWorld, g_mView);
     float4 vPositionVS = mul(In.vPos, matWorldView);
+#if CAMERA_LINEARIZED_DEPTH
+	Output.Position.z *= Output.Position.w;
 	Output.PositionZ = vPositionVS.z * vPositionVS.w;
+#else // CAMERA_LINEARIZED_DEPTH
+	Output.PositionZ = vPositionVS.z;
+#endif // CAMERA_LINEARIZED_DEPTH
 
 	return Output;    
 }

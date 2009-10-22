@@ -109,6 +109,8 @@ namespace ElixirEngine
 		void UnloadEffect(const string& _strName);
 		DisplayEffectPtr GetEffect(const string& _strName);
 
+		void RegisterParamCreator(const Key& _uSemanticNameKey, CreateParamFunc _Func);
+		void UnregisterParamCreator(const Key& _uSemanticNameKey);
 		DisplayEffectParamPtr CreateParam(const string& _strSemanticName, const boost::any& _rConfig);
 		DisplayEffectParamPtr CreateParam(const Key& _uSemanticNameKey, const boost::any& _rConfig);
 		void ReleaseParam(DisplayEffectParamPtr _pParam);

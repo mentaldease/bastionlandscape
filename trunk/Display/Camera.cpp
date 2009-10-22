@@ -44,7 +44,10 @@ namespace ElixirEngine
 		m_fFar(0.0f),
 		m_uCameraPosKey(MakeKey(string("CAMERAPOS"))),
 		m_uFrustumCornersKey(MakeKey(string("FRUSTUMCORNERS"))),
-		m_bReflection(false)
+		m_pReflectionPlane(NULL),
+		m_bReflection(false),
+		m_uClipPlaneCount(0),
+		m_pClipPlanes(NULL)
 	{
 
 	}
@@ -78,10 +81,12 @@ namespace ElixirEngine
 			m_fFovy = D3DXToRadian(pInfo->m_fDegreeFovy);
 			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : (float)m_oViewport.Width / (float)m_oViewport.Height;
 			D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, pInfo->m_fZNear, pInfo->m_fZFar);
+#if CAMERA_LINEARIZED_DEPTH
 			// the two following instructions lower z-fighting artifacts
 			// also make sure in the shaders to scale z position with w position : Output.Position.z *= Output.Position.w;
 			m_oMProjection._33 /= pInfo->m_fZFar;
 			m_oMProjection._43 /= pInfo->m_fZFar;
+#endif // CAMERA_LINEARIZED_DEPTH
 			UpdatePixelSize();
 		}
 
@@ -98,63 +103,58 @@ namespace ElixirEngine
 			++iListener;
 		}
 
+		// rotation matrix
 		{
-			static Matrix oXRot;
-			static Matrix oYRot;
-			static Matrix oZRot;
-			static Matrix oTemp;
-			D3DXMatrixRotationX(&oXRot, D3DXToRadian(m_oVRotation.x));
-			D3DXMatrixRotationY(&oYRot, D3DXToRadian(m_oVRotation.y));
-			D3DXMatrixRotationZ(&oZRot, D3DXToRadian(m_oVRotation.z));
-			D3DXMatrixMultiply(&oTemp, &oXRot, &oYRot);
-			D3DXMatrixMultiply(&m_oMRotation, &oTemp, &oZRot);
+			D3DXMatrixRotationX(&m_oMXRot, D3DXToRadian(m_oVRotation.x));
+			D3DXMatrixRotationY(&m_oMYRot, D3DXToRadian(m_oVRotation.y));
+			D3DXMatrixRotationZ(&m_oMZRot, D3DXToRadian(m_oVRotation.z));
+			D3DXMatrixMultiply(&m_oMXYRot, &m_oMXRot, &m_oMYRot);
+			D3DXMatrixMultiply(&m_oMRotation, &m_oMXYRot, &m_oMZRot);
 		}
+		// postion matrix
 		{
 			D3DXMatrixTranslation(&m_oMPosition, m_oVPosition.x, m_oVPosition.y, m_oVPosition.z);
 		}
 
+		// final view matrix
+		D3DXMatrixMultiply(&m_oMView, &m_oMRotation, &m_oMPosition);
+
 		if (false != m_bReflection)
 		{
-			D3DXMatrixMultiply(&m_oMView, &m_oMRotation, &m_oMPosition);
-
-			Plane reflect_plane;
-			Matrix reflect_matrix;
-			reflect_plane.a = 0.0f;
-			reflect_plane.b = 1.0f;
-			reflect_plane.c = 0.0f;
-			reflect_plane.d = 130.0f;
-			// Create a reflection matrix and multiply it with the view matrix
-			D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
-			D3DXMatrixMultiply(&m_oMView, &m_oMView, &reflect_matrix);
-
-			D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView);
-#if CAMERA_VIEWINV_AS_VIEW
-			D3DXMatrixMultiply(&m_oMViewProj, &m_oMViewInv, &m_oMProjection);
-#else // CAMERA_VIEWINV_AS_VIEW
-			D3DXMatrixMultiply(&m_oMViewProj, &m_oMView, &m_oMProjection);
-#endif // CAMERA_VIEWINV_AS_VIEW
-
-			Plane clip_plane = reflect_plane;
-			Matrix oVP = m_oMViewProj;
-			D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
-			D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
-			D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
-			m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
-			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
-			//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+			Matrix oMReflect;
+			D3DXMatrixReflect(&oMReflect, m_pReflectionPlane);
+			D3DXMatrixMultiply(&m_oMView, &m_oMView, &oMReflect);
+			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 		}
 		else
 		{
-			D3DXMatrixMultiply(&m_oMView, &m_oMRotation, &m_oMPosition);
-			D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView);
-#if CAMERA_VIEWINV_AS_VIEW
-			D3DXMatrixMultiply(&m_oMViewProj, &m_oMViewInv, &m_oMProjection);
-#else // CAMERA_VIEWINV_AS_VIEW
-			D3DXMatrixMultiply(&m_oMViewProj, &m_oMView, &m_oMProjection);
-#endif // CAMERA_VIEWINV_AS_VIEW
-			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-			//m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 		}
+
+		D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView);
+#if CAMERA_VIEWINV_AS_VIEW
+		D3DXMatrixMultiply(&m_oMViewProj, &m_oMViewInv, &m_oMProjection);
+#else // CAMERA_VIEWINV_AS_VIEW
+		D3DXMatrixMultiply(&m_oMViewProj, &m_oMView, &m_oMProjection);
+#endif // CAMERA_VIEWINV_AS_VIEW
+
+		UInt uFlags = 0;
+		if (0 < m_uClipPlaneCount)
+		{
+			Matrix oVP = m_oMViewProj;
+			D3DXMatrixInverse(&oVP, 0, &oVP);
+			D3DXMatrixTranspose(&oVP, &oVP);
+
+			for (UInt i = 0 ; m_uClipPlaneCount > i ; ++i)
+			{
+				uFlags |= (1 << i);
+				Plane oClipPlane = m_pClipPlanes[i];
+				D3DXPlaneTransform(&oClipPlane, &oClipPlane, &oVP);
+				D3DXPlaneNormalize(&oClipPlane, &oClipPlane);
+				m_rDisplay.GetDevicePtr()->SetClipPlane(i, (FloatPtr)&oClipPlane);
+			}
+		}
+		m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, uFlags);
 
 		ExtractFrustumPlanes();
 		ExtractFrustumCorners();
@@ -335,9 +335,16 @@ namespace ElixirEngine
 		}
 	}
 
-	void DisplayCamera::SetReflection(const bool _bState)
+	void DisplayCamera::SetReflection(const bool _bState, PlanePtr _pPlane)
 	{
 		m_bReflection = _bState;
+		m_pReflectionPlane = _pPlane;
+	}
+
+	void DisplayCamera::SetClipPlanes(const UInt _uCount, PlanePtr _pPlanes)
+	{
+		m_uClipPlaneCount = _uCount;
+		m_pClipPlanes = _pPlanes;
 	}
 
 	Vector3Ptr DisplayCamera::GetFrustumCorners()
