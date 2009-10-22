@@ -584,6 +584,20 @@ namespace ElixirEngine
 		return CreateParam(uKey, _rConfig);
 	}
 
+	void DisplayMaterialManager::RegisterParamCreator(const Key& _uSemanticNameKey, CreateParamFunc _Func)
+	{
+		m_mParamCreators[_uSemanticNameKey] = _Func;
+	}
+
+	void DisplayMaterialManager::UnregisterParamCreator(const Key& _uSemanticNameKey)
+	{
+		CreateParamFuncMap::iterator iPair = m_mParamCreators.find(_uSemanticNameKey);
+		if (m_mParamCreators.end() != iPair)
+		{
+			m_mParamCreators.erase(iPair);
+		}
+	}
+
 	DisplayEffectParamPtr DisplayMaterialManager::CreateParam(const Key& _uSemanticNameKey, const boost::any& _rConfig)
 	{
 		CreateParamFuncMap::iterator iCreateParamFunc = m_mParamCreators.find(_uSemanticNameKey);

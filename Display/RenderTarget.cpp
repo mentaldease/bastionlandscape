@@ -41,10 +41,10 @@ namespace ElixirEngine
 
 		const Vertex aQuad[4] =
 		{
-			{ -0.5f,					-0.5f,						0.5f,	1.0f,	0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT),		0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT)		},
-			{ -0.5f,					pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT),		0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT)	},
-			{ pInfo->m_uWidth - 0.5f,	-0.5f,						0.5f,	1.0f,	1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT),		1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT)	},
-			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	0.5f,	1.0f,	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT),	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT)	}
+			{ -0.5f,					-0.5f,						1.0f,	1.0f,	0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT),		0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT)		},
+			{ -0.5f,					pInfo->m_uHeight - 0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT),		0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT)	},
+			{ pInfo->m_uWidth - 0.5f,	-0.5f,						1.0f,	1.0f,	1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT),		1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT)	},
+			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT),	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT)	}
 		};
 		memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
 

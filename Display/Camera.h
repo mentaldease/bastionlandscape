@@ -4,6 +4,7 @@
 #include "../Display/Display.h"
 
 #define CAMERA_VIEWINV_AS_VIEW	1
+#define CAMERA_LINEARIZED_DEPTH	0
 
 namespace ElixirEngine
 {
@@ -112,7 +113,8 @@ namespace ElixirEngine
 		void AddListener(CoreObjectPtr _pListener);
 		void RemoveListener(CoreObjectPtr _pListener);
 
-		void SetReflection(const bool _bState);
+		void SetReflection(const bool _bState, PlanePtr _pPlane = NULL);
+		void SetClipPlanes(const UInt _uCount, PlanePtr _pPlanes);
 
 		Vector3Ptr GetFrustumCorners();
 
@@ -135,6 +137,11 @@ namespace ElixirEngine
 		Vector3				m_oVPosition;
 		Vector3				m_oVRotation;
 
+		Matrix				m_oMXRot;
+		Matrix				m_oMYRot;
+		Matrix				m_oMZRot;
+		Matrix				m_oMXYRot;
+
 		Viewport			m_oViewport;
 		float				m_fFovy;
 		float				m_fAspectRatio;
@@ -152,7 +159,11 @@ namespace ElixirEngine
 
 		CoreObjectPtrVec	m_vListeners;
 
+		PlanePtr			m_pReflectionPlane;
 		bool				m_bReflection;
+
+		UInt				m_uClipPlaneCount;
+		PlanePtr			m_pClipPlanes;
 
 	private:
 	};

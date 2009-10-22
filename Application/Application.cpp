@@ -37,44 +37,16 @@ namespace BastionGame
 			m_pCamera = m_rDisplay.GetCurrentCamera();
 			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
 			{
-#if 1
-				m_pCamera->SetReflection(true);
-#else
-				MatrixPtr pProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ);
-				MatrixPtr pView = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW);
-				MatrixPtr pViewInv = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
-				MatrixPtr pViewProj = m_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
-
-				// Create a reflection matrix and multiply it with the view matrix
-				Plane reflect_plane;
-				Matrix reflect_matrix;
-				reflect_plane.a = 0.0f;
-				reflect_plane.b = 1.0f;
-				reflect_plane.c = 0.0f;
-				reflect_plane.d = 130.0f;
-				D3DXMatrixReflect(&reflect_matrix, &reflect_plane);
-				D3DXMatrixMultiply(pView, pView, &reflect_matrix);
-
-				// Update inverse(view) and view*projection matrices
-				D3DXMatrixMultiply(pViewProj, D3DXMatrixInverse(pViewInv, NULL, pView), pProj);
-
-				// setup clipping plane
-				Matrix oVP = *pViewProj;
-				Plane clip_plane = reflect_plane;
-				D3DXMatrixInverse((D3DXMATRIX*)&oVP,0,(D3DXMATRIX*)&oVP);
-				D3DXMatrixTranspose((D3DXMATRIX*)&oVP,(D3DXMATRIX*)&oVP);
-				D3DXPlaneTransform(&clip_plane, &clip_plane, &oVP);
-				m_rDisplay.GetDevicePtr()->SetClipPlane(0, (FloatPtr)&clip_plane);
-				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, D3DCLIPPLANE0);
-#endif
+				Vector3 oWaterLevel(0.0f, 130.0f, 0.0f);
+				Vector3 oReflectDir(0.0f, 1.0f, 0.0f);
+				D3DXPlaneFromPointNormal(&m_oReflectPlane, &oWaterLevel, &oReflectDir);
+				m_pCamera->SetReflection(true, &m_oReflectPlane);
+				m_pCamera->SetClipPlanes(1, &m_oReflectPlane);
 			}
 			else if (NULL != m_pCamera)
 			{
-#if 1
 				m_pCamera->SetReflection(false);
-#else
-				m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, 0);
-#endif
+				m_pCamera->SetClipPlanes(0, NULL);
 			}
 		}
 
@@ -82,6 +54,7 @@ namespace BastionGame
 		DisplayCameraPtr	m_pCamera;
 		DisplayRef			m_rDisplay;
 		Matrix				m_oReflection;
+		Plane				m_oReflectPlane;
 		Key					m_uReflectionKey;
 
 	private:
