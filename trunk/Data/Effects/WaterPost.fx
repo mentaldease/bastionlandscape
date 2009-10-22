@@ -375,11 +375,11 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 			
 		}
 
-		if(maxAmplitude - foamExistence.z > 0.0001f)
-		{
-			foam += (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f * 
-				saturate((level - (waterLevel + foamExistence.z)) / (maxAmplitude - foamExistence.z));
-		}
+		//if(maxAmplitude - foamExistence.z > 0.0001f)
+		//{
+		//	foam += (tex2D(FOAM_MAP, texCoord) + tex2D(FOAM_MAP, texCoord2)) * 0.5f * 
+		//		saturate((level - (waterLevel + foamExistence.z)) / (maxAmplitude - foamExistence.z));
+		//}
 #endif // USE_FOAM
 
 		half3 specular = 0.0f;
@@ -508,13 +508,21 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		//}
 #endif // USE_FOAM
 
+		// sun reflection
+		float3 H = normalize(lightDir + eyeVecNorm);
+		float e = shininess * 64;
+		float kD = saturate(dot(normal, lightDir)); 
+		float kS = kD * specular_intensity * pow( saturate( dot( normal, H ) ), e ) * sqrt( ( e + 1 ) / 2 );
+
 		half3 specular = 0.0f;
 		half3 mirrorEye = (2.0f * dot(eyeVecNorm, normal) * normal - eyeVecNorm);
 		half dotSpec = saturate(dot(mirrorEye.xyz, -lightDir) * 0.5f + 0.5f);
 		specular = (1.0f - fresnel) * saturate(-lightDir.y) * ((pow(dotSpec, 512.0f)) * (shininess * 1.8f + 0.2f));//* sunColor;
 		specular += specular * 25 * saturate(shininess - 0.05f);// * sunColor;
 
-		color = lerp(refraction, reflect, fresnel);
+		float3 refractionkS = refraction * dot(normal, lightDir) + kS;
+		color = lerp(refractionkS, reflect, fresnel);
+		//color = lerp(refraction, reflect, fresnel);
 		color = saturate(color + max(specular, foam * sunColor));
 		color = lerp(refraction, color, saturate(depth * shoreHardness));
 #endif // WATERPOST_EXPERIMENTAL
