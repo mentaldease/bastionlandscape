@@ -171,7 +171,7 @@ namespace ElixirEngine
 		void EnableAllRenderTargets();
 		void DisableAllRenderTargets();
 
-		void Clear();
+		void Clear(const UInt _uClearColor = 0);
 
 	protected:
 		DisplayRenderTargetPtrVec	m_vGBuffer;

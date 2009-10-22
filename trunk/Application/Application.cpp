@@ -16,7 +16,8 @@ namespace BastionGame
 			m_pCamera(NULL),
 			m_rDisplay(_rDisplay),
 			m_oReflection(),
-			m_uReflectionKey(MakeKey(string("reflection")))
+			m_uReflectionKey(MakeKey(string("reflection"))),
+			m_uWaterLevelKey(MakeKey(string("WATERLEVEL")))
 		{
 
 		}
@@ -37,7 +38,8 @@ namespace BastionGame
 			m_pCamera = m_rDisplay.GetCurrentCamera();
 			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
 			{
-				Vector3 oWaterLevel(0.0f, 130.0f, 0.0f);
+				FloatPtr pWaterLevel = m_rDisplay.GetMaterialManager()->GetFloatBySemantic(m_uWaterLevelKey);
+				Vector3 oWaterLevel(0.0f, *pWaterLevel, 0.0f);
 				Vector3 oReflectDir(0.0f, 1.0f, 0.0f);
 				D3DXPlaneFromPointNormal(&m_oReflectPlane, &oWaterLevel, &oReflectDir);
 				m_pCamera->SetReflection(true, &m_oReflectPlane);
@@ -56,6 +58,7 @@ namespace BastionGame
 		Matrix				m_oReflection;
 		Plane				m_oReflectPlane;
 		Key					m_uReflectionKey;
+		Key					m_uWaterLevelKey;
 
 	private:
 	};
@@ -81,7 +84,8 @@ namespace BastionGame
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f),
 		m_oLightDir(0.0f, 0.0f, 0.0f, 0.0f),
-		m_pCameraListener(NULL)
+		m_pCameraListener(NULL),
+		m_fWaterLevel(100.0f)
 	{
 	}
 
@@ -187,6 +191,8 @@ namespace BastionGame
 			D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
 			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
 			pMaterialManager->SetFloatBySemantic(MakeKey(string("TIME")), &m_fRelativeTime);
+			pMaterialManager->SetFloatBySemantic(MakeKey(string("WATERLEVEL")), &m_fWaterLevel);
+			pMaterialManager->RegisterParamCreator(MakeKey(string("WATERLEVEL")), boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
 		}
 
 		if (false != bResult)
@@ -300,6 +306,7 @@ namespace BastionGame
 		}
 		if (NULL != m_pDisplay)
 		{
+			m_pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("WATERLEVEL")));
 			m_pDisplay->Release();
 			delete m_pDisplay;
 			m_pDisplay = NULL;
