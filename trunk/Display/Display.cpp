@@ -282,7 +282,8 @@ namespace ElixirEngine
 	void Display::Update()
 	{
 		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
-		const UInt uClearColor = uBlack;
+		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
+		const UInt uClearColor = uBlue;
 
 		// Render scene to buffers
 		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
@@ -296,7 +297,7 @@ namespace ElixirEngine
 				m_pCurrentNormalProcess = *iNormalProcess;
 				m_pCurrentNormalProcess->Update();
 
-				m_pDevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0);
+				m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0);
 
 				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 				m_pCamera->Update();
