@@ -125,6 +125,10 @@ scene =
 	);
 	postprocesses =
 	(
+		{
+			name = "water";
+			material = "water01";
+		}
 		/*
 		{
 			name = "monochrome";
@@ -141,11 +145,7 @@ scene =
 		{
 			name = "dofcombine";
 			material = "dofcombine00";
-		},
-		*/
-		{
-			name = "water";
-			material = "water01";
 		}
+		*/
 	);
 };

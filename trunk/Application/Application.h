@@ -71,7 +71,6 @@ namespace BastionGame
 		DIMouseState				m_oMouseInfoOld;
 		Vector4						m_oLightDir;
 		CameraListenerPtr			m_pCameraListener;
-		float						m_fWaterLevel;
 
 	private:
 	};

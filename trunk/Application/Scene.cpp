@@ -18,7 +18,9 @@ namespace BastionGame
 		m_vPostProcesses(),
 		m_mNormalProcesses(),
 		m_vNormalProcesses(),
-		m_strName()
+		m_strName(),
+		m_fWaterLevel(200.0f),
+		m_uWaterLevelKey(MakeKey(string("WATERLEVEL")))
 	{
 
 	}
@@ -34,6 +36,13 @@ namespace BastionGame
 		Config::CreateInfo oCCInfo = { pInfo->m_strPath };
 		Config oConfig;
 		bool bResult = oConfig.Create(boost::any(&oCCInfo));
+
+		if (false != bResult)
+		{
+			DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
+			pMaterialManager->SetFloatBySemantic(m_uWaterLevelKey, &m_fWaterLevel);
+			pMaterialManager->RegisterParamCreator(m_uWaterLevelKey, boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
+		}
 
 		if (false != bResult)
 		{
@@ -62,6 +71,9 @@ namespace BastionGame
 
 	void Scene::Release()
 	{
+		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
+		pMaterialManager->UnregisterParamCreator(m_uWaterLevelKey);
+
 		// landscapes
 		while (m_mLandscapes.end() != m_mLandscapes.begin())
 		{
@@ -75,7 +87,6 @@ namespace BastionGame
 		LandscapeLayerManager::GetInstance()->UnloadAll();
 
 		// materials
-		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 		while (m_mMaterials.end() != m_mMaterials.begin())
 		{
 			pMaterialManager->UnloadMaterial(m_mMaterials.begin()->first);

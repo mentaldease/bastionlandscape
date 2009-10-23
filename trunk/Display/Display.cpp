@@ -283,7 +283,7 @@ namespace ElixirEngine
 	{
 		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
 		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
-		const UInt uClearColor = uBlue;
+		const UInt uClearColor = uBlack;
 
 		// Render scene to buffers
 		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
@@ -450,6 +450,7 @@ namespace ElixirEngine
 				&& (m_pDispFXPP = m_pMaterialManager->GetEffect("MRT"))
 				&& (m_pEffectPP = m_pDispFXPP->GetEffect());
 			m_pPostProcesses = NULL;
+			m_pNormalProcesses = NULL;
 		}
 
 		return bResult;
