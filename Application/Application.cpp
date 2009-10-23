@@ -84,8 +84,7 @@ namespace BastionGame
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f),
 		m_oLightDir(0.0f, 0.0f, 0.0f, 0.0f),
-		m_pCameraListener(NULL),
-		m_fWaterLevel(100.0f)
+		m_pCameraListener(NULL)
 	{
 	}
 
@@ -191,8 +190,6 @@ namespace BastionGame
 			D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
 			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
 			pMaterialManager->SetFloatBySemantic(MakeKey(string("TIME")), &m_fRelativeTime);
-			pMaterialManager->SetFloatBySemantic(MakeKey(string("WATERLEVEL")), &m_fWaterLevel);
-			pMaterialManager->RegisterParamCreator(MakeKey(string("WATERLEVEL")), boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
 		}
 
 		if (false != bResult)
@@ -306,7 +303,6 @@ namespace BastionGame
 		}
 		if (NULL != m_pDisplay)
 		{
-			m_pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("WATERLEVEL")));
 			m_pDisplay->Release();
 			delete m_pDisplay;
 			m_pDisplay = NULL;

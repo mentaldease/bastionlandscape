@@ -46,6 +46,8 @@ namespace BastionGame
 		DisplayNormalProcessPtrMap	m_mNormalProcesses;
 		DisplayNormalProcessPtrVec	m_vNormalProcesses;
 		string						m_strName;
+		float						m_fWaterLevel;
+		Key							m_uWaterLevelKey;
 
 	private:
 	};
