@@ -14,7 +14,7 @@ namespace ElixirEngine
 
 	struct WindowData
 	{
-		const static UInt c_uMaxBuffers = 32;
+		const static UInt c_uMaxGBuffers = 32;
 		WindowData();
 
 		HWND			(*m_pCreateWindow)(WindowData& _rConfig);
@@ -34,7 +34,7 @@ namespace ElixirEngine
 		unsigned int	m_uDXGBufferCount;
 		float			m_fZNear;
 		float			m_fZFar;
-		UInt			m_aDXGBufferFormat[c_uMaxBuffers];
+		UInt			m_aDXGBufferFormat[c_uMaxGBuffers];
 	};
 
 	//-----------------------------------------------------------------------------------------------

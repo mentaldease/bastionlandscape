@@ -179,6 +179,16 @@ namespace ElixirEngine
 		string::size_type uPos = (string::npos == uWPos) ? uUPos : ((string::npos == uUPos) ? uWPos : ((uUPos > uWPos) ? uUPos : uWPos));
 		_strDstPath = (string::npos != uPos) ? _strSrcPath.substr(uPos + 1) : _strSrcPath;
 		uPos = _strDstPath.find_first_of(s_ExtSeparator);
-		_strDstPath = (string::npos != uPos) ? _strSrcPath.substr(0, uPos) : _strDstPath;
+		_strDstPath = (string::npos != uPos) ? _strDstPath.substr(0, uPos) : _strDstPath;
+	}
+
+	void FS::GetFileExt(const string& _strSrcPath, string& _strDstExt)
+	{
+		const string::size_type uWPos = _strSrcPath.find_last_of(s_WDirSeparator);
+		const string::size_type uUPos = _strSrcPath.find_last_of(s_UDirSeparator);
+		string::size_type uPos = (string::npos == uWPos) ? uUPos : ((string::npos == uUPos) ? uWPos : ((uUPos > uWPos) ? uUPos : uWPos));
+		_strDstExt = (string::npos != uPos) ? _strSrcPath.substr(uPos + 1) : _strSrcPath;
+		uPos = _strDstExt.find_first_of(s_ExtSeparator);
+		_strDstExt = (string::npos != uPos) ? _strDstExt.substr(uPos + 1) : _strDstExt;
 	}
 }

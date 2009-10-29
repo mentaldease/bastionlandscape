@@ -91,4 +91,16 @@ namespace ElixirEngine
 	typedef NoiseGenerator&	NoiseGeneratorRef;
 }
 
+namespace LuaPlus
+{
+	class LuaState;
+	typedef LuaState*	LuaStatePtr;
+	typedef LuaState&	LuaStateRef;
+
+	class LuaObject;
+	typedef LuaObject*	LuaObjectPtr;
+	typedef LuaObject&	LuaObjectRef;
+}
+using namespace LuaPlus;
+
 #endif // __CORETYPES_H__

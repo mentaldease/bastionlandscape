@@ -45,8 +45,9 @@ namespace BastionGame
 	protected:
 		void LoadScene();
 		void RenderScene();
-
 		void UpdateSpectatorCamera(const float& _fElapsedTime);
+		void GetLibConfigParameters();
+		void GetLuaConfigParameters();
 
 	protected:
 		WindowData					m_oWindow;
@@ -71,6 +72,7 @@ namespace BastionGame
 		DIMouseState				m_oMouseInfoOld;
 		Vector4						m_oLightDir;
 		CameraListenerPtr			m_pCameraListener;
+		LuaStatePtr					m_pLuaState;
 
 	private:
 	};

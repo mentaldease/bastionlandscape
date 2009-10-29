@@ -13,6 +13,7 @@
 #include "../Core/Config.h"
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
+#include "../Core/Scripting.h"
 using namespace ElixirEngine;
 
 #include "../Application/ApplicationTypes.h"

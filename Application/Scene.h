@@ -16,6 +16,8 @@ namespace BastionGame
 		{
 			string	m_strPath;
 		};
+		typedef CreateInfo* CreateInfoPtr;
+		typedef CreateInfo& CreateInfoRef;
 
 	public:
 		Scene(ApplicationRef _rApplication);
@@ -28,6 +30,8 @@ namespace BastionGame
 		void PreUpdate();
 
 	protected:
+		// libconfig version
+		bool CreateFromLibConfig(CreateInfoPtr _pInfo);
 		bool CreateLoadMaterials(Config& _rConfig);
 		bool CreateLoadLandscapes(Config& _rConfig);
 		bool CreateLoadLandscape(Config& _rConfig, ConfigShortcutPtr pShortcut);
@@ -35,6 +39,16 @@ namespace BastionGame
 		bool CreateLoadPostProcess(Config& _rConfig, ConfigShortcutPtr pShortcut);
 		bool CreateLoadNormalProcesses(Config& _rConfig);
 		bool CreateLoadNormalProcess(Config& _rConfig, ConfigShortcutPtr pShortcut);
+
+		// lua version
+		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
+		bool CreateLoadMaterials(LuaObjectRef _rLuaObject);
+		bool CreateLoadLandscapes(LuaObjectRef _rLuaObject);
+		bool CreateLoadLandscape(LuaObjectRef _rLuaObject);
+		bool CreateLoadPostProcesses(LuaObjectRef _rLuaObject);
+		bool CreateLoadPostProcess(LuaObjectRef _rLuaObject);
+		bool CreateLoadNormalProcesses(LuaObjectRef _rLuaObject);
+		bool CreateLoadNormalProcess(LuaObjectRef _rLuaObject);
 
 	protected:
 		ApplicationRef				m_rApplication;

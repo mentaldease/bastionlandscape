@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "../Core/Scripting.h"
 #include "../Display/Camera.h"
 #include "../Display/Effect.h"
 #include "../Display/EffectParam.h"
@@ -188,95 +189,15 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			m_pEffect = pInfo->m_pEffect;
-
-			const unsigned int uBufferSize = 1024;
-			char szBuffer[uBufferSize];
-			const int uCount = pInfo->m_pConfig->GetCount("material.params");
-			string strSemanticValue;
-
-			// pre-store all config info for parameters
-			map<Key, ConfigShortcutPtr> mConfigParams;
-			for (int i = 0 ; uCount > i ; ++i)
+			if (NULL != pInfo->m_pConfig)
 			{
-				_snprintf(szBuffer, uBufferSize, "material.params.[%u]", i);
-				ConfigShortcutPtr pShortcut = pInfo->m_pConfig->GetShortcut(string(szBuffer));
-				bResult = (NULL != pShortcut);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				bResult = pInfo->m_pConfig->GetValue(pShortcut, "semantic", strSemanticValue);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				const Key uSemanticKey = MakeKey(strSemanticValue);
-				bResult = (mConfigParams.end() == mConfigParams.find(uSemanticKey));
-				if (false == bResult)
-				{
-					break;
-				}
-
-				mConfigParams[uSemanticKey] = pShortcut;
+				bResult = CreateFromLibConfig(pInfo);
 			}
-
-			// create parameters
-			if (false != bResult)
+			else if (NULL != pInfo->m_pLuaObject)
 			{
-				HandleMapRef rHandles = m_pEffect->GetHandles();
-				HandleMap::iterator iHandle = rHandles.begin();
-				HandleMap::iterator iEnd = rHandles.end();
-				while (iEnd != iHandle)
-				{
-					const Key uSemanticKey = iHandle->first;
-					map<Key, ConfigShortcutPtr>::iterator iParam = mConfigParams.find(uSemanticKey);
-					ConfigShortcutPtr pShortcut = (mConfigParams.end() != iParam) ? iParam->second : NULL;
-					DisplayEffectParam::CreateInfo oDEPCInfo(pInfo->m_pConfig, pShortcut, this, iHandle->second, uSemanticKey);
-					DisplayEffectParamPtr pParam = m_rMaterialManager.CreateParam(uSemanticKey, boost::any(&oDEPCInfo));
-					if (NULL == pParam)
-					{
-						bResult = false;
-						break;
-					}
-					if (mConfigParams.end() != iParam)
-					{
-						mConfigParams.erase(iParam);
-					}
-					m_vParams.push_back(pParam);
-					++iHandle;
-				}
-			}
-
-			// check all material declared parameters have been created
-			if (false != bResult)
-			{
-				bResult = mConfigParams.empty();
-				map<Key, ConfigShortcutPtr>::iterator iParam = mConfigParams.begin();
-				map<Key, ConfigShortcutPtr>::iterator iEnd = mConfigParams.end();
-				while (iEnd != iParam)
-				{
-					ConfigShortcutPtr pShortcut = iParam->second;
-					pInfo->m_pConfig->GetValue(pShortcut, "semantic", strSemanticValue);
-					++iParam;
-				}
+				bResult = CreateFromLuaConfig(pInfo);
 			}
 		}
-
-		if (false != bResult)
-		{
-			string strTechniqueValue;
-			if (pInfo->m_pConfig->GetValue("material.technique", strTechniqueValue))
-			{
-				m_hTechnique = m_pEffect->GetEffect()->GetTechniqueByName(strTechniqueValue.c_str());
-			}
-			else
-			{
-				m_hTechnique = m_pEffect->GetEffect()->GetTechnique(0);
-			}
-		}
-
 
 		return bResult;
 	}
@@ -345,6 +266,168 @@ namespace ElixirEngine
 		return m_rMaterialManager;
 	}
 
+	bool DisplayMaterial::CreateFromLibConfig(CreateInfoPtr _pInfo)
+	{
+		bool bResult = true;
+
+		const unsigned int uBufferSize = 1024;
+		char szBuffer[uBufferSize];
+		const int uCount = _pInfo->m_pConfig->GetCount("material.params");
+		string strSemanticValue;
+
+		// pre-store all config info for parameters
+		map<Key, ConfigShortcutPtr> mConfigParams;
+		for (int i = 0 ; uCount > i ; ++i)
+		{
+			_snprintf(szBuffer, uBufferSize, "material.params.[%u]", i);
+			ConfigShortcutPtr pShortcut = _pInfo->m_pConfig->GetShortcut(string(szBuffer));
+			bResult = (NULL != pShortcut);
+			if (false == bResult)
+			{
+				break;
+			}
+
+			bResult = _pInfo->m_pConfig->GetValue(pShortcut, "semantic", strSemanticValue);
+			if (false == bResult)
+			{
+				break;
+			}
+
+			const Key uSemanticKey = MakeKey(strSemanticValue);
+			bResult = (mConfigParams.end() == mConfigParams.find(uSemanticKey));
+			if (false == bResult)
+			{
+				break;
+			}
+
+			mConfigParams[uSemanticKey] = pShortcut;
+		}
+
+		// create parameters
+		if (false != bResult)
+		{
+			HandleMapRef rHandles = m_pEffect->GetHandles();
+			HandleMap::iterator iHandle = rHandles.begin();
+			HandleMap::iterator iEnd = rHandles.end();
+			while (iEnd != iHandle)
+			{
+				LuaObject oLuaParam(Scripting::Lua::GetStateInstance());
+				const Key uSemanticKey = iHandle->first;
+				map<Key, ConfigShortcutPtr>::iterator iParam = mConfigParams.find(uSemanticKey);
+				ConfigShortcutPtr pShortcut = (mConfigParams.end() != iParam) ? iParam->second : NULL;
+				DisplayEffectParam::CreateInfo oDEPCInfo(_pInfo->m_pConfig, pShortcut, oLuaParam, this, iHandle->second, uSemanticKey);
+				DisplayEffectParamPtr pParam = m_rMaterialManager.CreateParam(uSemanticKey, boost::any(&oDEPCInfo));
+				if (NULL == pParam)
+				{
+					bResult = false;
+					break;
+				}
+				if (mConfigParams.end() != iParam)
+				{
+					mConfigParams.erase(iParam);
+				}
+				m_vParams.push_back(pParam);
+				++iHandle;
+			}
+		}
+
+		// check all material declared parameters have been created
+		if (false != bResult)
+		{
+			bResult = mConfigParams.empty();
+			map<Key, ConfigShortcutPtr>::iterator iParam = mConfigParams.begin();
+			map<Key, ConfigShortcutPtr>::iterator iEnd = mConfigParams.end();
+			while (iEnd != iParam)
+			{
+				ConfigShortcutPtr pShortcut = iParam->second;
+				_pInfo->m_pConfig->GetValue(pShortcut, "semantic", strSemanticValue);
+				++iParam;
+			}
+		}
+
+		if (false != bResult)
+		{
+			string strTechniqueValue;
+			if (_pInfo->m_pConfig->GetValue("material.technique", strTechniqueValue))
+			{
+				m_hTechnique = m_pEffect->GetEffect()->GetTechniqueByName(strTechniqueValue.c_str());
+			}
+			else
+			{
+				m_hTechnique = m_pEffect->GetEffect()->GetTechnique(0);
+			}
+		}
+
+		return bResult;
+	}
+
+	bool DisplayMaterial::CreateFromLuaConfig(CreateInfoPtr _pInfo)
+	{
+		bool bResult = true;
+
+		map<Key, int> mConfigParams;
+		LuaObject oParams = (*_pInfo->m_pLuaObject)["params"];
+		if (false == oParams.IsNil())
+		{
+			const int uCount = oParams.GetCount();
+			string strSemanticValue;
+
+			// pre-store all config info for parameters
+			for (int i = 0 ; uCount > i ; ++i)
+			{
+				LuaObject oParam = oParams[i + 1];
+
+				strSemanticValue = oParam["semantic"].GetString();
+				const Key uSemanticKey = MakeKey(strSemanticValue);
+				bResult = (mConfigParams.end() == mConfigParams.find(uSemanticKey));
+				if (false == bResult)
+				{
+					break;
+				}
+
+				mConfigParams[uSemanticKey] = i;
+			}
+		}
+
+		// create parameters
+		if (false != bResult)
+		{
+			HandleMapRef rHandles = m_pEffect->GetHandles();
+			HandleMap::iterator iHandle = rHandles.begin();
+			HandleMap::iterator iEnd = rHandles.end();
+			while (iEnd != iHandle)
+			{
+				const Key uSemanticKey = iHandle->first;
+				map<Key, int>::iterator iParam = mConfigParams.find(uSemanticKey);
+				LuaObject oLuaParam(Scripting::Lua::GetStateInstance());
+				if (mConfigParams.end() != iParam)
+				{
+					oLuaParam = oParams[iParam->second + 1];
+				}
+				DisplayEffectParam::CreateInfo oDEPCInfo(NULL, NULL, oLuaParam, this, iHandle->second, uSemanticKey);
+				DisplayEffectParamPtr pParam = m_rMaterialManager.CreateParam(uSemanticKey, boost::any(&oDEPCInfo));
+				if (NULL == pParam)
+				{
+					bResult = false;
+					break;
+				}
+				if (mConfigParams.end() != iParam)
+				{
+					mConfigParams.erase(iParam);
+				}
+				m_vParams.push_back(pParam);
+				++iHandle;
+			}
+		}
+
+		if (false != bResult)
+		{
+			const char* pszTechniqueValue = (*_pInfo->m_pLuaObject)["technique"].GetString();
+			m_hTechnique = m_pEffect->GetEffect()->GetTechniqueByName(pszTechniqueValue);
+		}
+
+		return bResult;
+	}
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -444,10 +527,9 @@ namespace ElixirEngine
 		m_mParamCreators.clear();
 	}
 
-	bool DisplayMaterialManager::LoadMaterial(const string& _strName, const string& _strPath)
+	bool DisplayMaterialManager::LoadMaterial(const Key& _uNameKey, const string& _strPath)
 	{
-		Key uKey = MakeKey(_strName);
-		DisplayMaterialPtrMap::iterator iPair = m_mMaterials.find(uKey);
+		DisplayMaterialPtrMap::iterator iPair = m_mMaterials.find(_uNameKey);
 		bool bResult = (m_mMaterials.end() == iPair);
 
 		if (false != bResult)
@@ -479,13 +561,13 @@ namespace ElixirEngine
 				}
 				if (false != bResult)
 				{
-					DisplayMaterial::CreateInfo oDMCInfo = { &oConfig, pEffect };
+					DisplayMaterial::CreateInfo oDMCInfo = { &oConfig, pEffect, NULL };
 					pMaterial = new DisplayMaterial(*this);
 					bResult = pMaterial->Create(boost::any(&oDMCInfo));
 				}
 				if (false != bResult)
 				{
-					m_mMaterials[uKey] = pMaterial;
+					m_mMaterials[_uNameKey] = pMaterial;
 				}
 				else if (NULL != pMaterial)
 				{
@@ -494,6 +576,49 @@ namespace ElixirEngine
 				}
 			}
 			oConfig.Release();
+		}
+
+		return bResult;
+	}
+
+	bool DisplayMaterialManager::CreateMaterial(const Key& _uNameKey, LuaObjectRef _rLuaObject)
+	{
+		DisplayMaterialPtrMap::iterator iPair = m_mMaterials.find(_uNameKey);
+		bool bResult = (m_mMaterials.end() == iPair);
+
+		if (false != bResult)
+		{
+			string strEffectPath;
+			string strEffectName;
+			DisplayEffectPtr pEffect;
+			DisplayMaterialPtr pMaterial = NULL;
+
+			strEffectPath = _rLuaObject["effect"].GetString();
+			if (false != bResult)
+			{
+				FS::GetFileNameWithoutExt(strEffectPath, strEffectName);
+				pEffect = GetEffect(strEffectName);
+				if (NULL == pEffect)
+				{
+					bResult = LoadEffect(strEffectName, strEffectPath);
+					pEffect = (false != bResult) ? GetEffect(strEffectName) : NULL;
+				}
+			}
+			if (false != bResult)
+			{
+				DisplayMaterial::CreateInfo oDMCInfo = { NULL, pEffect, &_rLuaObject };
+				pMaterial = new DisplayMaterial(*this);
+				bResult = pMaterial->Create(boost::any(&oDMCInfo));
+			}
+			if (false != bResult)
+			{
+				m_mMaterials[_uNameKey] = pMaterial;
+			}
+			else if (NULL != pMaterial)
+			{
+				pMaterial->Release();
+				delete pMaterial;
+			}
 		}
 
 		return bResult;
