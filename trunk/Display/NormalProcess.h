@@ -18,8 +18,10 @@ namespace ElixirEngine
 		{
 			ConfigPtr			m_pConfig;
 			ConfigShortcutPtr	m_pShortcut;
+			LuaObjectPtr		m_pLuaObject;
 		};
 		typedef CreateInfo* CreateInfoPtr;
+		typedef CreateInfo& CreateInfoRef;
 
 	public:
 		DisplayNormalProcess(DisplayRef _rDisplay);
@@ -30,6 +32,10 @@ namespace ElixirEngine
 		virtual void Release();
 
 		Key GetNameKey();
+
+	protected:
+		bool CreateFromLibConfig(CreateInfoRef _rInfo);
+		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
 
 	protected:
 		static Key s_uTypeTex2DKey;

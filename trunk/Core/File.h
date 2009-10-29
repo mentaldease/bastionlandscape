@@ -77,11 +77,12 @@ namespace ElixirEngine
 
 		static void GetPathWithoutFS(const string& _strSrcPath, string& _strDstPath);
 		static void GetFileNameWithoutExt(const string& _strSrcPath, string& _strDstPath);
+		static void GetFileExt(const string& _strSrcPath, string& _strDstExt);
 
 		const static char s_FSMarkerInPath = '@';
 		const static char s_WDirSeparator = '\\';
 		const static char s_UDirSeparator = '/';
-		const static char s_ExtSeparator = '/';
+		const static char s_ExtSeparator = '.';
 
 	protected:
 		static FSPtr	s_pRootFS;

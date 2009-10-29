@@ -34,14 +34,15 @@ namespace ElixirEngine
 		{
 			CreateInfo();
 
-			float	m_fX;
-			float	m_fY;
-			float	m_fWidth;
-			float	m_fHeight;
-			float	m_fDegreeFovy;
-			float	m_fAspectRatio;
-			float	m_fZNear;
-			float	m_fZFar;
+			ConfigPtr	m_pConfig;
+			float		m_fX;
+			float		m_fY;
+			float		m_fWidth;
+			float		m_fHeight;
+			float		m_fDegreeFovy;
+			float		m_fAspectRatio;
+			float		m_fZNear;
+			float		m_fZFar;
 		};
 
 		enum EMatrix
@@ -142,6 +143,7 @@ namespace ElixirEngine
 		Matrix				m_oMZRot;
 		Matrix				m_oMXYRot;
 
+		ViewportMap			m_mViewports;
 		Viewport			m_oViewport;
 		float				m_fFovy;
 		float				m_fAspectRatio;

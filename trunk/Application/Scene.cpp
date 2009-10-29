@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "../Application/Application.h"
 #include "../Application/Scene.h"
+#include "../Core/Scripting.h"
+#include "../Core/Util.h"
 
 namespace BastionGame
 {
@@ -32,30 +34,14 @@ namespace BastionGame
 
 	bool Scene::Create(const boost::any& _rConfig)
 	{
-		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		Config::CreateInfo oCCInfo = { pInfo->m_strPath };
-		Config oConfig;
-		bool bResult = oConfig.Create(boost::any(&oCCInfo));
+		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
 
-		if (false != bResult)
-		{
-			DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-			pMaterialManager->SetFloatBySemantic(m_uWaterLevelKey, &m_fWaterLevel);
-			pMaterialManager->RegisterParamCreator(m_uWaterLevelKey, boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
-		}
+		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
+		pMaterialManager->SetFloatBySemantic(m_uWaterLevelKey, &m_fWaterLevel);
+		pMaterialManager->RegisterParamCreator(m_uWaterLevelKey, boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
 
-		if (false != bResult)
-		{
-			bResult = oConfig.GetValue(string("scene.name"), m_strName)
-				&& CreateLoadMaterials(oConfig)
-				&& CreateLoadLandscapes(oConfig)
-				&& CreateLoadPostProcesses(oConfig)
-				&& CreateLoadNormalProcesses(oConfig);
-		}
-
-		oConfig.Release();
-
-		return bResult;
+		//return CreateFromLibConfig(pInfo);
+		return CreateFromLuaConfig(pInfo);
 	}
 
 	void Scene::Update()
@@ -117,6 +103,26 @@ namespace BastionGame
 		}
 	}
 
+	bool Scene::CreateFromLibConfig(Scene::CreateInfoPtr _pInfo)
+	{
+		Config::CreateInfo oCCInfo = { _pInfo->m_strPath };
+		Config oConfig;
+		bool bResult = oConfig.Create(boost::any(&oCCInfo));
+
+		if (false != bResult)
+		{
+			bResult = oConfig.GetValue(string("scene.name"), m_strName)
+				&& CreateLoadMaterials(oConfig)
+				&& CreateLoadLandscapes(oConfig)
+				&& CreateLoadPostProcesses(oConfig)
+				&& CreateLoadNormalProcesses(oConfig);
+		}
+
+		oConfig.Release();
+
+		return bResult;
+	}
+
 	bool Scene::CreateLoadMaterials(Config& _rConfig)
 	{
 		const string strName("name");
@@ -148,7 +154,8 @@ namespace BastionGame
 			{
 				break;
 			}
-			bResult = pMaterialManager->LoadMaterial(strMaterialName, strMaterialPath);
+			const Key uMaterialNameKey = MakeKey(strMaterialName);
+			bResult = pMaterialManager->LoadMaterial(uMaterialNameKey, strMaterialPath);
 			if (false == bResult)
 			{
 				break;
@@ -336,7 +343,246 @@ namespace BastionGame
 	bool Scene::CreateLoadNormalProcess(Config& _rConfig, ConfigShortcutPtr pShortcut)
 	{
 		DisplayNormalProcessPtr pNormalProcess = new DisplayNormalProcess(*m_rApplication.GetDisplay());
-		DisplayNormalProcess::CreateInfo oNPCInfo = { &_rConfig, pShortcut };
+		DisplayNormalProcess::CreateInfo oNPCInfo = { &_rConfig, pShortcut, NULL };
+		bool bResult = pNormalProcess->Create(boost::any(&oNPCInfo));
+
+
+		if (false != bResult)
+		{
+			m_mNormalProcesses[pNormalProcess->GetNameKey()] = pNormalProcess;
+			m_vNormalProcesses.push_back(pNormalProcess);
+		}
+		else
+		{
+			pNormalProcess->Release();
+			delete pNormalProcess;
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateFromLuaConfig(Scene::CreateInfoPtr _pInfo)
+	{
+		bool bResult = Scripting::Lua::Loadfile(_pInfo->m_strPath);
+
+		if (false != bResult)
+		{
+			string strRootName;
+			FS::GetFileNameWithoutExt(_pInfo->m_strPath, strRootName);
+			strRootName = strtolower(strRootName);
+			LuaStatePtr pLuaState = Scripting::Lua::GetStateInstance();
+			LuaObject oGlobals = pLuaState->GetGlobals();
+			LuaObject oRoot = oGlobals[strRootName.c_str()];
+
+			m_strName = oRoot["name"].GetString();
+			bResult = CreateLoadMaterials(oRoot)
+				&& CreateLoadLandscapes(oRoot)
+				&& CreateLoadPostProcesses(oRoot)
+				&& CreateLoadNormalProcesses(oRoot);
+		}
+		return bResult;
+	}
+
+	bool Scene:: CreateLoadMaterials(LuaObjectRef _rLuaObject)
+	{
+		string strMaterialName;
+		bool bResult = true;
+
+		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
+		LuaObject oMaterialLibs = _rLuaObject["materiallibs"];
+		const int uCount = oMaterialLibs.GetCount();
+		for (int i = 0 ; uCount > i ; ++i)
+		{
+			string strFileName = oMaterialLibs[i + 1].GetString();
+			bool bResult = Scripting::Lua::Loadfile(strFileName);
+			if (false == bResult)
+			{
+				break;
+			}
+			string strMaterialLibrary;
+			FS::GetFileNameWithoutExt(strFileName, strMaterialLibrary);
+			strMaterialLibrary = strtolower(strMaterialLibrary);
+			LuaObject oMaterialLibrary = _rLuaObject.GetState()->GetGlobal(strMaterialLibrary.c_str());
+			if (false != oMaterialLibrary.IsNil())
+			{
+				bResult = false;
+				break;
+			}
+			const int uMaterialCount = oMaterialLibrary.GetCount();
+			for (int j = 0 ; uMaterialCount > j ; ++j)
+			{
+				LuaObject oMaterial = oMaterialLibrary[j + 1];
+				strMaterialName = oMaterial["name"].GetString();
+				Key uMaterialNameKey = MakeKey(strMaterialName);
+				bResult = (NULL == pMaterialManager->GetMaterial(uMaterialNameKey))
+					&& (false != pMaterialManager->CreateMaterial(uMaterialNameKey, oMaterial));
+				if (false == bResult)
+				{
+					break;
+				}
+				m_mMaterials[uMaterialNameKey] = pMaterialManager->GetMaterial(strMaterialName);
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene:: CreateLoadLandscapes(LuaObjectRef _rLuaObject)
+	{
+		LuaObject oLandscapes = _rLuaObject["landscapes"];
+		bool bResult = true;
+
+		if (false == oLandscapes.IsNil())
+		{
+			const int sCount = oLandscapes.GetCount();
+			for (int i = 0 ; sCount > i ; ++i)
+			{
+				bResult = CreateLoadLandscape(oLandscapes[i + 1]);
+				if (false == bResult)
+				{
+					break;
+				}
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene:: CreateLoadLandscape(LuaObjectRef _rLuaObject)
+	{
+		LandscapePtr pLandscape = new Landscape(*m_rApplication.GetDisplay());
+		Landscape::OpenInfo oLOInfo;
+
+		oLOInfo.m_strName = _rLuaObject["name"].GetString();
+		oLOInfo.m_uGridSize = _rLuaObject["grid_size"].GetInteger();
+		oLOInfo.m_uQuadSize = _rLuaObject["grid_chunk_size"].GetInteger();
+		oLOInfo.m_fPixelErrorMax = _rLuaObject["pixel_error_max"].GetFloat();
+		oLOInfo.m_fFloorScale = _rLuaObject["floor_scale"].GetFloat();
+		oLOInfo.m_fHeightScale = _rLuaObject["height_scale"].GetFloat();
+
+		const Key uNameKey = MakeKey(oLOInfo.m_strName);
+
+		bool bResult = (false != pLandscape->Create(boost::any(0)))
+			&& (m_mLandscapes.end() == m_mLandscapes.find(uNameKey)); // <== check that there is NOT another landscape with the same name
+
+		if (false != bResult)
+		{
+			string strFormat = _rLuaObject["vertex_format"].GetString();
+			oLOInfo.m_eFormat = Landscape::StringToVertexFormat(strFormat);
+			bResult = (ELandscapeVertexFormat_UNKNOWN != oLOInfo.m_eFormat);
+		}
+		if (false != bResult)
+		{
+			oLOInfo.m_strHeightmap.clear();
+			oLOInfo.m_strHeightmap = _rLuaObject["heightmap"].GetString();
+			oLOInfo.m_strLayersConfig.clear();
+			oLOInfo.m_strLayersConfig = _rLuaObject["layers_config"].GetString();
+			bResult = pLandscape->Open(oLOInfo);
+		}
+		if (false != bResult)
+		{
+			string strMaterialName = _rLuaObject["material"].GetString();
+			Key uKey = MakeKey(strMaterialName);
+			DisplayMaterialPtr pMaterial = m_mMaterials[uKey];
+			if (NULL == pMaterial)
+			{
+				pMaterial = m_rApplication.GetDisplay()->GetMaterialManager()->GetMaterial(strMaterialName);
+			}
+			bResult = (NULL != pMaterial);
+			pLandscape->SetMaterial(pMaterial);
+		}
+
+		if (false != bResult)
+		{
+			Vector3 oPos;
+			oPos.x = _rLuaObject["position"][1].GetFloat();
+			oPos.y = _rLuaObject["position"][2].GetFloat();
+			oPos.z = _rLuaObject["position"][3].GetFloat();
+			D3DXMatrixTranslation(pLandscape->GetWorldMatrix(), oPos.x, oPos.y, oPos.z);
+			m_mLandscapes[uNameKey] = pLandscape;
+		}
+		else
+		{
+			pLandscape->Release();
+			delete pLandscape;
+		}
+
+		return bResult;
+	}
+
+	bool Scene:: CreateLoadPostProcesses(LuaObjectRef _rLuaObject)
+	{
+		LuaObject oPostProcesses = _rLuaObject["postprocesses"];
+		bool bResult = true;
+
+		if (false == oPostProcesses.IsNil())
+		{
+			const int sCount = oPostProcesses.GetCount();
+			for (int i = 0 ; sCount > i ; ++i)
+			{
+				bResult = CreateLoadPostProcess(oPostProcesses[i + 1]);
+				if (false == bResult)
+				{
+					break;
+				}
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene:: CreateLoadPostProcess(LuaObjectRef _rLuaObject)
+	{
+		DisplayPostProcessPtr pPostProcess = new DisplayPostProcess(*m_rApplication.GetDisplay());
+		DisplayPostProcess::CreateInfo oPPCInfo;
+		oPPCInfo.m_bImmediateWrite = _rLuaObject["immediate_write"].GetBoolean();
+		oPPCInfo.m_strName = _rLuaObject["name"].GetString();
+		const string strMaterialName = _rLuaObject["material"].GetString();
+		const Key uMaterialNameKey = MakeKey(strMaterialName);
+		const Key uNameKey = MakeKey(oPPCInfo.m_strName);
+		bool bResult = (m_mPostProcesses.end() == m_mPostProcesses.find(uNameKey)) // <== check that there is NOT another post process with the same name
+			&& (oPPCInfo.m_uMaterialNameKey = uMaterialNameKey)
+			&& pPostProcess->Create(boost::any(&oPPCInfo));
+
+		if (false != bResult)
+		{
+			m_mPostProcesses[uNameKey] = pPostProcess;
+			m_vPostProcesses.push_back(pPostProcess);
+		}
+		else
+		{
+			pPostProcess->Release();
+			delete pPostProcess;
+		}
+
+		return bResult;
+	}
+
+	bool Scene:: CreateLoadNormalProcesses(LuaObjectRef _rLuaObject)
+	{
+		LuaObject oNormalProcesses = _rLuaObject["normalprocesses"];
+		bool bResult = true;
+
+		if (false == oNormalProcesses.IsNil())
+		{
+			const int sCount = oNormalProcesses.GetCount();
+			for (int i = 0 ; sCount > i ; ++i)
+			{
+				bResult = CreateLoadNormalProcess(oNormalProcesses[i + 1]);
+				if (false == bResult)
+				{
+					break;
+				}
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene:: CreateLoadNormalProcess(LuaObjectRef _rLuaObject)
+	{
+		DisplayNormalProcessPtr pNormalProcess = new DisplayNormalProcess(*m_rApplication.GetDisplay());
+		DisplayNormalProcess::CreateInfo oNPCInfo = { NULL, NULL, &_rLuaObject };
 		bool bResult = pNormalProcess->Create(boost::any(&oNPCInfo));
 
 

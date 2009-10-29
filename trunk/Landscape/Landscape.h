@@ -262,6 +262,8 @@ namespace ElixirEngine
 		{
 			string	m_strPath;
 		};
+		typedef CreateInfo* CreateInfoPtr;
+		typedef CreateInfo& CreateInfoRef;
 
 		struct Layer
 		{
@@ -285,13 +287,21 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		bool CreateAtlas(ConfigRef _rConfig);
-		bool CreateSlopeAndHeightLUT(ConfigRef _rConfig);
-		bool CreateNoise(ConfigRef _rConfig);
 		DisplayTexturePtr GetAtlas();
 		DisplayTexturePtr GetSlopeAndHeightLUT();
 		DisplayTexturePtr GetNoise();
 		Vector4& GetShaderInfo();
+
+	protected:
+		bool CreateFromLibConfig(CreateInfoRef _rInfo);
+		bool CreateAtlas(ConfigRef _rConfig);
+		bool CreateSlopeAndHeightLUT(ConfigRef _rConfig);
+		bool CreateNoise(ConfigRef _rConfig);
+
+		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
+		bool CreateAtlas(LuaObjectRef _rLuaObject);
+		bool CreateSlopeAndHeightLUT(LuaObjectRef _rLuaObject);
+		bool CreateNoise(LuaObjectRef _rLuaObject);
 
 	protected:
 		LayerVec					m_vLayers;

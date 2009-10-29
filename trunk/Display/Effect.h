@@ -3,6 +3,7 @@
 
 #include "../Display/Display.h"
 #include "../Core/Config.h"
+#include "../Core/CoreTypes.h"
 
 namespace ElixirEngine
 {
@@ -58,7 +59,10 @@ namespace ElixirEngine
 		{
 			ConfigPtr			m_pConfig;
 			DisplayEffectPtr	m_pEffect;
+			LuaObjectPtr		m_pLuaObject;
 		};
+		typedef CreateInfo* CreateInfoPtr;
+		typedef CreateInfo& CreateInforef;
 
 	public:
 		DisplayMaterial(DisplayMaterialManagerRef _rMaterialManager);
@@ -74,6 +78,10 @@ namespace ElixirEngine
 
 		virtual DisplayEffectPtr GetEffect();
 		virtual DisplayMaterialManagerRef GetMaterialManager();
+
+	protected:
+		bool CreateFromLibConfig(CreateInfoPtr _pInfo);
+		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
 
 	protected:
 		DisplayMaterialManagerRef	m_rMaterialManager;
@@ -99,7 +107,8 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		bool LoadMaterial(const string& _strName, const string& _strPath);
+		bool CreateMaterial(const Key& _uNameKey, LuaObjectRef _rLuaObject);
+		bool LoadMaterial(const Key& _uNameKey, const string& _strPath);
 		void UnloadMaterial(const string& _strName);
 		void UnloadMaterial(const Key& _uNameKey);
 		DisplayMaterialPtr GetMaterial(const string& _strName);
