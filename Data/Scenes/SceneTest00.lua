@@ -54,21 +54,31 @@ scenetest00 =
 	{
 		{
 			name = "reflection",
-			viewport = "quarter_top_left",
+			--viewport = "quarter_top_left",
+			viewport = "default",
 			render_targets =
 			{
 				{
 					type = "gbuffer",
 					index = 3,
 				},
-				--[[
-				{
-					type = "tex2d",
-					name = reflection,
-				},
-				]]
+				--{
+					--type = "tex2d",
+					--name = reflection,
+				--},
 			},
 		},
+		--{
+			--name = "reflection2",
+			--viewport = "quarter_top_right",
+			--render_targets =
+			--{
+				--{
+					--type = "gbuffer",
+					--index = 3,
+				--},
+			--},
+		--},
 		{
 			name = "base",
 			viewport = "default",

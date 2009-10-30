@@ -98,6 +98,7 @@ namespace ElixirEngine
 		bool IsEnabled();
 		void SetIndex(const UInt _uIndex);
 		UInt GetIndex();
+		bool SwapOccured();
 
 	protected:
 		enum ERenderState
@@ -130,6 +131,7 @@ namespace ElixirEngine
 		bool				m_bFirstRender;
 		bool				m_bImmediateWrite;
 		bool				m_bEnabled;
+		bool				m_bSwap;
 
 	private:
 	};
