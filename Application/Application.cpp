@@ -128,7 +128,6 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			m_oWindow = *(boost::any_cast<WindowData*>(_rConfig));
-			//GetLibConfigParameters();
 			Scripting::Lua::SetStateInstance(m_pLuaState);
 			GetLuaConfigParameters();
 		}
@@ -401,51 +400,6 @@ namespace BastionGame
 		rCamPos += oCamRightDir * ( m_aKeysInfo[DIK_RIGHT] | m_aKeysInfo[DIK_D] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
 		rCamPos -= oCamRightDir * ( m_aKeysInfo[DIK_LEFT] | m_aKeysInfo[DIK_A] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
 		rCamPos.y += ( m_aKeysInfo[DIK_SPACE] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
-	}
-
-	void Application::GetLibConfigParameters()
-	{
-		Config::CreateInfo oCCInfo = { "data/bastion.cfg" };
-		Config oConfig;
-		if (false != oConfig.Create(boost::any(&oCCInfo)))
-		{
-			int sWidth = int(m_oWindow.m_oClientRect.right);
-			int sHeight = int(m_oWindow.m_oClientRect.bottom);
-			oConfig.GetValue(string("config.graphics.fullscreen"), m_oWindow.m_bFullScreen);
-			oConfig.GetValue(string("config.graphics.width"), sWidth);
-			oConfig.GetValue(string("config.graphics.height"), sHeight);
-			oConfig.GetValue(string("config.graphics.depth_near"), m_oWindow.m_fZNear);
-			oConfig.GetValue(string("config.graphics.depth_far"), m_oWindow.m_fZFar);
-			oConfig.GetValue(string("config.graphics.gbuffer_count"), m_oWindow.m_uDXGBufferCount);
-			m_oWindow.m_oClientRect.right = sWidth;
-			m_oWindow.m_oClientRect.bottom = sHeight;
-
-			m_oWindow.m_uDXGBufferCount = (WindowData::c_uMaxGBuffers < m_oWindow.m_uDXGBufferCount) ? WindowData::c_uMaxGBuffers : m_oWindow.m_uDXGBufferCount;
-
-			string strFormat;
-			if (false != oConfig.GetValue(string("config.graphics.color_format"), strFormat))
-			{
-				m_oWindow.m_uDXColorFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXColorFormat));
-			}
-			if (false != oConfig.GetValue(string("config.graphics.depth_format"), strFormat))
-			{
-				m_oWindow.m_uDXDepthFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXDepthFormat));
-			}
-			if (false != oConfig.GetValue(string("config.graphics.gbuffer_format"), strFormat))
-			{
-				m_oWindow.m_uDXGBufferFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXGBufferFormat));
-			}
-			for (UInt i = 0 ; m_oWindow.m_uDXGBufferCount > i ; ++i)
-			{
-				string strRTType = boost::str(boost::format("config.graphics.gbuffer%1%_format") % i);
-				m_oWindow.m_aDXGBufferFormat[i] = m_oWindow.m_uDXGBufferFormat;
-				if (false != oConfig.GetValue(strRTType, strFormat))
-				{
-					m_oWindow.m_aDXGBufferFormat[i] = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_aDXGBufferFormat[i]));
-				}
-			}
-		}
-		oConfig.Release();
 	}
 
 	void Application::GetLuaConfigParameters()

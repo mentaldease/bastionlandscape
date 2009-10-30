@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "../Display/Camera.h"
 #include "../Display/Effect.h"
-#include "../Core/Config.h"
 
 namespace ElixirEngine
 {

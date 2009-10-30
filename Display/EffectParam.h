@@ -4,7 +4,6 @@
 #include "../Display/DisplayTypes.h"
 #include "../Display/Texture.h"
 #include "../Display/Camera.h"
-#include "../Core/Config.h"
 #include "../Core/CoreTypes.h"
 #include "../Core/Scripting.h"
 
@@ -20,9 +19,7 @@ namespace ElixirEngine
 		struct CreateInfo
 		{
 			CreateInfo()
-			:	m_pConfig(NULL),
-				m_pShortcut(NULL),
-				m_oLuaObject(NULL),
+			:	m_oLuaObject(NULL),
 				m_pDisplayMaterial(NULL),
 				m_hSemantic(NULL),
 				m_uSemanticKey(0)
@@ -30,23 +27,17 @@ namespace ElixirEngine
 			}
 
 			CreateInfo(
-				ConfigPtr			_pConfig,
-				ConfigShortcutPtr	_pShortcut,
 				LuaObject			_oLuaObject,
 				DisplayMaterialPtr	_pDisplayMaterial,
 				Handle				_hSemantic,
 				Key					_uSemanticKey)
-			:	m_pConfig(_pConfig),
-				m_pShortcut(_pShortcut),
-				m_oLuaObject(_oLuaObject),
+			:	m_oLuaObject(_oLuaObject),
 				m_pDisplayMaterial(_pDisplayMaterial),
 				m_hSemantic(_hSemantic),
 				m_uSemanticKey(_uSemanticKey)
 			{
 			}
 
-			ConfigPtr			m_pConfig;
-			ConfigShortcutPtr	m_pShortcut;
 			LuaObject			m_oLuaObject;
 			DisplayMaterialPtr	m_pDisplayMaterial;
 			Handle				m_hSemantic;
@@ -76,11 +67,7 @@ namespace ElixirEngine
 			m_hData = pInfo->m_hSemantic;
 			bool bResult = ((NULL != m_hData) && (0 != m_uSemanticKey));
 
-			if (NULL != pInfo->m_pConfig)
-			{
-				bResult = CreateFromLibConfig(*pInfo);
-			}
-			else if (false == pInfo->m_oLuaObject.IsNil())
+			if (false == pInfo->m_oLuaObject.IsNil())
 			{
 				bResult = CreateFromLuaConfig(*pInfo);
 			}
@@ -91,20 +78,6 @@ namespace ElixirEngine
 		virtual bool Use() = 0;
 
 	protected:
-		virtual bool CreateFromLibConfig(CreateInfoRef _rInfo)
-		{
-			string strSemanticName;
-			bool bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
-			}
-
-			return ((NULL != m_hData) && (0 != m_uSemanticKey));
-		}
-
 		virtual bool CreateFromLuaConfig(CreateInfoRef _rInfo)
 		{
 			LuaObject oSemantic = _rInfo.m_oLuaObject["semantic"];
@@ -499,11 +472,7 @@ namespace ElixirEngine
 			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 			bool bResult = false;
 
-			if (NULL != pInfo->m_pConfig)
-			{
-				bResult = CreateFromLibConfig(*pInfo);
-			}
-			else if (false == pInfo->m_oLuaObject.IsNil())
+			if (false == pInfo->m_oLuaObject.IsNil())
 			{
 				bResult = CreateFromLuaConfig(*pInfo);
 			}
@@ -543,29 +512,6 @@ namespace ElixirEngine
 		}
 
 	protected:
-		virtual bool CreateFromLibConfig(CreateInfoRef _rInfo)
-		{
-			string strSemanticName;
-			bool bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "name", m_strName);
-			}
-			if (false != bResult)
-			{
-				bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "value", m_strPath);
-			}
-
-			return bResult;
-		}
-
 		virtual bool CreateFromLuaConfig(CreateInfoRef _rInfo)
 		{
 			LuaObject oLuaValue = _rInfo.m_oLuaObject["semantic"];
@@ -632,11 +578,7 @@ namespace ElixirEngine
 			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 			bool bResult = false;
 
-			if (NULL != pInfo->m_pConfig)
-			{
-				bResult = CreateFromLibConfig(*pInfo);
-			}
-			else if (false == pInfo->m_oLuaObject.IsNil())
+			if (false == pInfo->m_oLuaObject.IsNil())
 			{
 				bResult = CreateFromLuaConfig(*pInfo);
 			}
@@ -676,29 +618,6 @@ namespace ElixirEngine
 		}
 
 	protected:
-		virtual bool CreateFromLibConfig(CreateInfoRef _rInfo)
-		{
-			string strSemanticName;
-			bool bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "name", m_strName);
-			}
-			if (false != bResult)
-			{
-				bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "value", m_strPath);
-			}
-
-			return bResult;
-		}
-
 		virtual bool CreateFromLuaConfig(CreateInfoRef _rInfo)
 		{
 			LuaObject oLuaValue = _rInfo.m_oLuaObject["semantic"];
@@ -1012,11 +931,7 @@ namespace ElixirEngine
 			CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 			bool bResult = false;
 
-			if (NULL != pInfo->m_pConfig)
-			{
-				bResult = CreateFromLibConfig(*pInfo);
-			}
-			else if (false == pInfo->m_oLuaObject.IsNil())
+			if (false == pInfo->m_oLuaObject.IsNil())
 			{
 				bResult = CreateFromLuaConfig(*pInfo);
 			}
@@ -1054,29 +969,6 @@ namespace ElixirEngine
 		}
 
 	protected:
-		virtual bool CreateFromLibConfig(CreateInfoRef _rInfo)
-		{
-			string strSemanticName;
-			bool bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "semantic", strSemanticName);
-
-			if (false != bResult)
-			{
-				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
-				bResult = (NULL != m_hData);
-			}
-			if (false != bResult)
-			{
-				bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "name", m_strName);
-			}
-			if (false != bResult)
-			{
-				bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "value", m_strPath);
-			}
-
-			return bResult;
-		}
-
 		virtual bool CreateFromLuaConfig(CreateInfoRef _rInfo)
 		{
 			LuaObject oLuaValue = _rInfo.m_oLuaObject["semantic"];

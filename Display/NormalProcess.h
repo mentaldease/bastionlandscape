@@ -2,7 +2,6 @@
 #define __NORMALPROCESS_H__
 
 #include "../Core/Core.h"
-#include "../Core/Config.h"
 #include "../Display/DisplayTypes.h"
 
 namespace ElixirEngine
@@ -16,9 +15,7 @@ namespace ElixirEngine
 	public:
 		struct CreateInfo
 		{
-			ConfigPtr			m_pConfig;
-			ConfigShortcutPtr	m_pShortcut;
-			LuaObjectPtr		m_pLuaObject;
+			LuaObjectPtr	m_pLuaObject;
 		};
 		typedef CreateInfo* CreateInfoPtr;
 		typedef CreateInfo& CreateInfoRef;
@@ -34,7 +31,6 @@ namespace ElixirEngine
 		Key GetNameKey();
 
 	protected:
-		bool CreateFromLibConfig(CreateInfoRef _rInfo);
 		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
 
 	protected:

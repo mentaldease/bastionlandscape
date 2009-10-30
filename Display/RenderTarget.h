@@ -4,7 +4,6 @@
 #include "../Core/Core.h"
 #include "../Display/DisplayTypes.h"
 #include "../Display/Texture.h"
-#include "../Core/Config.h"
 
 namespace ElixirEngine
 {

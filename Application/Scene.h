@@ -30,17 +30,6 @@ namespace BastionGame
 		void PreUpdate();
 
 	protected:
-		// libconfig version
-		bool CreateFromLibConfig(CreateInfoPtr _pInfo);
-		bool CreateLoadMaterials(Config& _rConfig);
-		bool CreateLoadLandscapes(Config& _rConfig);
-		bool CreateLoadLandscape(Config& _rConfig, ConfigShortcutPtr pShortcut);
-		bool CreateLoadPostProcesses(Config& _rConfig);
-		bool CreateLoadPostProcess(Config& _rConfig, ConfigShortcutPtr pShortcut);
-		bool CreateLoadNormalProcesses(Config& _rConfig);
-		bool CreateLoadNormalProcess(Config& _rConfig, ConfigShortcutPtr pShortcut);
-
-		// lua version
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
 		bool CreateLoadMaterials(LuaObjectRef _rLuaObject);
 		bool CreateLoadLandscapes(LuaObjectRef _rLuaObject);

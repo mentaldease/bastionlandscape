@@ -2,7 +2,6 @@
 #define __EFFECT_H__
 
 #include "../Display/Display.h"
-#include "../Core/Config.h"
 #include "../Core/CoreTypes.h"
 
 namespace ElixirEngine
@@ -80,7 +79,6 @@ namespace ElixirEngine
 		virtual DisplayMaterialManagerRef GetMaterialManager();
 
 	protected:
-		bool CreateFromLibConfig(CreateInfoPtr _pInfo);
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
 
 	protected:
@@ -108,7 +106,6 @@ namespace ElixirEngine
 		virtual void Release();
 
 		bool CreateMaterial(const Key& _uNameKey, LuaObjectRef _rLuaObject);
-		bool LoadMaterial(const Key& _uNameKey, const string& _strPath);
 		void UnloadMaterial(const string& _strName);
 		void UnloadMaterial(const Key& _uNameKey);
 		DisplayMaterialPtr GetMaterial(const string& _strName);
