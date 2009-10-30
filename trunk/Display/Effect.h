@@ -56,7 +56,6 @@ namespace ElixirEngine
 	public:
 		struct CreateInfo
 		{
-			ConfigPtr			m_pConfig;
 			DisplayEffectPtr	m_pEffect;
 			LuaObjectPtr		m_pLuaObject;
 		};

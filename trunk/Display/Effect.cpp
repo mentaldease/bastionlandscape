@@ -453,7 +453,7 @@ namespace ElixirEngine
 			}
 			if (false != bResult)
 			{
-				DisplayMaterial::CreateInfo oDMCInfo = { NULL, pEffect, &_rLuaObject };
+				DisplayMaterial::CreateInfo oDMCInfo = { pEffect, &_rLuaObject };
 				pMaterial = new DisplayMaterial(*this);
 				bResult = pMaterial->Create(boost::any(&oDMCInfo));
 			}
