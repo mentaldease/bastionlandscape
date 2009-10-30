@@ -34,7 +34,6 @@ namespace ElixirEngine
 		{
 			CreateInfo();
 
-			ConfigPtr	m_pConfig;
 			float		m_fX;
 			float		m_fY;
 			float		m_fWidth;
