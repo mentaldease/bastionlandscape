@@ -1,9 +1,0 @@
-# libconfig formatted file
-# dof combine post effect material
-
-material =
-{
-	name = "dofcombinepost00";
-	effect = "data/effects/DofCombinePost.fx";
-	technique = "RenderScene";
-};

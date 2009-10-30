@@ -1,9 +1,0 @@
-# libconfig formatted file
-# inverse post effect material
-
-material =
-{
-	name = "inversepost00";
-	effect = "data/effects/InversePost.fx";
-	technique = "RenderScene";
-};
