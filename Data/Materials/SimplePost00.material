@@ -1,9 +1,0 @@
-# libconfig formatted file
-# simple color post effect material
-
-material =
-{
-	name = "simplepost00";
-	effect = "data/effects/SimplePost.fx";
-	technique = "RenderScene";
-};

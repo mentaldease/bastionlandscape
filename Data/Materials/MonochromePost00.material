@@ -1,9 +1,0 @@
-# libconfig formatted file
-# monochrome post effect material
-
-material =
-{
-	name = "monochromepost00";
-	effect = "data/effects/MonochromePost.fx";
-	technique = "RenderScene";
-};

@@ -1,9 +1,0 @@
-# libconfig formatted file
-# Basic based material
-
-material =
-{
-	name = "terrain02";
-	effect = "data/effects/terrain3.fx";
-	technique = "RenderScene";
-};

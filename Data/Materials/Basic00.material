@@ -1,9 +1,0 @@
-# libconfig formatted file
-# Basic based material
-
-material =
-{
-	name = "basic00";
-	effect = "data/effects/basic.fx";
-	technique = "RenderScene";
-};
