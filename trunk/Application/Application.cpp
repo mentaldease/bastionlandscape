@@ -17,6 +17,7 @@ namespace BastionGame
 			m_rDisplay(_rDisplay),
 			m_oReflection(),
 			m_uReflectionKey(MakeKey(string("reflection"))),
+			m_uReflection2Key(MakeKey(string("reflection2"))),
 			m_uWaterLevelKey(MakeKey(string("WATERLEVEL")))
 		{
 
@@ -36,7 +37,10 @@ namespace BastionGame
 		virtual void Update()
 		{
 			m_pCamera = m_rDisplay.GetCurrentCamera();
-			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess()) && (m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
+			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess())
+				&& ((m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey())
+				|| (m_uReflection2Key == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
+				)
 			{
 				FloatPtr pWaterLevel = m_rDisplay.GetMaterialManager()->GetFloatBySemantic(m_uWaterLevelKey);
 				Vector3 oWaterLevel(0.0f, *pWaterLevel, 0.0f);
@@ -58,6 +62,7 @@ namespace BastionGame
 		Matrix				m_oReflection;
 		Plane				m_oReflectPlane;
 		Key					m_uReflectionKey;
+		Key					m_uReflection2Key;
 		Key					m_uWaterLevelKey;
 
 	private:
@@ -145,6 +150,22 @@ namespace BastionGame
 			m_pDisplay = new Display;
 			bResult = m_pDisplay->Create(boost::any(&m_oWindow));
 			m_eStateMode = (false != bResult) ? EStateMode_READY : EStateMode_ERROR;
+			if (false != bResult)
+			{
+				LuaStatePtr pLuaState = Scripting::Lua::GetStateInstance();
+				LuaObject oGlobals = pLuaState->GetGlobals();
+				LuaObject oConfig = oGlobals["bastion_config"];
+				LuaObject oGraphics = oConfig["graphics"];
+				LuaObject oViewports = oGraphics["viewports"];
+				if (false == oViewports.IsNil())
+				{
+					const int sCount = oViewports.GetCount();
+					for (int i = 0 ; (sCount > i) && (false != bResult) ; ++i)
+					{
+						bResult = AddViewportFromLua(oViewports[i + 1]);
+					}
+				}
+			}
 		}
 
 		if (false != bResult)
@@ -431,5 +452,36 @@ namespace BastionGame
 				m_oWindow.m_aDXGBufferFormat[i] = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_aDXGBufferFormat[i]));
 			}
 		}
+	}
+
+
+	bool Application::AddViewportFromLua(LuaObjectRef _rLuaObject)
+	{
+		DisplayCameraPtr pCamera = m_pDisplay->GetCurrentCamera();
+		const string strName = _rLuaObject["name"].GetString();
+		const Key uNameKey = MakeKey(strName);
+		bool bResult = (NULL == pCamera->GetViewport(uNameKey));
+
+		if (false != bResult)
+		{
+			unsigned int uTemp[2];
+			m_pDisplay->GetResolution(uTemp[0], uTemp[1]);
+			const float fX = _rLuaObject["x"].GetFloat();
+			const float fY = _rLuaObject["y"].GetFloat();
+			const float fWidth = _rLuaObject["width"].GetFloat();
+			const float fHeight = _rLuaObject["height"].GetFloat();
+
+			Viewport oViewport;
+			oViewport.X = (unsigned int)(fX * uTemp[0]);
+			oViewport.Y = (unsigned int)(fY * uTemp[1]);
+			oViewport.Width = (unsigned int)(fWidth * uTemp[0]);
+			oViewport.Height = (unsigned int)(fHeight * uTemp[1]);
+			oViewport.MinZ = 0.0f;
+			oViewport.MaxZ = 1.0f;
+
+			pCamera->AddViewport(uNameKey, oViewport);
+		}
+
+		return bResult;
 	}
 }

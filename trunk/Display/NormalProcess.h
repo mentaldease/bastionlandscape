@@ -40,6 +40,7 @@ namespace ElixirEngine
 	protected:
 		DisplayRef				m_rDisplay;
 		Key						m_uNameKey;
+		Key						m_uViewportNameKey;
 		KeyVec					m_vRTTypes;
 		KeyVec					m_vRTNames;
 		DisplayTexturePtrMap	m_mTextures;

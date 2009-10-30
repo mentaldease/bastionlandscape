@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Display/Camera.h"
 #include "../Display/Effect.h"
+#include "../Core/Scripting.h"
 
 namespace ElixirEngine
 {
@@ -37,6 +38,9 @@ namespace ElixirEngine
 		m_oVPosition(0.0f, 0.0f, 0.0f),
 		m_oVRotation(0.0f, 0.0f, 0.0f),
 		m_oViewport(),
+		m_pPreviousViewport(NULL),
+		m_pCurrentViewport(NULL),
+		m_uCurrentViewportKey(0),
 		m_fFovy(0.0f),
 		m_fAspectRatio(0.0f),
 		m_fPixelSize(0.0f),
@@ -76,6 +80,9 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
+			m_uCurrentViewportKey = 0;
+			m_pPreviousViewport = &m_oViewport;
+			m_pCurrentViewport = &m_oViewport;
 			m_fNear = pInfo->m_fZNear;
 			m_fFar = pInfo->m_fZFar;
 			m_fFovy = D3DXToRadian(pInfo->m_fDegreeFovy);
@@ -160,11 +167,64 @@ namespace ElixirEngine
 		ExtractFrustumCorners();
 		m_rDisplay.GetMaterialManager()->SetVector3BySemantic(m_uCameraPosKey, &m_oVPosition);
 		m_rDisplay.GetMaterialManager()->SetVector3BySemantic(m_uFrustumCornersKey, m_aFrustumCorners);
+
+		if (m_pPreviousViewport != m_pCurrentViewport)
+		{
+			m_rDisplay.GetDevicePtr()->SetViewport(m_pCurrentViewport);
+			m_pPreviousViewport = m_pCurrentViewport;
+		}
 	}
 
 	void DisplayCamera::Release()
 	{
+		m_mViewports.clear();
+	}
 
+	bool DisplayCamera::AddViewport(const Key& _uNameKey, ViewportRef _rViewPort)
+	{
+		ViewportMap::iterator iPair = m_mViewports.find(_uNameKey);
+		bool bResult = (m_mViewports.end() == iPair);
+
+		if (false != bResult)
+		{
+			m_mViewports[_uNameKey] = _rViewPort;
+		}
+
+		return bResult;
+	}
+
+	ViewportPtr DisplayCamera::GetCurrentViewport()
+	{
+		return m_pCurrentViewport;
+	}
+
+	ViewportPtr DisplayCamera::GetViewport(const Key& _uNameKey)
+	{
+		ViewportMap::iterator iPair = m_mViewports.find(_uNameKey);
+		return (m_mViewports.end() == iPair) ? NULL : &iPair->second;
+	}
+
+	void DisplayCamera::SetViewport(const Key& _uNameKey)
+	{
+		// Here we just take notice of a view port change request.
+		// This is done this way since we may have SetRenderTarget which reset view port settings to full size.
+		if (m_uCurrentViewportKey != _uNameKey)
+		{
+			if (0 == _uNameKey)
+			{
+				m_pCurrentViewport = &m_oViewport;
+				m_uCurrentViewportKey = _uNameKey;
+			}
+			else
+			{
+				ViewportPtr pViewport = GetViewport(_uNameKey);
+				if (NULL != pViewport)
+				{
+					m_pCurrentViewport = pViewport;
+					m_uCurrentViewportKey = _uNameKey;
+				}
+			}
+		}
 	}
 
 	Vector3& DisplayCamera::GetPosition()

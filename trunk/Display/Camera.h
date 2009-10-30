@@ -100,6 +100,11 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		bool AddViewport(const Key& _uNameKey, ViewportRef _rViewPort);
+		ViewportPtr GetCurrentViewport();
+		ViewportPtr GetViewport(const Key& _uNameKey);
+		void SetViewport(const Key& _uNameKey);
+
 		Vector3& GetPosition();
 		Vector3& GetRotation();
 		void GetDirs(Vector3& _oFrontDir, Vector3& _oRightDir, Vector3& _oUpDir);
@@ -144,6 +149,9 @@ namespace ElixirEngine
 
 		ViewportMap			m_mViewports;
 		Viewport			m_oViewport;
+		ViewportPtr			m_pPreviousViewport;
+		ViewportPtr			m_pCurrentViewport;
+		Key					m_uCurrentViewportKey;
 		float				m_fFovy;
 		float				m_fAspectRatio;
 		float				m_fPixelSize;

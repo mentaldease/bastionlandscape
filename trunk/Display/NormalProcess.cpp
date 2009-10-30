@@ -4,6 +4,7 @@
 #include "../Display/Effect.h"
 #include "../Display/Texture.h"
 #include "../Display/RenderTarget.h"
+#include "../Display/camera.h"
 #include "../Core/Scripting.h"
 
 namespace ElixirEngine
@@ -23,6 +24,7 @@ namespace ElixirEngine
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
 		m_uNameKey(0),
+		m_uViewportNameKey(0),
 		m_vRTTypes(),
 		m_vRTNames(),
 		m_mTextures()
@@ -67,6 +69,8 @@ namespace ElixirEngine
 				pRT->SetIndex(i);
 			}
 		}
+
+		m_rDisplay.GetCurrentCamera()->SetViewport(m_uViewportNameKey);
 	}
 
 	void DisplayNormalProcess::Release()
@@ -93,6 +97,10 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			m_uNameKey = MakeKey(strName);
+
+			const string strViewportName = rLuaObject["viewport"].GetString();
+			m_uViewportNameKey = MakeKey(strViewportName);
+
 			m_vRTTypes.resize(uRTCount);
 			m_vRTNames.resize(uRTCount);
 

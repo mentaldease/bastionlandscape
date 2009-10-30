@@ -79,7 +79,7 @@ namespace BastionGame
 		}
 		//m_mMaterials.clear();
 
-		// render post process
+		// render post processes
 		while (m_mPostProcesses.end() != m_mPostProcesses.begin())
 		{
 			DisplayPostProcessPtr pPostProcess = m_mPostProcesses.begin()->second;
@@ -88,6 +88,16 @@ namespace BastionGame
 			m_mPostProcesses.erase(m_mPostProcesses.begin());
 		}
 		m_vPostProcesses.clear();
+
+		// render normal processes
+		while (m_mNormalProcesses.end() != m_mNormalProcesses.begin())
+		{
+			DisplayNormalProcessPtr pNormalProcess = m_mNormalProcesses.begin()->second;
+			pNormalProcess->Release();
+			delete pNormalProcess;
+			m_mNormalProcesses.erase(m_mNormalProcesses.begin());
+		}
+		m_vNormalProcesses.clear();
 	}
 
 	void Scene::PreUpdate()

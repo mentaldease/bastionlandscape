@@ -296,9 +296,8 @@ namespace ElixirEngine
 			{
 				m_pCurrentNormalProcess = *iNormalProcess;
 				m_pCurrentNormalProcess->Update();
-				m_pDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0);
+				m_pDevice->Clear(0, NULL, /*D3DCLEAR_TARGET |*/ D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0);
 				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-				m_pCamera->Update();
 				Render();
 				m_pRTChain->RenderEnd();
 
@@ -313,7 +312,6 @@ namespace ElixirEngine
 			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 			m_pRTChain->RenderBeginPass(0);
 			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
-			m_pCamera->Update();
 			Render();
 			m_pRTChain->RenderEndPass();
 			m_pRTChain->RenderEnd();
@@ -528,6 +526,8 @@ namespace ElixirEngine
 
 	void Display::Render()
 	{
+		m_pCamera->Update();
+
 		RenderUpdate();
 
 		struct RenderEffectFunction

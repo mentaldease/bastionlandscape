@@ -127,7 +127,8 @@ namespace ElixirEngine
 		m_eMode(ERenderMode_UNKNOWNPROCESS),
 		m_bFirstRender(true),
 		m_bImmediateWrite(false),
-		m_bEnabled(false)
+		m_bEnabled(false),
+		m_bSwap(false)
 	{
 		for (UInt i = 0 ; c_uBufferCount > i ; ++i)
 		{
@@ -200,6 +201,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::RenderBegin(const ERenderMode& _eMode)
 	{
+		m_bSwap = false;
 		if ((false != m_bEnabled) && ((ERenderState_UNKNOWN == m_eRenderState) || (ERenderState_RENDEREND == m_eRenderState)))
 		{
 			m_eRenderState = ERenderState_RENDERBEGIN;
@@ -219,6 +221,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::RenderBeginPass(const UInt _uIndex)
 	{
+		m_bSwap = false;
 		if ((false != m_bEnabled) && ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState)))
 		{
 			m_uPassIndex = _uIndex;
@@ -241,6 +244,7 @@ namespace ElixirEngine
 					{
 						m_pCurrentBufferTex = m_pDoubleBufferTex[uNewIndex];
 						m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pDoubleBufferSurf[uNewIndex]);
+						m_bSwap = true;
 					}
 				}
 			}
@@ -249,6 +253,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::RenderEndPass()
 	{
+		m_bSwap = false;
 		if ((false != m_bEnabled) && (ERenderState_RENDERBEGINPASS == m_eRenderState))
 		{
 			m_eRenderState = ERenderState_RENDERENDPASS;
@@ -267,6 +272,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::RenderEnd()
 	{
+		m_bSwap = false;
 		if ((false != m_bEnabled) && ((ERenderState_RENDERBEGIN == m_eRenderState) || (ERenderState_RENDERENDPASS == m_eRenderState)))
 		{
 			m_eRenderState = ERenderState_RENDEREND;
@@ -279,10 +285,6 @@ namespace ElixirEngine
 					m_pPreviousBufferSurf->Release();
 					m_pPreviousBufferSurf = NULL;
 				}
-				//if ((ERenderMode_NORMALPROCESS == m_eMode) && (1 == m_uRTIndex))
-				//{
-				//	D3DXSaveTextureToFile(L"data/Debug.jpg", D3DXIFF_JPG, m_pCurrentBufferTex->GetBase(), NULL);
-				//}
 			}
 		}
 	}
@@ -312,6 +314,11 @@ namespace ElixirEngine
 		return m_uRTIndex;
 	}
 
+	bool DisplayRenderTarget::SwapOccured()
+	{
+		return m_bSwap;
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -337,7 +344,6 @@ namespace ElixirEngine
 		for (UInt i = 0 ; pInfo->m_uBufferCount > i ; ++i)
 		{
 			const string strRTName = boost::str(boost::format("%1%_buffer%2%") % pInfo->m_strName % i);
-			//DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, i };
 			DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, D3DFORMAT(pInfo->m_pFormats[i]), i };
 			DisplayRenderTargetPtr pRT = new DisplayRenderTarget(m_rDisplay);
 			bResult = pRT->Create(boost::any(&oRTRTCInfo));
@@ -386,10 +392,18 @@ namespace ElixirEngine
 	{
 		DisplayRenderTargetPtrVec::iterator iRT = m_vGBuffer.begin();
 		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
+		bool bSwap = false;
 		while (iEnd != iRT)
 		{
-			(*iRT)->RenderBeginPass(_uIndex);
+			DisplayRenderTargetPtr pRT = *iRT;
+			pRT->RenderBeginPass(_uIndex);
+			bSwap = bSwap || pRT->SwapOccured();
 			++iRT;
+		}
+		// Since SetRenderViewport reset the view port to full screen size we need to force back previously requested view port.
+		if (false != bSwap)
+		{
+			m_rDisplay.GetDevicePtr()->SetViewport(m_rDisplay.GetCurrentCamera()->GetCurrentViewport());
 		}
 	}
 
