@@ -40,11 +40,7 @@ namespace ElixirEngine
 		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
 		bool bResult = false;
 
-		if (NULL != pInfo->m_pConfig)
-		{
-			bResult = CreateFromLibConfig(*pInfo);
-		}
-		else if (NULL != pInfo->m_pLuaObject)
+		if (NULL != pInfo->m_pLuaObject)
 		{
 			bResult = CreateFromLuaConfig(*pInfo);
 		}
@@ -84,69 +80,6 @@ namespace ElixirEngine
 	Key DisplayNormalProcess::GetNameKey()
 	{
 		return m_uNameKey;
-	}
-
-	bool DisplayNormalProcess::CreateFromLibConfig(CreateInfoRef _rInfo)
-	{
-		string strName = "";
-		UInt uRTCount = 0;
-		bool bResult = false;
-
-		bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "name", strName)
-			&& _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, "render_target_count", uRTCount)
-			&& (false == strName.empty())
-			&& (0 < uRTCount);
-
-		if (false != bResult)
-		{
-			m_uNameKey = MakeKey(strName);
-			m_vRTTypes.resize(uRTCount);
-			m_vRTNames.resize(uRTCount);
-
-			for (UInt i = 0 ; uRTCount > i ; ++i)
-			{
-				string strRTType = boost::str(boost::format("render_target_type_%1%") % i);
-				bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, strRTType, strRTType);
-
-				if (false == bResult)
-				{
-					break;
-				}
-				bResult = false;
-				const Key uRTTypeKey = MakeKey(strRTType);
-				if (s_uTypeTex2DKey == uRTTypeKey)
-				{
-					string strRTName = boost::str(boost::format("render_target_name_%1%") % i);
-					bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, strRTName, strRTName);
-					if (false != bResult)
-					{
-						const Key uRTNameKey = MakeKey(strRTName);
-						DisplayTexturePtr pTexture = m_rDisplay.GetTextureManager()->Get(uRTNameKey);
-						m_mTextures[uRTNameKey] = pTexture;
-						bResult = (NULL != pTexture);
-						m_vRTTypes[i] = uRTTypeKey;
-						m_vRTNames[i] = uRTNameKey;
-					}
-				}
-				else if (s_uTypeGBufferKey == uRTTypeKey)
-				{
-					UInt uRTIndex;
-					const string strRTName = boost::str(boost::format("render_target_index_%1%") % i);
-					bResult = _rInfo.m_pConfig->GetValue(_rInfo.m_pShortcut, strRTName, uRTIndex);
-					if (false != bResult)
-					{
-						m_vRTTypes[i] = uRTTypeKey;
-						m_vRTNames[i] = uRTIndex;
-					}
-				}
-				if (false == bResult)
-				{
-					break;
-				}
-			}
-		}
-
-		return bResult;
 	}
 
 	bool DisplayNormalProcess::CreateFromLuaConfig(CreateInfoRef _rInfo)

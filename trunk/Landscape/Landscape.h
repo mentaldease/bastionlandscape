@@ -5,7 +5,6 @@
 #include "../Display/Display.h"
 #include "../Display/Surface.h"
 #include "../Landscape/LandscapeTypes.h"
-#include "../Core/Config.h"
 
 namespace ElixirEngine
 {
@@ -293,11 +292,6 @@ namespace ElixirEngine
 		Vector4& GetShaderInfo();
 
 	protected:
-		bool CreateFromLibConfig(CreateInfoRef _rInfo);
-		bool CreateAtlas(ConfigRef _rConfig);
-		bool CreateSlopeAndHeightLUT(ConfigRef _rConfig);
-		bool CreateNoise(ConfigRef _rConfig);
-
 		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
 		bool CreateAtlas(LuaObjectRef _rLuaObject);
 		bool CreateSlopeAndHeightLUT(LuaObjectRef _rLuaObject);

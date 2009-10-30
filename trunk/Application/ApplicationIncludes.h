@@ -10,7 +10,6 @@
 #include "../Landscape/Landscape.h"
 #include "../Input/Input.h"
 #include "../Core/Time.h"
-#include "../Core/Config.h"
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
 #include "../Core/Scripting.h"
