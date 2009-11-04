@@ -1112,6 +1112,57 @@ namespace ElixirEngine
 
 	private:
 	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayEffectParamSTRUCT : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamSTRUCT(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial),
+			m_pData(NULL),
+			m_uSize(0)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamSTRUCT()
+		{
+
+		}
+
+		virtual bool Use()
+		{
+			m_pData = m_rDisplayMaterial.GetMaterialManager().GetStructBySemantic(m_uSemanticKey, m_uSize);
+			if (NULL != m_pData)
+			{
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetValue(m_hData, m_pData, m_uSize);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamSTRUCT(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		VoidPtr m_pData;
+		UInt	m_uSize;
+
+	private:
+	};
 }
 
 #endif // __EFFECTPARAM_H__

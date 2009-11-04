@@ -134,8 +134,19 @@ namespace ElixirEngine
 		Vector4* GetVector4BySemantic(const Key& _uSemanticKey);
 		void SetMatrixBySemantic(const Key& _uSemanticKey, MatrixPtr _pData);
 		MatrixPtr GetMatrixBySemantic(const Key& _uSemanticKey);
+		void SetStructBySemantic(const Key& _uSemanticKey, VoidPtr _pData, const UInt _uSize);
+		VoidPtr GetStructBySemantic(const Key& _uSemanticKey, UIntRef _uSize);
 
 	protected:
+		struct StructData
+		{
+			StructData();
+			VoidPtr	m_pData;
+			UInt	m_uSize;
+		};
+		typedef StructData* StructDataPtr;
+		typedef StructData& StructDataRef;
+		typedef map<Key, StructData> StructDataMap;
 
 	protected:
 		DisplayEffectPtrMap		m_mEffects;
@@ -146,6 +157,7 @@ namespace ElixirEngine
 		Vector3PtrMap			m_mVector3Info;
 		Vector4PtrMap			m_mVector4Info;
 		MatrixPtrMap			m_mMatrixInfo;
+		StructDataMap			m_mStructInfo;
 		DisplayRef				m_rDisplay;
 
 	private:

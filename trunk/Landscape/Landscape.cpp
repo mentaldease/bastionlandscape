@@ -506,7 +506,9 @@ namespace ElixirEngine
 							}
 						}
 						// update vertex y with interpolated pixel value based on surface info
-						const float fRowHeight = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f;
+						//const float fRowHeight = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f;
+						const float fRowHeight = float(aRGBA[0]);
+						const UInt uWaterLevel = 0; // aRGBA[3];
 						pVertex->m_fNormalizedHeight = fRowHeight / 255.0f;
 						pVertex->m_oPosition.y = fRowHeight * m_oGlobalInfo.m_fHeightScale;
 						if (m_oGlobalInfo.m_fMinHeight > pVertex->m_oPosition.y)
@@ -517,6 +519,7 @@ namespace ElixirEngine
 						{
 							m_oGlobalInfo.m_fMaxHeight = pVertex->m_oPosition.y;
 						}
+						pVertex->m_uWaterLevel = uWaterLevel;
 						++pVertex;
 					}
 					if (false == bResult)

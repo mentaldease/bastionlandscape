@@ -18,6 +18,10 @@ namespace BastionGame
 	class CameraListener;
 	typedef CameraListener* CameraListenerPtr;
 	typedef CameraListener& CameraListenerRef;
+
+	struct WaterData;
+	typedef WaterData* WaterDataPtr;
+	typedef WaterData& WaterDataRef;
 }
 
 #endif // __APPLICATIONTYPES_H__

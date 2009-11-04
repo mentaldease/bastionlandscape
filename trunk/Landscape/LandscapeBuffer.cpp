@@ -168,7 +168,10 @@ namespace ElixirEngine
 						&& (0 <= sIndex2) && (int(_rLODInfo.m_uVertexCount) > sIndex2))
 					{
 						Plane oPlane;
-						D3DXPlaneFromPoints(&oPlane, &pVertex->m_oPosition, &_rLODInfo.m_pVertexesIndependent[sIndex1].m_oPosition, &_rLODInfo.m_pVertexesIndependent[sIndex2].m_oPosition);
+						D3DXPlaneFromPoints(&oPlane,
+							&pVertex->m_oPosition,
+							&_rLODInfo.m_pVertexesIndependent[sIndex1].m_oPosition,
+							&_rLODInfo.m_pVertexesIndependent[sIndex2].m_oPosition);
 						D3DXPlaneNormalize(&oPlane, &oPlane);
 						pVertex->m_oNormal += Vector3(oPlane.a, oPlane.b, oPlane.c);
 					}

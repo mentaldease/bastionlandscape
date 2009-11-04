@@ -84,4 +84,22 @@ materiallib00 =
 			},
 		},
 	},
+	{
+		name = "waterpost01",
+		effect = "data/effects/WaterPost2.fx",
+		technique = "RenderScene",
+		params =
+		{
+			{
+				semantic = "TEX2D00",
+				name = "waterpost00_foamMap",
+				value = "data/textures/waterpost00_foamMap.jpg",
+			},
+			{
+				semantic = "TEX2D01",
+				name = "waterpost00_normalMap",
+				value = "data/textures/waterpost00_normalMap.dds",
+			},
+		},
+	},
 }

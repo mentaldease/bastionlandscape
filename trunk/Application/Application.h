@@ -9,6 +9,12 @@ namespace BastionGame
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	#define WATER_COUNT	4
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class Application : public CoreObject
 	{
 	public:
@@ -70,7 +76,6 @@ namespace BastionGame
 		unsigned char				m_aKeysInfoOld[256];
 		DIMouseState				m_oMouseInfo;
 		DIMouseState				m_oMouseInfoOld;
-		Vector4						m_oLightDir;
 		CameraListenerPtr			m_pCameraListener;
 		LuaStatePtr					m_pLuaState;
 
