@@ -20,9 +20,13 @@ namespace BastionGame
 		m_vPostProcesses(),
 		m_mNormalProcesses(),
 		m_vNormalProcesses(),
+		m_oLightDir(0.0f, 0.0f, 0.0f, 0.0f),
+		m_pWaterData(NULL),
+		m_uWaterDataCount(0),
 		m_strName(),
 		m_fWaterLevel(200.0f),
-		m_uWaterLevelKey(MakeKey(string("WATERLEVEL")))
+		m_uWaterLevelKey(MakeKey(string("WATERLEVEL"))),
+		m_uWaterDataKey(MakeKey(string("WATERDATA")))
 	{
 
 	}
@@ -34,13 +38,23 @@ namespace BastionGame
 
 	bool Scene::Create(const boost::any& _rConfig)
 	{
-		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
-
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-		pMaterialManager->SetFloatBySemantic(m_uWaterLevelKey, &m_fWaterLevel);
 		pMaterialManager->RegisterParamCreator(m_uWaterLevelKey, boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
+		pMaterialManager->RegisterParamCreator(m_uWaterDataKey, boost::bind(&DisplayEffectParamSTRUCT::CreateParam, _1));
 
-		return CreateFromLuaConfig(pInfo);
+		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
+		bool bResult = CreateFromLuaConfig(pInfo);
+
+		if (false != bResult)
+		{
+			pMaterialManager->SetFloatBySemantic(m_uWaterLevelKey, &m_fWaterLevel);
+			pMaterialManager->SetStructBySemantic(m_uWaterDataKey, m_pWaterData, WATER_COUNT * sizeof(WaterData));
+			m_oLightDir = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
+			D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
+			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
+		}
+
+		return bResult;
 	}
 
 	void Scene::Update()
@@ -57,7 +71,14 @@ namespace BastionGame
 	void Scene::Release()
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-		pMaterialManager->UnregisterParamCreator(m_uWaterLevelKey);
+
+		// water rendering configuration data
+		if (NULL != m_pWaterData)
+		{
+			delete[] m_pWaterData;
+			m_pWaterData = NULL;
+			m_uWaterDataCount = 0;
+		}
 
 		// landscapes
 		while (m_mLandscapes.end() != m_mLandscapes.begin())
@@ -77,7 +98,6 @@ namespace BastionGame
 			pMaterialManager->UnloadMaterial(m_mMaterials.begin()->first);
 			m_mMaterials.erase(m_mMaterials.begin());
 		}
-		//m_mMaterials.clear();
 
 		// render post processes
 		while (m_mPostProcesses.end() != m_mPostProcesses.begin())
@@ -98,6 +118,10 @@ namespace BastionGame
 			m_mNormalProcesses.erase(m_mNormalProcesses.begin());
 		}
 		m_vNormalProcesses.clear();
+
+		// specific param creators
+		pMaterialManager->UnregisterParamCreator(m_uWaterDataKey);
+		pMaterialManager->UnregisterParamCreator(m_uWaterLevelKey);
 	}
 
 	void Scene::PreUpdate()
@@ -129,12 +153,13 @@ namespace BastionGame
 			bResult = CreateLoadMaterials(oRoot)
 				&& CreateLoadLandscapes(oRoot)
 				&& CreateLoadPostProcesses(oRoot)
-				&& CreateLoadNormalProcesses(oRoot);
+				&& CreateLoadNormalProcesses(oRoot)
+				&& CreateLoadWaterDataList(oRoot);
 		}
 		return bResult;
 	}
 
-	bool Scene:: CreateLoadMaterials(LuaObjectRef _rLuaObject)
+	bool Scene::CreateLoadMaterials(LuaObjectRef _rLuaObject)
 	{
 		string strMaterialName;
 		bool bResult = true;
@@ -178,7 +203,7 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene:: CreateLoadLandscapes(LuaObjectRef _rLuaObject)
+	bool Scene::CreateLoadLandscapes(LuaObjectRef _rLuaObject)
 	{
 		LuaObject oLandscapes = _rLuaObject["landscapes"];
 		bool bResult = true;
@@ -199,7 +224,7 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene:: CreateLoadLandscape(LuaObjectRef _rLuaObject)
+	bool Scene::CreateLoadLandscape(LuaObjectRef _rLuaObject)
 	{
 		LandscapePtr pLandscape = new Landscape(*m_rApplication.GetDisplay());
 		Landscape::OpenInfo oLOInfo;
@@ -261,7 +286,7 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene:: CreateLoadPostProcesses(LuaObjectRef _rLuaObject)
+	bool Scene::CreateLoadPostProcesses(LuaObjectRef _rLuaObject)
 	{
 		LuaObject oPostProcesses = _rLuaObject["postprocesses"];
 		bool bResult = true;
@@ -282,7 +307,7 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene:: CreateLoadPostProcess(LuaObjectRef _rLuaObject)
+	bool Scene::CreateLoadPostProcess(LuaObjectRef _rLuaObject)
 	{
 		DisplayPostProcessPtr pPostProcess = new DisplayPostProcess(*m_rApplication.GetDisplay());
 		DisplayPostProcess::CreateInfo oPPCInfo;
@@ -309,7 +334,7 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene:: CreateLoadNormalProcesses(LuaObjectRef _rLuaObject)
+	bool Scene::CreateLoadNormalProcesses(LuaObjectRef _rLuaObject)
 	{
 		LuaObject oNormalProcesses = _rLuaObject["normalprocesses"];
 		bool bResult = true;
@@ -330,7 +355,7 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene:: CreateLoadNormalProcess(LuaObjectRef _rLuaObject)
+	bool Scene::CreateLoadNormalProcess(LuaObjectRef _rLuaObject)
 	{
 		DisplayNormalProcessPtr pNormalProcess = new DisplayNormalProcess(*m_rApplication.GetDisplay());
 		DisplayNormalProcess::CreateInfo oNPCInfo = { &_rLuaObject };
@@ -347,6 +372,59 @@ namespace BastionGame
 			pNormalProcess->Release();
 			delete pNormalProcess;
 		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadWaterDataList(LuaObjectRef _rLuaObject)
+	{
+		LuaObject oWater = _rLuaObject["water"];
+		bool bResult = true;
+
+		if ((false == oWater.IsNil()) && (m_uWaterDataCount = oWater.GetCount()))
+		{
+			m_uWaterDataCount = (WATER_COUNT < m_uWaterDataCount) ? WATER_COUNT : m_uWaterDataCount;
+			m_pWaterData = new WaterData[m_uWaterDataCount];
+			for (UInt i = 0 ; m_uWaterDataCount > i ; ++i)
+			{
+				bResult = CreateLoadWaterData(oWater[i + 1], m_pWaterData[i]);
+				if (false == bResult)
+				{
+					break;
+				}
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadWaterData(LuaObjectRef _rLuaObject, WaterDataRef _rWaterData)
+	{
+		bool bResult = true;
+
+		memset(&_rWaterData, 0, sizeof(WaterData));
+		Scripting::Lua::Get(_rLuaObject, "WaterLevel", 0.0f, _rWaterData.m_fWaterLevel);
+		Scripting::Lua::Get(_rLuaObject, "FadeSpeed", 0.15f, _rWaterData.m_fFadeSpeed);
+		Scripting::Lua::Get(_rLuaObject, "NormalScale", 1.0f, _rWaterData.m_fNormalScale);
+		Scripting::Lua::Get(_rLuaObject, "R0", 0.5f, _rWaterData.m_fR0);
+		Scripting::Lua::Get(_rLuaObject, "MaxAmplitude", 1.0f, _rWaterData.m_fMaxAmplitude);
+		Scripting::Lua::Get(_rLuaObject, "SunColor", Vector3(1.0f, 1.0f, 1.0f), _rWaterData.m_vSunColor);
+		Scripting::Lua::Get(_rLuaObject, "ShoreHardness", 1.0f, _rWaterData.m_fShoreHardness);
+		Scripting::Lua::Get(_rLuaObject, "RefractionStrength", 0.0f, _rWaterData.m_fRefractionStrength);
+		Scripting::Lua::Get(_rLuaObject, "NormalModifier", Vector4(1.0f, 2.0f, 4.0f, 8.0f), _rWaterData.m_vNormalModifier);
+		Scripting::Lua::Get(_rLuaObject, "Displace", 1.7f, _rWaterData.m_fDisplace);
+		Scripting::Lua::Get(_rLuaObject, "FoamExistence", Vector3(0.65f, 1.35f, 0.5f), _rWaterData.m_vFoamExistence);
+		Scripting::Lua::Get(_rLuaObject, "SunScale", 3.0f, _rWaterData.m_fSunScale);
+		Scripting::Lua::Get(_rLuaObject, "Shininess", 0.7f, _rWaterData.m_fShininess);
+		Scripting::Lua::Get(_rLuaObject, "SpecularIntensity", 0.32f, _rWaterData.m_fSpecularIntensity);
+		Scripting::Lua::Get(_rLuaObject, "DepthColour", Vector3(0.0078f, 0.5176f, 0.7f), _rWaterData.m_vDepthColour);
+		Scripting::Lua::Get(_rLuaObject, "BigDepthColour", Vector3(0.0039f, 0.00196f, 0.145f), _rWaterData.m_vBigDepthColour);
+		Scripting::Lua::Get(_rLuaObject, "Extinction", Vector3(7.0f, 30.0f, 40.0f), _rWaterData.m_vExtinction);
+		Scripting::Lua::Get(_rLuaObject, "Visibility", 4.0f, _rWaterData.m_fVisibility);
+		Scripting::Lua::Get(_rLuaObject, "Scale", 0.005f, _rWaterData.m_fScale);
+		Scripting::Lua::Get(_rLuaObject, "RefractionScale", 0.005f, _rWaterData.m_fRefractionScale);
+		Scripting::Lua::Get(_rLuaObject, "Wind", Vector2(-0.3f, 0.7f), _rWaterData.m_vWind);
+		Scripting::Lua::Get(_rLuaObject, "Forward", Vector3(0.0f, 0.0f, 0.0f), _rWaterData.m_vForward);
 
 		return bResult;
 	}

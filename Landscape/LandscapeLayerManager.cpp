@@ -243,12 +243,12 @@ namespace ElixirEngine
 								}
 								switch (rSurfaceInfo.Format)
 								{
-								case D3DFMT_A8R8G8B8:
+									case D3DFMT_A8R8G8B8:
 									{
 										*pRow = *pPixel;
 										break;
 									}
-								case D3DFMT_X8R8G8B8:
+									case D3DFMT_X8R8G8B8:
 									{
 										//*pRow = D3DCOLOR_ARGB(255, pPixel[0], pPixel[1], pPixel[2]);
 										*pRow = *pPixel | 0xff000000;

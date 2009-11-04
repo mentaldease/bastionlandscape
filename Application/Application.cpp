@@ -88,7 +88,6 @@ namespace BastionGame
 		m_uRLTimerID(0xffffffff),
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f),
-		m_oLightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pCameraListener(NULL)
 	{
 	}
@@ -172,9 +171,6 @@ namespace BastionGame
 		{
 			m_eStateMode = EStateMode_INITIALING_SHADERS;
 			DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
-			m_oLightDir = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
-			D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
-			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
 			pMaterialManager->SetFloatBySemantic(MakeKey(string("TIME")), &m_fRelativeTime);
 		}
 

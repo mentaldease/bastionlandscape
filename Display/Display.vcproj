@@ -159,6 +159,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DisplayScripting.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Effect.cpp"
 				>
 			</File>

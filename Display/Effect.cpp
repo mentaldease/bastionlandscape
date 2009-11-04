@@ -11,6 +11,16 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	DisplayMaterialManager::StructData::StructData()
+	:	m_pData(NULL),
+		m_uSize(0)
+	{
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	DisplayEffect::DisplayEffect(DisplayRef _rDisplay)
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
@@ -668,5 +678,19 @@ namespace ElixirEngine
 	MatrixPtr DisplayMaterialManager::GetMatrixBySemantic(const Key& _uSemanticKey)
 	{
 		return m_mMatrixInfo[_uSemanticKey];
+	}
+
+	void DisplayMaterialManager::SetStructBySemantic(const Key& _uSemanticKey, VoidPtr _pData, const UInt _uSize)
+	{
+		StructDataRef rInfo = m_mStructInfo[_uSemanticKey];
+		rInfo.m_pData = _pData;
+		rInfo.m_uSize = _uSize;
+	}
+
+	VoidPtr DisplayMaterialManager::GetStructBySemantic(const Key& _uSemanticKey, UIntRef _uSize)
+	{
+		StructDataRef rInfo = m_mStructInfo[_uSemanticKey];
+		_uSize = rInfo.m_uSize;
+		return rInfo.m_pData;
 	}
 }

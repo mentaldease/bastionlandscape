@@ -26,6 +26,9 @@ namespace ElixirEngine
 			static LuaStatePtr GetStateInstance();
 			static bool Loadfile(const string& _strFileName, LuaStatePtr _pState = NULL);
 
+			template<typename T>
+			static bool Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const T _tDefault, T& _tResult);
+
 		protected:
 			static LuaStatePtr s_pState;
 

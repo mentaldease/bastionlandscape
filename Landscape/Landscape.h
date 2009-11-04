@@ -79,6 +79,7 @@ namespace ElixirEngine
 		Vector2				m_oUV;
 		float				m_fNormalizedSlope;
 		float				m_fNormalizedHeight;
+		UInt				m_uWaterLevel;
 	};
 
 	//-----------------------------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 #define __SCENE_H__
 
 #include "../Application/ApplicationIncludes.h"
+#include "../Application/Water.h"
 
 namespace BastionGame
 {
@@ -38,6 +39,8 @@ namespace BastionGame
 		bool CreateLoadPostProcess(LuaObjectRef _rLuaObject);
 		bool CreateLoadNormalProcesses(LuaObjectRef _rLuaObject);
 		bool CreateLoadNormalProcess(LuaObjectRef _rLuaObject);
+		bool CreateLoadWaterDataList(LuaObjectRef _rLuaObject);
+		bool CreateLoadWaterData(LuaObjectRef _rLuaObject, WaterDataRef _rWaterData);
 
 	protected:
 		ApplicationRef				m_rApplication;
@@ -48,9 +51,13 @@ namespace BastionGame
 		DisplayPostProcessPtrVec	m_vPostProcesses;
 		DisplayNormalProcessPtrMap	m_mNormalProcesses;
 		DisplayNormalProcessPtrVec	m_vNormalProcesses;
+		Vector4						m_oLightDir;
+		WaterDataPtr				m_pWaterData;
+		UInt						m_uWaterDataCount;
 		string						m_strName;
 		float						m_fWaterLevel;
 		Key							m_uWaterLevelKey;
+		Key							m_uWaterDataKey;
 
 	private:
 	};

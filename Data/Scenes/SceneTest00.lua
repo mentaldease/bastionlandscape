@@ -103,7 +103,7 @@ scenetest00 =
 	{
 		{
 			name = "water",
-			material = "waterpost00",
+			material = "waterpost01",
 			immediate_write = false,
 		},
 		--[[
@@ -128,5 +128,32 @@ scenetest00 =
 			immediate_write = false,
 		},
 		]]
+	},
+	water =
+	{
+		{
+			WaterLevel = 100.0,
+			FadeSpeed = 0.15,
+			NormalScale = 1.0,
+			R0 = 0.5,
+			MaxAmplitude = 1.0,
+			SunColor = { 1.0, 1.0, 1.0, },
+			ShoreHardness = 1.0,
+			RefractionStrength = 0.0,
+			NormalModifier = {1.0, 2.0, 4.0, 8.0, },
+			Displace = 1.7,
+			FoamExistence = { 0.65, 1.35, 0.5, },
+			SunScale = 3.0,
+			Shininess = 0.7,
+			SpecularIntensity = 0.32,
+			DepthColour = { 0.0078, 0.5176, 0.7, },
+			BigDepthColour = { 0.0039, 0.00196, 0.145, },
+			Extinction = { 7.0, 30.0, 40.0, },
+			Visibility = 4.0,
+			Scale = 0.005,
+			RefractionScale = 0.005,
+			Wind = { -0.3, 0.7, },
+			Forward = { 0.0, 0.0, 0.0, },
+		},
 	},
 }

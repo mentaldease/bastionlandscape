@@ -66,5 +66,57 @@ namespace ElixirEngine
 			}
 			return bResult;
 		}
+
+		template<typename T>
+		bool Lua::Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const T _tDefault, T& _tResult)
+		{
+			_tResult = _tDefault;
+			return false;
+		}
+
+		template<>
+		bool Lua::Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const float _tDefault, float& _tResult)
+		{
+			LuaObject oLuaObject = _rLuaObject[_pszFieldName];
+			bool bResult = (false == oLuaObject.IsNil());
+			_tResult = (false != bResult) ? oLuaObject.GetFloat() : _tDefault;
+			return bResult;
+		}
+
+		template<>
+		bool Lua::Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const UInt _tDefault, UInt& _tResult)
+		{
+			LuaObject oLuaObject = _rLuaObject[_pszFieldName];
+			bool bResult = (false == oLuaObject.IsNil());
+			_tResult = (false != bResult) ? UInt(oLuaObject.GetInteger()) : _tDefault;
+			return bResult;
+		}
+
+		template<>
+		bool Lua::Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const int _tDefault, int& _tResult)
+		{
+			LuaObject oLuaObject = _rLuaObject[_pszFieldName];
+			bool bResult = (false == oLuaObject.IsNil());
+			_tResult = (false != bResult) ? oLuaObject.GetInteger() : _tDefault;
+			return bResult;
+		}
+
+		template<>
+		bool Lua::Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const string _tDefault, string& _tResult)
+		{
+			LuaObject oLuaObject = _rLuaObject[_pszFieldName];
+			bool bResult = (false == oLuaObject.IsNil());
+			_tResult = (false != bResult) ? oLuaObject.GetString() : _tDefault;
+			return bResult;
+		}
+
+		template<>
+		bool Lua::Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const bool _tDefault, bool& _tResult)
+		{
+			LuaObject oLuaObject = _rLuaObject[_pszFieldName];
+			bool bResult = (false == oLuaObject.IsNil());
+			_tResult = (false != bResult) ? oLuaObject.GetBoolean() : _tDefault;
+			return bResult;
+		}
 	}
 }
