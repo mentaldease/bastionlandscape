@@ -126,79 +126,6 @@ float4x4 matReflection =
 	{0.5f, 0.5f, 0.5f, 1.0f}
 };
 
-/*
-// Level at which water surface begins
-float g_WaterData[g_uWaterIndex].fWaterLevel : WATERLEVEL;
-
-// How fast will colours fade out. You can also think about this
-// values as how clear water is. Therefore use smaller values (eg. 0.05f)
-// to have crystal clear water and bigger to achieve "muddy" water.
-float g_WaterData[g_uWaterIndex].fFadeSpeed = 0.15f;
-
-// Normals scaling factor
-float g_WaterData[g_uWaterIndex].fNormalScale = 1.0f;
-
-// g_WaterData[g_uWaterIndex].fR0 is a constant related to the index of refraction (IOR).
-// It should be computed on the CPU and passed to the shader.
-float g_WaterData[g_uWaterIndex].fR0 = 0.5f;
-
-// Maximum waves amplitude
-float g_WaterData[g_uWaterIndex].fMaxAmplitude = 1.0f;
-
-// Direction of the light
-float3 g_vLightDir : LIGHTDIR; //= {0.0f, 1.0f, 0.0f};
-
-// Colour of the sun
-float3 g_WaterData[g_uWaterIndex].vSunColor = {1.0f, 1.0f, 1.0f};
-
-// The smaller this value is, the more soft the transition between
-// shore and water. If you want hard edges use very big value.
-// Default is 1.0f.
-float g_WaterData[g_uWaterIndex].fShoreHardness = 1.0f;
-
-// This value modifies current fresnel term. If you want to weaken
-// reflections use bigger value. If you want to empasize them use
-// value smaller then 0. Default is 0.0f.
-float g_WaterData[g_uWaterIndex].fRefractionStrength = 0.0f;
-//float g_WaterData[g_uWaterIndex].fRefractionStrength = -0.3f;
-
-// Modifies 4 sampled normals. Increase first values to have more
-// smaller "waves" or last to have more bigger "waves"
-float4 g_WaterData[g_uWaterIndex].vNormalModifier = {1.0f, 2.0f, 4.0f, 8.0f};
-
-// Strength of displacement along normal.
-float g_WaterData[g_uWaterIndex].fDisplace = 1.7f;
-
-// Describes at what depth foam starts to fade out and
-// at what it is completely invisible. The fird value is at
-// what height foam for waves appear (+ g_WaterData[g_uWaterIndex].fWaterLevel).
-float3 g_WaterData[g_uWaterIndex].vFoamExistence = {0.65f, 1.35f, 0.5f};
-
-float g_WaterData[g_uWaterIndex].fSunScale = 3.0f;
-
-float g_WaterData[g_uWaterIndex].fShininess = 0.7f;
-float g_WaterData[g_uWaterIndex].fSpecularIntensity = 0.32;
-
-// Colour of the water surface
-float3 g_WaterData[g_uWaterIndex].vDepthColour = {0.0078f, 0.5176f, 0.7f};
-// Colour of the water depth
-float3 g_WaterData[g_uWaterIndex].vBigDepthColour = {0.0039f, 0.00196f, 0.145f};
-float3 g_WaterData[g_uWaterIndex].vExtinction = {7.0f, 30.0f, 40.0f};			// Horizontal
-
-// Water transparency along eye vector.
-float g_WaterData[g_uWaterIndex].fVisibility = 4.0f;
-
-// Increase this value to have more smaller waves.
-float g_WaterData[g_uWaterIndex].fScale = 0.005f;
-float g_WaterData[g_uWaterIndex].fRefractionScale = 0.005f;
-
-// Wind force in x and z axes.
-float2 g_WaterData[g_uWaterIndex].vWind = {-0.3f, 0.7f};
-
-float3 g_WaterData[g_uWaterIndex].vForward;
-*/
-
-
 // VertexShader results
 struct VertexOutput
 {
@@ -369,7 +296,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		dPos.x = texCoordProj.x + g_WaterData[g_uWaterIndex].fDisplace * normal.x;
 		dPos.z = texCoordProj.z + g_WaterData[g_uWaterIndex].fDisplace * normal.z;
 		dPos.yw = texCoordProj.yw;
-		texCoordProj = dPos;		
+		texCoordProj = dPos;
 		float3 reflect = tex2Dproj(reflectionMap, texCoordProj);
 		
 		float fresnel = fresnelTerm(normal, eyeVecNorm);
