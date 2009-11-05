@@ -52,6 +52,8 @@ namespace ElixirEngine
 		VertexDeclPtr	m_pVertDeclPP;
 		unsigned int	m_uPreviousVBOffset;
 		unsigned int	m_uPreviousVBStride;
+		float			m_fFullWidth;
+		float			m_fFullHeight;
 
 	private:
 	};

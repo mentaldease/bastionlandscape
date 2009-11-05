@@ -18,7 +18,8 @@ namespace BastionGame
 			m_oReflection(),
 			m_uReflectionKey(MakeKey(string("reflection"))),
 			m_uReflection2Key(MakeKey(string("reflection2"))),
-			m_uWaterLevelKey(MakeKey(string("WATERLEVEL")))
+			m_uWaterLevelKey(MakeKey(string("WATERLEVEL"))),
+			m_uWaterDataKey(MakeKey(string("WATERDATA")))
 		{
 
 		}
@@ -36,13 +37,21 @@ namespace BastionGame
 
 		virtual void Update()
 		{
+			const Key uProcessNameKey = m_rDisplay.GetCurrentNormalProcess()->GetNameKey();
 			m_pCamera = m_rDisplay.GetCurrentCamera();
 			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess())
-				&& ((m_uReflectionKey == m_rDisplay.GetCurrentNormalProcess()->GetNameKey())
-				|| (m_uReflection2Key == m_rDisplay.GetCurrentNormalProcess()->GetNameKey()))
-				)
+				&& ((m_uReflectionKey == uProcessNameKey) || (m_uReflection2Key == uProcessNameKey)))
 			{
 				FloatPtr pWaterLevel = m_rDisplay.GetMaterialManager()->GetFloatBySemantic(m_uWaterLevelKey);
+				UInt uWaterDataSize;
+				WaterDataPtr pWaterData = static_cast<WaterDataPtr>(m_rDisplay.GetMaterialManager()->GetStructBySemantic(m_uWaterDataKey, uWaterDataSize));
+				if (NULL != pWaterData)
+				{
+					if (m_uReflectionKey == uProcessNameKey)
+					{
+						pWaterLevel = &pWaterData[0].m_fWaterLevel;
+					}
+				}
 				Vector3 oWaterLevel(0.0f, *pWaterLevel, 0.0f);
 				Vector3 oReflectDir(0.0f, 1.0f, 0.0f);
 				D3DXPlaneFromPointNormal(&m_oReflectPlane, &oWaterLevel, &oReflectDir);
@@ -64,6 +73,7 @@ namespace BastionGame
 		Key					m_uReflectionKey;
 		Key					m_uReflection2Key;
 		Key					m_uWaterLevelKey;
+		Key					m_uWaterDataKey;
 
 	private:
 	};

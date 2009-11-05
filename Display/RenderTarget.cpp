@@ -39,12 +39,17 @@ namespace ElixirEngine
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
 		bool bResult = true;
 
+		m_fFullWidth = pInfo->m_uWidth;
+		m_fFullHeight = pInfo->m_uHeight;
+
+		const float fWidth = pInfo->m_uWidth * 0.5f;
+		const float fHeight = pInfo->m_uHeight * 0.5f;
 		const Vertex aQuad[4] =
 		{
 			{ -0.5f,					-0.5f,						1.0f,	1.0f,	0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT),		0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT)		},
-			{ -0.5f,					pInfo->m_uHeight - 0.5f,	1.0f,	1.0f,	0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT),		0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT)	},
-			{ pInfo->m_uWidth - 0.5f,	-0.5f,						1.0f,	1.0f,	1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT),		1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT)	},
-			{ pInfo->m_uWidth - 0.5f,	pInfo->m_uHeight - 0.5f,	1.0f,	1.0f,	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT),	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT)	}
+			{ -0.5f,					fHeight - 0.5f,				1.0f,	1.0f,	0.0f,	0.5f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT),		0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT)	},
+			{ fWidth - 0.5f,			-0.5f,						1.0f,	1.0f,	0.5f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT),		1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT)	},
+			{ fWidth - 0.5f,			fHeight - 0.5f,				1.0f,	1.0f,	0.5f,	0.5f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT),	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT)	}
 		};
 		memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
 
@@ -83,6 +88,22 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetGeometry::Render()
 	{
+		// use current view port to map geometry size and texture coordinates.
+		ViewportPtr pViewport = m_rDisplay.GetCurrentCamera()->GetCurrentViewport();
+		const float fWidth = pViewport->Width;
+		const float fHeight = pViewport->Height;
+		const float fX = pViewport->X;
+		const float fY = pViewport->Y;
+		m_aQuad[0].x = fX - 0.5f;				m_aQuad[0].y = fY - 0.5f;
+		m_aQuad[1].x = fX - 0.5f;				m_aQuad[1].y = fY + fHeight - 0.5f;
+		m_aQuad[2].x = fX + fWidth - 0.5f;		m_aQuad[2].y = fY - 0.5f;
+		m_aQuad[3].x = fX + fWidth - 0.5f;		m_aQuad[3].y = fY + fHeight - 0.5f;
+		m_aQuad[0].tu = 0.0f;					m_aQuad[0].tv = 0.0f;
+		m_aQuad[1].tu = 0.0f;					m_aQuad[1].tv = fHeight / m_fFullHeight;
+		m_aQuad[2].tu = fWidth / m_fFullWidth;	m_aQuad[2].tv = 0.0f;
+		m_aQuad[3].tu = fWidth / m_fFullWidth;	m_aQuad[3].tv = fHeight / m_fFullHeight;
+
+		// update frustum corners values.
 		Vector3Ptr pFrustumCorners = m_rDisplay.GetCurrentCamera()->GetFrustumCorners();
 		for (UInt i = 0 ; 4 > i ; ++i)
 		{
@@ -96,6 +117,7 @@ namespace ElixirEngine
 			rVertex.tv4 = pNearCorner->y;
 			rVertex.tw4 = pNearCorner->z;
 		}
+
 		m_rDisplay.GetDevicePtr()->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, m_aQuad, sizeof(Vertex));
 	}
 
