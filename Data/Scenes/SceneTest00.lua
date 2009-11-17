@@ -54,7 +54,6 @@ scenetest00 =
 	{
 		{
 			name = "reflection",
-			--viewport = "quarter_top_left",
 			viewport = "default",
 			render_targets =
 			{
@@ -81,7 +80,6 @@ scenetest00 =
 		--},
 		{
 			name = "base",
-			--viewport = "quarter_top_left",
 			viewport = "default",
 			render_targets =
 			{
