@@ -57,11 +57,11 @@ float4x4 matWorldViewProj	: WORLDVIEWPROJ;
 float3 g_vLightDir			: LIGHTDIR; //= {0.0f, 1.0f, 0.0f};
 
 texture t2dheightMap		: NOISETEX;
+texture t2dnormalMap		: TEX2D01;
+texture t2dfoamMap			: TEX2D00;
 texture t2dbackBufferMap	: RT2D00;
 texture t2dpositionMap		: RT2D01;
-texture t2dnormalMap		: TEX2D01;
 texture t2dreflectionMap	: RT2D03;
-texture t2dfoamMap			: TEX2D00;
 
 sampler2D heightMap = sampler_state {
     Texture = <t2dheightMap>;
