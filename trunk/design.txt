@@ -2,30 +2,62 @@ BASTION
 
 Description :
 RTS de bataille navale principalement.
-Pour chaque carte on controle un ensemble de navires afin de remplir un ou plusieurs objectifs principaux/secondaires.
+Pour chaque carte on controle un ensemble de unités afin de remplir un ou plusieurs objectifs principaux/secondaires.
 Types d'objectifs :
 	* destruction de bâtiments adverses (marins, terrestres ou aeriens).
-	* escorte de navires, camions, dirigeables, etc.
+	* escorte de unités, camions, dirigeables, etc.
 	* défense de positions.
 
-Affichage :
+Moteur de jeu :
 	* 3D, vue de dessus, isométique.
 	* la caméra peut être déplacée parallèlement au terrain.
 	* rotation de la caméra restreinte à l'axe vertical.
 	* la caméra peut aussi changer de hauteur. Avec ou sans pallier ??
 	* terrain affiché avec une grille régulière.
 	* texturing du terrain en splatting.
+	* 4 niveau de liquide supportés avec changement de hauteur dynamique.
+	* moteur d'effects spéciaux. TRES IMPORTANT pour l'immersion au coeur de la bataille.
+	* moteur de scenarii ingame pour la mise en scène de objectif :
+		- mouvement de caméra.
+		- affichage de texte et d'image pour le dialogue des protaginistes.
 
 Gameplay :
 	* solo contre l'ordinateur ou multijoueur contre ordinateur et/ou humains.
-	* plusieurs type de navires aux propriétés différentes :
-		- taille
-		- vitesse
-		- puissance de feu
-		- armure
+	* plusieurs type de unités aux caractéristiques différentes :
+		- taille, plus un unité est grand plus il peut posséder de canons.
+		- vitesse.
+		- puissance de feu.
+		- armure.
+		- endurance.
 	* véhicules terrestres ou aériens disponibles aussi mais en moindre quantité aux fonctionnalités plus limitées :
 		- interventions de frappe aériennes sur une position donnée.
 		- avions ou camions radar pour détecter les bâtiments adverses.
+		- attaque canon laser satellite.
+	* Idée à étudier/creuser, reprendre certains concepts du rpg. Equilibrer tout ces aspects est prioritaire.
+		- évolution par niveau :
+			- marin
+			- caporal
+			- sergent
+			- capitaine
+			- lieutenant
+			- etc.
+		- caractéristiques, à chaque niveau le joueur obtient des points qu'il peut assigner :
+			- endurance pour plus de vie pour chaque entité.
+			- armure pour mieux résister aux attaques ennemis.
+			- vitesse pour plus de rapidité dans déplacement des entités.
+			- attaque pour la puissance de feu.
+			- logistique pour obtenir soit plus de renforts ou qu'ils arrivent plus vite.
+			- etc.
+		- système d'arbes de talents :
+			- stratégie qui améliore la vue d'ensemble du combat.
+				+ Radar amélioré : rayon de détection des radars plus grand.
+				+ vue satellite.
+			- charisme pour tout ce qui est amériolation des caractéristiques des entités ainsi que les effets bonus.
+				+ double shot : % de chance de déclenchement d'un second tir.
+				+ subversion : tentative de gagner le unité adversaire à sa cause lorsqu'il est en dessous de 20% de son endurance.
+			- saboteur pour tromper l'adversaire :
+				+ fumigène : plonge une zone donnée dans un fumigène qui empêche l'adversaire de voir vos unités.
+				+ mines : répend un champ de mines sur une zone donnée.
 
 Network/communications :
 	* les interactions des joueurs(ordinateurs/humains) passent par un système de messages/événements.
