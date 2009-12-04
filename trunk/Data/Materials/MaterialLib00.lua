@@ -102,4 +102,17 @@ materiallib00 =
 			},
 		},
 	},
+	{
+		name = "waterpost02",
+		effect = "data/effects/WaterPost3.fx",
+		technique = "RenderScene",
+		params =
+		{
+			{
+				semantic = "TEX2D00",
+				name = "waterpost00_atlasMap",
+				value = "data/textures/waterpost00_atlasMap.bmp",
+			},
+		},
+	},
 }

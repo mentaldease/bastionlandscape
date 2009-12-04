@@ -35,6 +35,7 @@ namespace BastionGame
 		float	m_fRefractionScale;
 		float2	m_vWind;
 		float3	m_vForward;
+		float4	m_vAtlasInfo;
 	};
 }
 
