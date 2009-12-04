@@ -102,7 +102,7 @@ scenetest00 =
 	{
 		{
 			name = "water",
-			material = "waterpost01",
+			material = "waterpost02",
 			immediate_write = false,
 		},
 		--[[
@@ -153,6 +153,7 @@ scenetest00 =
 			RefractionScale = 0.005,
 			Wind = { -0.3, 0.7, },
 			Forward = { 0.0, 0.0, 0.0, },
+			AtlasInfo = { 0.5, 0.5, 256.0, 8 },
 		},
 	},
 }
