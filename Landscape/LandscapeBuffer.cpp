@@ -18,6 +18,7 @@ namespace ElixirEngine
 		m_oUV = _rVertexIndependent.m_oUV;
 		m_oUV2.x = _rVertexIndependent.m_fNormalizedSlope;
 		m_oUV2.y = _rVertexIndependent.m_fNormalizedHeight;
+		m_oUV2.z = float(_rVertexIndependent.m_uWaterLevel);
 		return *this;
 	}
 

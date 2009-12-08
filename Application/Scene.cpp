@@ -122,6 +122,15 @@ namespace BastionGame
 		// specific param creators
 		pMaterialManager->UnregisterParamCreator(m_uWaterDataKey);
 		pMaterialManager->UnregisterParamCreator(m_uWaterLevelKey);
+
+		// additional render targets
+		DisplayTextureManagerPtr pTextureManager = m_rApplication.GetDisplay()->GetTextureManager();
+		while (false == m_mAdditionalRTs.empty())
+		{
+			DisplayTexturePtrMap::iterator iPair = m_mAdditionalRTs.begin();
+			pTextureManager->Unload(iPair->first);
+			m_mAdditionalRTs.erase(iPair);
+		}
 	}
 
 	void Scene::PreUpdate()
@@ -150,12 +159,64 @@ namespace BastionGame
 			LuaObject oRoot = oGlobals[strRootName.c_str()];
 
 			m_strName = oRoot["name"].GetString();
-			bResult = CreateLoadMaterials(oRoot)
+			bResult = CreateLoadRenderTargets(oRoot)
+				&& CreateLoadMaterials(oRoot)
 				&& CreateLoadLandscapes(oRoot)
 				&& CreateLoadPostProcesses(oRoot)
 				&& CreateLoadNormalProcesses(oRoot)
 				&& CreateLoadWaterDataList(oRoot);
 		}
+		return bResult;
+	}
+
+	bool Scene::CreateLoadRenderTargets(LuaObjectRef _rLuaObject)
+	{
+		bool bResult = true;
+		LuaObject oRenderTargets = _rLuaObject["render_targets"];
+
+		LuaObject oAdditionals = oRenderTargets["additionals"];
+		if (false == oAdditionals.IsNil())
+		{
+			const WindowData& rWindowData = m_rApplication.GetWindowData();
+			DisplayTextureManagerPtr pTextureManager = m_rApplication.GetDisplay()->GetTextureManager();
+			const int uCount = oAdditionals.GetCount();
+			for (int i = 0 ; uCount > i ; ++i)
+			{
+				LuaObject oAdditional = oAdditionals[i + 1];
+
+				const string strName = oAdditional["name"].GetString();
+				const Key uNameKey = MakeKey(strName);
+				DisplayTexturePtr pTexture = pTextureManager->Get(uNameKey);
+				bResult = (NULL == pTexture);
+				if (false == bResult)
+				{
+					break;
+				}
+
+				const string strFormat = oAdditional["format"].GetString();
+				D3DFORMAT uFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(rWindowData.m_uDXColorFormat));
+				bResult = pTextureManager->New(strName,
+					rWindowData.m_oClientRect.right,
+					rWindowData.m_oClientRect.bottom,
+					uFormat,
+					false,
+					DisplayTexture::EType_2D,
+					DisplayTexture::EUsage_RENDERTARGET);
+				if (false == bResult)
+				{
+					break;
+				}
+
+				pTexture = pTextureManager->Get(uNameKey);
+				bResult = (NULL != pTexture);
+				if (false == bResult)
+				{
+					break;
+				}
+				m_mAdditionalRTs[uNameKey] = pTexture;
+			}
+		}
+
 		return bResult;
 	}
 

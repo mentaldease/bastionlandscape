@@ -32,6 +32,7 @@ namespace BastionGame
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
+		bool CreateLoadRenderTargets(LuaObjectRef _rLuaObject);
 		bool CreateLoadMaterials(LuaObjectRef _rLuaObject);
 		bool CreateLoadLandscapes(LuaObjectRef _rLuaObject);
 		bool CreateLoadLandscape(LuaObjectRef _rLuaObject);
@@ -51,6 +52,7 @@ namespace BastionGame
 		DisplayPostProcessPtrVec	m_vPostProcesses;
 		DisplayNormalProcessPtrMap	m_mNormalProcesses;
 		DisplayNormalProcessPtrVec	m_vNormalProcesses;
+		DisplayTexturePtrMap		m_mAdditionalRTs;
 		Vector4						m_oLightDir;
 		WaterDataPtr				m_pWaterData;
 		UInt						m_uWaterDataCount;

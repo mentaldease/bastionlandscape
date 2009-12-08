@@ -43,6 +43,7 @@ namespace ElixirEngine
 		Key						m_uViewportNameKey;
 		KeyVec					m_vRTTypes;
 		KeyVec					m_vRTNames;
+		KeyVec					m_vRTIndexes;
 		DisplayTexturePtrMap	m_mTextures;
 
 	private:

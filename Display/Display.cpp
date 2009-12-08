@@ -288,16 +288,16 @@ namespace ElixirEngine
 		// Render scene to buffers
 		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
 		{
-			m_pRTChain->Clear(uClearColor);
-
 			DisplayNormalProcessPtrVec::iterator iNormalProcess = m_pNormalProcesses->begin();
 			DisplayNormalProcessPtrVec::iterator iEnd = m_pNormalProcesses->end();
 			while (iEnd != iNormalProcess)
 			{
 				m_pCurrentNormalProcess = *iNormalProcess;
 				m_pCurrentNormalProcess->Update();
-				m_pDevice->Clear(0, NULL, /*D3DCLEAR_TARGET |*/ D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0);
 				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+				m_pRTChain->RenderBeginPass(0);
+				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
+				m_pRTChain->RenderEndPass();
 				Render();
 				m_pRTChain->RenderEnd();
 

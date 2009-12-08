@@ -81,6 +81,7 @@ namespace ElixirEngine
 		bool Load(const string& _strName, const string& _strPath, const DisplayTexture::EType& _eType);
 		bool New(const string& _strName, const unsigned int& _uWidth, const unsigned int& _uHeight, const D3DFORMAT& _eFormat, const bool& _bMipmap, const DisplayTexture::EType& _eType, const DisplayTexture::EUsage& _eUsage);
 		void Unload(const string& _strName);
+		void Unload(const Key& _strNameKey);
 		DisplayTexturePtr Get(const string& _strName);
 		DisplayTexturePtr Get(const Key& _strNameKey);
 		void UnloadAll();

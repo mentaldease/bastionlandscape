@@ -64,7 +64,7 @@ struct VS_INPUT
 	float3 vNorm	: NORMAL;
 	float4 vDiffuse : COLOR0;
 	float2 vUV		: TEXCOORD0;
-	float2 vUV2		: TEXCOORD1;
+	float3 vUV2		: TEXCOORD1;
 };
 
 struct VS_MORPHINPUT
@@ -74,7 +74,7 @@ struct VS_MORPHINPUT
 	float4 vPos2	: POSITION1;
 	float3 vNorm	: NORMAL;
 	float2 vUV		: TEXCOORD0;
-	float2 vUV2		: TEXCOORD1;
+	float3 vUV2		: TEXCOORD1;
 };
 
 struct VS_OUTPUT
@@ -124,18 +124,18 @@ VS_OUTPUT RenderSceneMorphVS( VS_MORPHINPUT In )
 
 	return Output;    
 }
-			
+
 VS_OUTPUT RenderSceneVS( VS_INPUT In )
 {
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
-	Output.UV2.z = In.vPos.w; // water level index
+	Output.UV2.z = In.vUV2.z * g_fWaterCountInv; // water level index
 	Output.Position = mul(In.vPos, g_mWorldViewProjection);
 	Output.Diffuse = In.vDiffuse;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(In.vNorm, g_mWorldInvTransp));
 	Output.UV = In.vUV * 10.0f;
-	Output.UV2.xy = In.vUV2;
+	Output.UV2.xy = In.vUV2.xy;
 
 	float4x4 matWorldView = mul(g_mWorld, g_mView);
     float4 vPositionVS = mul(In.vPos, matWorldView);
@@ -204,10 +204,8 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 
     Output.vColor = tex2Dlod(AtlasDiffuseSampler, float4(vUV, 0.0, fLod));
 	//Output.vColor = float4(vTexID.x * 16.0, 0.0, 0.0, 1.0); // color by slope intensity
-
 	Output.vColor *= saturate(dot(In.Light, In.Normal));
-	float fWaterIndexInv = In.UV2.z * g_fWaterCountInv;
-	Output.vColor.a = fWaterIndexInv;  // store water index in color buffer fourth component.
+	Output.vColor.a = In.UV2.z;  // store water index in color buffer fourth component.
 
 	float3 vNormal = (In.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;
 	Output.vNormal = float4(vNormal, 1.0f);

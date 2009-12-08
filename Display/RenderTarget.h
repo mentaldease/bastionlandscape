@@ -101,6 +101,7 @@ namespace ElixirEngine
 		void SetIndex(const UInt _uIndex);
 		UInt GetIndex();
 		bool SwapOccured();
+		void SetRTOverride(DisplayTexturePtr _RTOverride);
 
 	protected:
 		enum ERenderState
@@ -123,6 +124,8 @@ namespace ElixirEngine
 		SurfacePtr			m_pDoubleBufferSurf[c_uBufferCount];
 		SurfacePtr			m_pPreviousBufferSurf;
 		DisplayTexturePtr	m_pCurrentBufferTex;
+		DisplayTexturePtr	m_pRTOverrideTex;
+		SurfacePtr			m_pRTOverrideSurf;
 		UInt				m_uCurrentBuffer;
 		UInt				m_uRTIndex;
 		UInt				m_uPassIndex;
