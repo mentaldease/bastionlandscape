@@ -21,7 +21,7 @@ namespace ElixirEngine
 		{ 0,	2 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
 		{ 0,	3 * SV3,				D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,		0 },
 		{ 0,	3 * SV3 + SV4,			D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
-		{ 0,	3 * SV3 + SV4 + SV2,	D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	1 },
+		{ 0,	3 * SV3 + SV4 + SV2,	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	1 },
 		D3DDECL_END()
 	};
 #else // LANDSCAPE_USE_MORPHING
@@ -31,7 +31,7 @@ namespace ElixirEngine
 		{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
 		{ 0,	2 * SV3,				D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,		0 },
 		{ 0,	2 * SV3 + SV4,			D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
-		{ 0,	2 * SV3 + SV4 + SV2,	D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	1 },
+		{ 0,	2 * SV3 + SV4 + SV2,	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	1 },
 		D3DDECL_END()
 	};
 #endif // LANDSCAPE_USE_MORPHING
@@ -508,7 +508,7 @@ namespace ElixirEngine
 						// update vertex y with interpolated pixel value based on surface info
 						//const float fRowHeight = float(aRGBA[0] + aRGBA[1] + aRGBA[2]) / 3.0f;
 						const float fRowHeight = float(aRGBA[0]);
-						const UInt uWaterLevel = 0; // aRGBA[3];
+						const UInt uWaterLevel = aRGBA[3];
 						pVertex->m_fNormalizedHeight = fRowHeight / 255.0f;
 						pVertex->m_oPosition.y = fRowHeight * m_oGlobalInfo.m_fHeightScale;
 						if (m_oGlobalInfo.m_fMinHeight > pVertex->m_oPosition.y)
@@ -553,11 +553,18 @@ namespace ElixirEngine
 			static_cast<BytePtr>(_rUVInfo.m_aData[DisplaySurface::EUVInfoData_BOTTOMLEFT]),
 			static_cast<BytePtr>(_rUVInfo.m_aData[DisplaySurface::EUVInfoData_BOTTOMRIGHT])
 		};
+
 		Vector4 aPixels[4];
-		aPixels[DisplaySurface::EUVInfoData_TOPLEFT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][1], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][2], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][3], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][0]);
-		aPixels[DisplaySurface::EUVInfoData_TOPRIGHT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][1], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][2], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][3], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][0]);
-		aPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][1], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][2], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][3], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][0]);
-		aPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][1], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][2], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][3], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][0]);
+		//aPixels[DisplaySurface::EUVInfoData_TOPLEFT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][1], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][2], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][3], ppPixels[DisplaySurface::EUVInfoData_TOPLEFT][0]);
+		//aPixels[DisplaySurface::EUVInfoData_TOPRIGHT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][1], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][2], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][3], ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT][0]);
+		//aPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][1], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][2], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][3], ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT][0]);
+		//aPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT] = Vector4(ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][1], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][2], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][3], ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT][0]);
+		#define VECTOR4_A8R8G8B8(Array) Vector4(Array[0], Array[1], Array[2], Array[3])
+		aPixels[DisplaySurface::EUVInfoData_TOPLEFT] = VECTOR4_A8R8G8B8(ppPixels[DisplaySurface::EUVInfoData_TOPLEFT]);
+		aPixels[DisplaySurface::EUVInfoData_TOPRIGHT] = VECTOR4_A8R8G8B8(ppPixels[DisplaySurface::EUVInfoData_TOPRIGHT]);
+		aPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT] = VECTOR4_A8R8G8B8(ppPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT]);
+		aPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT] = VECTOR4_A8R8G8B8(ppPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT]);
+		#undef VECTOR4_A8R8G8B8
 
 		const Vector4 oTop = aPixels[DisplaySurface::EUVInfoData_TOPLEFT] * (1.0f - _rUVInfo.m_fLocalU) + aPixels[DisplaySurface::EUVInfoData_TOPRIGHT] * _rUVInfo.m_fLocalU;
 		const Vector4 oBottom = aPixels[DisplaySurface::EUVInfoData_BOTTOMLEFT] * (1.0f - _rUVInfo.m_fLocalU) + aPixels[DisplaySurface::EUVInfoData_BOTTOMRIGHT] * _rUVInfo.m_fLocalU;

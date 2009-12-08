@@ -43,7 +43,7 @@ namespace ElixirEngine
 		Vector3	m_oNormal;
 		Vector4	m_oColor;
 		Vector2	m_oUV;
-		Vector2	m_oUV2;
+		Vector3	m_oUV2; // slope, height, water level
 	};
 
 	struct VertexLiquid

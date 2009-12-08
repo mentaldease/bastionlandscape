@@ -140,6 +140,8 @@ namespace ElixirEngine
 		m_rDisplay(_rDisplay),
 		m_pPreviousBufferSurf(NULL),
 		m_pCurrentBufferTex(NULL),
+		m_pRTOverrideTex(NULL),
+		m_pRTOverrideSurf(NULL),
 		m_uCurrentBuffer(0),
 		m_uRTIndex(0),
 		m_uPassIndex(0),
@@ -205,6 +207,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTarget::Release()
 	{
+		SetRTOverride(NULL);
 		for (UInt i = 0 ; c_uBufferCount > i ; ++i)
 		{
 			if (NULL != m_pDoubleBufferSurf[i])
@@ -261,11 +264,20 @@ namespace ElixirEngine
 				}
 				if (false == m_bImmediateWrite)
 				{
-					const UInt uNewIndex = (false != m_bFirstRender) ? c_uOriginalBuffer : m_uCurrentBuffer;
-					if (m_pDoubleBufferTex[uNewIndex] != m_pCurrentBufferTex)
+					if (NULL == m_pRTOverrideSurf)
 					{
-						m_pCurrentBufferTex = m_pDoubleBufferTex[uNewIndex];
-						m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pDoubleBufferSurf[uNewIndex]);
+						const UInt uNewIndex = (false != m_bFirstRender) ? c_uOriginalBuffer : m_uCurrentBuffer;
+						if (m_pDoubleBufferTex[uNewIndex] != m_pCurrentBufferTex)
+						{
+							m_pCurrentBufferTex = m_pDoubleBufferTex[uNewIndex];
+							m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pDoubleBufferSurf[uNewIndex]);
+							m_bSwap = true;
+						}
+					}
+					else if (m_pCurrentBufferTex != m_pRTOverrideTex)
+					{
+						m_pCurrentBufferTex = m_pRTOverrideTex;
+						m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pRTOverrideSurf);
 						m_bSwap = true;
 					}
 				}
@@ -319,6 +331,7 @@ namespace ElixirEngine
 	void DisplayRenderTarget::SetEnabled(const bool _bState)
 	{
 		m_bEnabled = _bState;
+		SetRTOverride(NULL);
 	}
 
 	bool DisplayRenderTarget::IsEnabled()
@@ -339,6 +352,24 @@ namespace ElixirEngine
 	bool DisplayRenderTarget::SwapOccured()
 	{
 		return m_bSwap;
+	}
+
+	void DisplayRenderTarget::SetRTOverride(DisplayTexturePtr _RTOverride)
+	{
+		if (m_pRTOverrideTex != _RTOverride)
+		{
+			if (NULL != m_pRTOverrideSurf)
+			{
+				m_pRTOverrideSurf->Release();
+				m_pRTOverrideSurf = NULL;
+			}
+			m_pRTOverrideTex = _RTOverride;
+			if (NULL != m_pRTOverrideTex)
+			{
+				TexturePtr pTexture = static_cast<TexturePtr>(m_pRTOverrideTex->GetBase());
+				pTexture->GetSurfaceLevel(0, &m_pRTOverrideSurf);
+			}
+		}
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -492,7 +523,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetChain::Clear(const UInt _uClearColor)
 	{
-		EnableAllRenderTargets();
+		//EnableAllRenderTargets();
 		RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 		RenderBeginPass(0);
 		m_rDisplay.GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, _uClearColor, 1.0f, 0L);

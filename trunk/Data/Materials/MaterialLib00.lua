@@ -43,6 +43,7 @@ materiallib00 =
 		effect = "data/effects/SimplePost.fx",
 		technique = "RenderScene",
 	},
+	--[[
 	{
 		name = "terrain00",
 		effect = "data/effects/terrain.fx",
@@ -66,6 +67,13 @@ materiallib00 =
 		effect = "data/effects/terrain4.fx",
 		technique = "RenderScene",
 	},
+	]]
+	{
+		name = "terrain04",
+		effect = "data/effects/terrain5.fx",
+		technique = "RenderScene",
+	},
+	--[[
 	{
 		name = "waterpost00",
 		effect = "data/effects/WaterPost.fx",
@@ -102,6 +110,7 @@ materiallib00 =
 			},
 		},
 	},
+	]]
 	{
 		name = "waterpost02",
 		effect = "data/effects/WaterPost3.fx",
@@ -112,6 +121,26 @@ materiallib00 =
 				semantic = "TEX2D00",
 				name = "waterpost00_atlasMap",
 				value = "data/textures/waterpost00_atlasMap.bmp",
+			},
+			{
+				semantic = "TEX2D01",
+				name = "rt_reflection1",
+				value = "no_file",
+			},
+			{
+				semantic = "TEX2D02",
+				name = "rt_reflection2",
+				value = "no_file",
+			},
+			{
+				semantic = "TEX2D03",
+				name = "rt_reflection3",
+				value = "no_file",
+			},
+			{
+				semantic = "TEX2D04",
+				name = "rt_reflection4",
+				value = "no_file",
 			},
 		},
 	},

@@ -27,6 +27,7 @@ namespace ElixirEngine
 		m_uViewportNameKey(0),
 		m_vRTTypes(),
 		m_vRTNames(),
+		m_vRTIndexes(),
 		m_mTextures()
 	{
 
@@ -60,13 +61,20 @@ namespace ElixirEngine
 			const Key uRTTypeKey = m_vRTTypes[i];
 			if (s_uTypeTex2DKey == uRTTypeKey)
 			{
-			}
-			else if (s_uTypeGBufferKey == uRTTypeKey)
-			{
-				const Key uRTIndex = m_vRTNames[i];
+				const Key uRTIndex = m_vRTIndexes[i];
+				const Key uRTName = m_vRTNames[i];
 				DisplayRenderTargetPtr pRT = pRTChain->GetRenderTarget(UInt(uRTIndex));
 				pRT->SetEnabled(true);
 				pRT->SetIndex(i);
+				pRT->SetRTOverride(m_rDisplay.GetTextureManager()->Get(uRTName));
+			}
+			else if (s_uTypeGBufferKey == uRTTypeKey)
+			{
+				const Key uRTIndex = m_vRTIndexes[i];
+				DisplayRenderTargetPtr pRT = pRTChain->GetRenderTarget(UInt(uRTIndex));
+				pRT->SetEnabled(true);
+				pRT->SetIndex(i);
+				pRT->SetRTOverride(NULL);
 			}
 		}
 
@@ -103,6 +111,7 @@ namespace ElixirEngine
 
 			m_vRTTypes.resize(uRTCount);
 			m_vRTNames.resize(uRTCount);
+			m_vRTIndexes.resize(uRTCount);
 
 			for (UInt i = 0 ; uRTCount > i ; ++i)
 			{
@@ -111,6 +120,7 @@ namespace ElixirEngine
 				const Key uRTTypeKey = MakeKey(strRTType);
 				if (s_uTypeTex2DKey == uRTTypeKey)
 				{
+					const UInt uRTIndex = UInt(oRenderTarget["index"].GetInteger());
 					const string strRTName = oRenderTarget["name"].GetString();
 					const Key uRTNameKey = MakeKey(strRTName);
 					DisplayTexturePtr pTexture = m_rDisplay.GetTextureManager()->Get(uRTNameKey);
@@ -118,12 +128,14 @@ namespace ElixirEngine
 					bResult = (NULL != pTexture);
 					m_vRTTypes[i] = uRTTypeKey;
 					m_vRTNames[i] = uRTNameKey;
+					m_vRTIndexes[i] = uRTIndex;
 				}
 				else if (s_uTypeGBufferKey == uRTTypeKey)
 				{
-					UInt uRTIndex = UInt(oRenderTarget["index"].GetInteger());
+					const UInt uRTIndex = UInt(oRenderTarget["index"].GetInteger());
 					m_vRTTypes[i] = uRTTypeKey;
 					m_vRTNames[i] = uRTIndex;
+					m_vRTIndexes[i] = uRTIndex;
 				}
 				if (false == bResult)
 				{

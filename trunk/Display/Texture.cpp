@@ -276,7 +276,12 @@ namespace ElixirEngine
 	void DisplayTextureManager::Unload(const string& _strName)
 	{
 		const Key uKey = MakeKey(_strName);
-		DisplayTexturePtrMap::iterator iPair = m_mTextures.find(uKey);
+		Unload(uKey);
+	}
+
+	void DisplayTextureManager::Unload(const Key& _strNameKey)
+	{
+		DisplayTexturePtrMap::iterator iPair = m_mTextures.find(_strNameKey);
 		if (m_mTextures.end() != iPair)
 		{
 			DisplayTexturePtr pTexture = iPair->second;

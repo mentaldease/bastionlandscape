@@ -43,11 +43,9 @@ struct WaterData
 	float4	vAtlasInfo;
 };
 
-#ifndef WATER_COUNT
 #define WATER_COUNT 4
-#endif // WATER_COUNT
-float g_fWaterCount = (float)WATER_COUNT;
-float g_fWaterCountInv = 1.0f / (float)WATER_COUNT;
+float g_fWaterPostCount = (float)WATER_COUNT;
+float g_fWaterPostCountInv = 1.0f / (float)WATER_COUNT;
 uint g_uWaterIndex = 0;
 WaterData g_WaterData[WATER_COUNT] : WATERDATA;
 
@@ -64,7 +62,10 @@ float3 g_vLightDir			: LIGHTDIR;
 texture t2datlasMap			: TEX2D00;
 texture t2dbackBufferMap	: RT2D00;
 texture t2dpositionMap		: RT2D01;
-texture t2dreflectionMap	: RT2D03;
+texture t2dreflection1Map	: TEX2D01;
+texture t2dreflection2Map	: TEX2D02;
+texture t2dreflection3Map	: TEX2D03;
+texture t2dreflection4Map	: TEX2D04;
 
 sampler2D atlasMap = sampler_state {
     Texture = <t2datlasMap>;
@@ -90,8 +91,32 @@ sampler2D positionMap = sampler_state {
     AddressU = Wrap;
     AddressV = Wrap;
 };
-sampler2D reflectionMap = sampler_state {
-    Texture = <t2dreflectionMap>;
+sampler2D reflection1Map = sampler_state {
+    Texture = <t2dreflection1Map>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Mirror;
+    AddressV = Mirror;
+};
+sampler2D reflection2Map = sampler_state {
+    Texture = <t2dreflection2Map>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Mirror;
+    AddressV = Mirror;
+};
+sampler2D reflection3Map = sampler_state {
+    Texture = <t2dreflection3Map>;
+    MinFilter = Linear;
+    MipFilter = Linear;
+    MagFilter = Linear;
+    AddressU = Mirror;
+    AddressV = Mirror;
+};
+sampler2D reflection4Map = sampler_state {
+    Texture = <t2dreflection4Map>;
     MinFilter = Linear;
     MipFilter = Linear;
     MagFilter = Linear;
@@ -257,11 +282,12 @@ float fresnelTerm(float3 normal, float3 eyeVec)
 
 float4 RenderScenePS(VertexOutput IN): COLOR0
 {
-	g_uWaterIndex = 0;
-
-	float3 color2 = tex2D(backBufferMap, IN.texCoord).rgb;
+	float4 base_color = tex2D(backBufferMap, IN.texCoord);
+	float3 color2 = base_color.rgb;
 	float3 color = color2;
-	
+
+	g_uWaterIndex = (uint)(base_color.a / g_fWaterPostCountInv);
+
 	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord3, IN.texCoord4);
 	float level = g_WaterData[g_uWaterIndex].fWaterLevel;
 	float depth = 0.0f;
@@ -348,8 +374,24 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 		dPos.z = texCoordProj.z + g_WaterData[g_uWaterIndex].fDisplace * normal.z;
 		dPos.yw = texCoordProj.yw;
 		texCoordProj = dPos;
-		float3 reflect = tex2Dproj(reflectionMap, texCoordProj);
-		
+		float3 reflect;
+		if (0 == g_uWaterIndex)
+		{
+			reflect = tex2Dproj(reflection1Map, texCoordProj);
+		}
+		else if (1 == g_uWaterIndex)
+		{
+			reflect = tex2Dproj(reflection2Map, texCoordProj);
+		}
+		else if (2 == g_uWaterIndex)
+		{
+			reflect = tex2Dproj(reflection3Map, texCoordProj);
+		}
+		else if (3 == g_uWaterIndex)
+		{
+			reflect = tex2Dproj(reflection4Map, texCoordProj);
+		}
+
 		float fresnel = fresnelTerm(normal, eyeVecNorm);
 		
 		float3 depthN = depth * g_WaterData[g_uWaterIndex].fFadeSpeed;
