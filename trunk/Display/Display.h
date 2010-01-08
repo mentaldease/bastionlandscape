@@ -94,7 +94,7 @@ namespace ElixirEngine
 	class DisplayObject : public CoreObject
 	{
 	public:
-		DisplayObject(DisplayRef _rDisplay);
+		DisplayObject();
 		virtual ~DisplayObject();
 
 		virtual MatrixPtr GetWorldMatrix();
@@ -106,11 +106,8 @@ namespace ElixirEngine
 		virtual void RenderEnd() {};
 
 	protected:
-		DisplayRef			m_rDisplay;
 		Matrix				m_oWorld;
 		DisplayMaterialPtr	m_pMaterial;
-
-	private:
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -119,6 +116,8 @@ namespace ElixirEngine
 
 	class Display : public CoreObject
 	{
+		DECLARE_WEAKSINGLETON(Display)
+
 	public:
 		Display();
 		virtual ~Display();
@@ -144,6 +143,7 @@ namespace ElixirEngine
 		DisplayMaterialManagerPtr GetMaterialManager();
 		DisplayTextureManagerPtr GetTextureManager();
 		DisplaySurfaceManagerPtr GetSurfaceManager();
+		DisplayFontManagerPtr GetFontManager();
 		DisplayCameraPtr GetCurrentCamera();
 
 		void SetCurrentWorldMatrix(MatrixPtr _pMatrix);
@@ -178,6 +178,7 @@ namespace ElixirEngine
 		DisplayMaterialManagerPtr		m_pMaterialManager;
 		DisplayTextureManagerPtr		m_pTextureManager;
 		DisplaySurfaceManagerPtr		m_pSurfaceManager;
+		DisplayFontManagerPtr			m_pFontManager;
 		MatrixPtr						m_pWorldMatrix;
 		DisplayPostProcessPtrVecPtr		m_pPostProcesses;
 		DisplayEffectPtr				m_pDispFXPP;

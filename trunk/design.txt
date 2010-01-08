@@ -67,3 +67,9 @@ Network/communications :
 		- quoi
 		- paramètres
 	* communication des messages sur un modèle client/server même en mode solo afin que la gestion soit la même dans tous les cas.
+
+UI :
+	* Création et interaction via scripts lua.
+	* 2 modes d'exécution :
+		- safe : interfaces d'origine.
+		- unsafe : interfaces tiers.

@@ -220,7 +220,7 @@ namespace ElixirEngine
 		};
 
 	public:
-		LandscapeChunk(LandscapeRef _rLandscape, DisplayRef _rDisplay, const unsigned int& _uLOD);
+		LandscapeChunk(LandscapeRef _rLandscape, const unsigned int& _uLOD);
 		virtual ~LandscapeChunk();
 
 		virtual bool Create(const boost::any& _rConfig);

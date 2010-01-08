@@ -144,4 +144,9 @@ materiallib00 =
 			},
 		},
 	},
+	{
+		name = "ui",
+		effect = "data/effects/UI.fx",
+		technique = "RenderScene",
+	},
 }

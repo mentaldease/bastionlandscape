@@ -7,9 +7,12 @@
 #include "../Display/RenderTarget.h"
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
+#include "../Display/Font.h"
 
 namespace ElixirEngine
 {
+	DEFINE_WEAKSINGLETON(Display)
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -199,9 +202,8 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	DisplayObject::DisplayObject(DisplayRef _rDisplay)
+	DisplayObject::DisplayObject()
 	:	CoreObject(),
-		m_rDisplay(_rDisplay),
 		m_oWorld(),
 		m_pMaterial(NULL)
 	{
@@ -242,6 +244,7 @@ namespace ElixirEngine
 		m_pMaterialManager(NULL),
 		m_pTextureManager(NULL),
 		m_pSurfaceManager(NULL),
+		m_pFontManager(NULL),
 		m_pWorldMatrix(NULL),
 		m_pPostProcesses(NULL),
 		m_pDispFXPP(NULL),
@@ -254,11 +257,18 @@ namespace ElixirEngine
 		m_uWidth(0),
 		m_uHeight(0)
 	{
+		if (NULL == GetInstance())
+		{
+			SetInstance(this);
+		}
 	}
 
 	Display::~Display()
 	{
-
+		if (this == GetInstance())
+		{
+			SetInstance(NULL);
+		}
 	}
 
 	bool Display::Create(const boost::any& _rConfig)
@@ -284,6 +294,11 @@ namespace ElixirEngine
 		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
 		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
 		const UInt uClearColor = uBlack;
+
+		m_pSurfaceManager->Update();
+		m_pTextureManager->Update();
+		m_pFontManager->Update();
+		m_pMaterialManager->Update();
 
 		// Render scene to buffers
 		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
@@ -436,6 +451,12 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
+			m_pFontManager = new DisplayFontManager(*this);
+			bResult = m_pFontManager->Create(boost::any(0));
+		}
+
+		if (false != bResult)
+		{
 			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
 			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "GBUFFERS", m_uWidth, m_uHeight, D3DFORMAT(_rWindowData.m_uDXGBufferFormat), _rWindowData.m_uDXGBufferCount, _rWindowData.m_aDXGBufferFormat };
 			m_pPostProcessGeometry = new DisplayRenderTargetGeometry(*this);
@@ -471,6 +492,12 @@ namespace ElixirEngine
 			m_pDispFXPP = NULL;
 		}
 
+		if (NULL != m_pFontManager)
+		{
+			m_pFontManager->Release();
+			delete m_pFontManager;
+			m_pFontManager = NULL;
+		}
 		if (NULL != m_pSurfaceManager)
 		{
 			m_pSurfaceManager->Release();
@@ -599,6 +626,11 @@ namespace ElixirEngine
 	DisplaySurfaceManagerPtr Display::GetSurfaceManager()
 	{
 		return m_pSurfaceManager;
+	}
+
+	DisplayFontManagerPtr Display::GetFontManager()
+	{
+		return m_pFontManager;
 	}
 
 	DisplayCameraPtr Display::GetCurrentCamera()

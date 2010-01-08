@@ -56,8 +56,6 @@ namespace ElixirEngine
 	bool LandscapeLayering::Create(const boost::any& _rConfig)
 	{
 		CreateInfoPtr pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		string strFileExt;
-		FS::GetFileExt(pInfo->m_strPath, strFileExt);
 		return CreateFromLuaConfig(*pInfo);
 	}
 

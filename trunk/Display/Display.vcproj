@@ -167,6 +167,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Font.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FontBMF.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\NormalProcess.cpp"
 				>
 			</File>
@@ -230,6 +238,14 @@
 			</File>
 			<File
 				RelativePath=".\EffectParam.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Font.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FontBMF.h"
 				>
 			</File>
 			<File

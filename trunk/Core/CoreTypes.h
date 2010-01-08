@@ -53,6 +53,14 @@ namespace ElixirEngine
 	typedef char*				CharPtr;
 	typedef char&				CharRef;
 
+	typedef unsigned short		Word;
+	typedef Word*				WordPtr;
+	typedef Word&				WordRef;
+
+	typedef vector<string>		StringVec;
+
+	typedef wchar_t*			WCharPtr;
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

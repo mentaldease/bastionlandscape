@@ -26,7 +26,10 @@ namespace BastionGame
 		m_strName(),
 		m_fWaterLevel(200.0f),
 		m_uWaterLevelKey(MakeKey(string("WATERLEVEL"))),
-		m_uWaterDataKey(MakeKey(string("WATERDATA")))
+		m_uWaterDataKey(MakeKey(string("WATERDATA"))),
+		m_pUIText(NULL),
+		m_pUIFont(NULL),
+		m_pUIMaterial(NULL)
 	{
 
 	}
@@ -54,6 +57,24 @@ namespace BastionGame
 			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
 		}
 
+		if (false != bResult)
+		{
+			DisplayPtr pDisplay = Display::GetInstance();
+			if (NULL == m_pUIText)
+			{
+				const string strFileName = "Data/Fonts/FGMC.fnt";
+				Key uNameKey = MakeKey(strFileName);
+				m_pUIFont = pDisplay->GetFontManager()->Get(uNameKey);
+				uNameKey = MakeKey(string("ui"));
+				m_pUIMaterial = pDisplay->GetMaterialManager()->GetMaterial(uNameKey);
+				if ((NULL != m_pUIFont) && (NULL != m_pUIMaterial))
+				{
+					m_pUIText = m_pUIFont->CreateText();
+					m_pUIText->SetMaterial(m_pUIMaterial);
+				}
+			}
+		}
+
 		return bResult;
 	}
 
@@ -66,11 +87,22 @@ namespace BastionGame
 			iPair->second->Update();
 			++iPair;
 		}
+		wstring wstrText = L"BASTION";
+		Vector4 oColor(1.0f, 1.0f, 1.0f, 1.0f);
+		DrawOverlayText(0.0f, 0.0f, wstrText, oColor);
 	}
 
 	void Scene::Release()
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
+
+		if (NULL != m_pUIText)
+		{
+			m_pUIFont->ReleaseText(m_pUIText);
+			m_pUIText = NULL;
+		}
+		m_pUIMaterial = NULL;
+		m_pUIFont = NULL;
 
 		// water rendering configuration data
 		if (NULL != m_pWaterData)
@@ -142,6 +174,19 @@ namespace BastionGame
 		if (false == m_vNormalProcesses.empty())
 		{
 			m_rApplication.GetDisplay()->SetNormalProcessesList(&m_vNormalProcesses);
+		}
+	}
+
+	void Scene::DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _oColor)
+	{
+		if (NULL != m_pUIText)
+		{
+			m_pUIText->SetText(_wstrText);
+			Matrix oMPos;
+			Vector3 oVPos(_fX, _fY, 0.0f);
+			D3DXMatrixTransformation(&oMPos, NULL, NULL, NULL, NULL, NULL, &oVPos);
+			m_pUIText->SetWorldMatrix(oMPos);
+			m_rApplication.GetDisplay()->RenderRequest(m_pUIText);
 		}
 	}
 

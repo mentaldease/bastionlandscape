@@ -197,6 +197,29 @@ namespace ElixirEngine
 	typedef DisplayNormalProcessPtrVec* DisplayNormalProcessPtrVecPtr;
 	typedef map<Key, DisplayNormalProcessPtr> DisplayNormalProcessPtrMap;
 	typedef DisplayNormalProcessPtrMap* DisplayNormalProcessPtrMapPtr;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayFontText;
+	typedef DisplayFontText* DisplayFontTextPtr;
+	typedef DisplayFontText& DisplayFontTextRef;
+
+	class DisplayFont;
+	typedef DisplayFont* DisplayFontPtr;
+	typedef DisplayFont& DisplayFontRef;
+	typedef vector<DisplayFontPtr> DisplayFontPtrVec;
+
+	class DisplayFontLoader;
+	typedef DisplayFontLoader* DisplayFontLoaderPtr;
+	typedef DisplayFontLoader& DisplayFontLoaderRef;
+	typedef map<Key, DisplayFontLoaderPtr> DisplayFontLoaderPtrMap;
+	typedef vector<DisplayFontLoaderPtr> DisplayFontLoaderPtrVec;
+
+	class DisplayFontManager;
+	typedef DisplayFontManager* DisplayFontManagerPtr;
+	typedef DisplayFontManager& DisplayFontManagerRef;
 }
 
 #endif // __DISPLAYTYPES_H__

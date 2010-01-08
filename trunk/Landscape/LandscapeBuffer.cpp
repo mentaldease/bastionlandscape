@@ -197,7 +197,7 @@ namespace ElixirEngine
 			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
 			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(VertexDefault), sizeof(VertexDefault), VertexDefault::s_VertexElement };
-			DisplayVertexBufferPtr pVertexBuffer = m_rDisplay.CreateVertexBuffer(oVBCreateInfo);
+			DisplayVertexBufferPtr pVertexBuffer = Display::GetInstance()->CreateVertexBuffer(oVBCreateInfo);
 			bResult = (NULL != pVertexBuffer);
 			if (false != bResult)
 			{
@@ -226,7 +226,7 @@ namespace ElixirEngine
 				bResult = pVertexBuffer->Set(pVertexes);
 				if (false == bResult)
 				{
-					m_rDisplay.ReleaseVertexBuffer(pVertexBuffer);
+					Display::GetInstance()->ReleaseVertexBuffer(pVertexBuffer);
 					delete[] pVertexes;
 					break;
 				}
@@ -252,7 +252,7 @@ namespace ElixirEngine
 			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
 			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(VertexLiquid), sizeof(VertexLiquid), VertexLiquid::s_VertexElement };
-			DisplayVertexBufferPtr pVertexBuffer = m_rDisplay.CreateVertexBuffer(oVBCreateInfo);
+			DisplayVertexBufferPtr pVertexBuffer = Display::GetInstance()->CreateVertexBuffer(oVBCreateInfo);
 			bResult = (NULL != pVertexBuffer);
 			if (false != bResult)
 			{
@@ -279,7 +279,7 @@ namespace ElixirEngine
 				bResult = pVertexBuffer->Set(pVertexes);
 				if (false == bResult)
 				{
-					m_rDisplay.ReleaseVertexBuffer(pVertexBuffer);
+					Display::GetInstance()->ReleaseVertexBuffer(pVertexBuffer);
 					delete[] pVertexes;
 					break;
 				}

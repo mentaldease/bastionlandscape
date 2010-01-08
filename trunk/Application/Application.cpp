@@ -51,6 +51,10 @@ namespace BastionGame
 					{
 						pWaterLevel = &pWaterData[0].m_fWaterLevel;
 					}
+					else if (m_uReflection2Key == uProcessNameKey)
+					{
+						pWaterLevel = &pWaterData[1].m_fWaterLevel;
+					}
 				}
 				Vector3 oWaterLevel(0.0f, *pWaterLevel, 0.0f);
 				Vector3 oReflectDir(0.0f, 1.0f, 0.0f);
@@ -231,6 +235,14 @@ namespace BastionGame
 			{
 				m_pDisplay->GetCurrentCamera()->AddListener(m_pCameraListener);
 			}
+		}
+
+		// test
+		if (false != bResult)
+		{
+			const string strFileName = "Data/Fonts/FGMC.fnt";
+			const Key uNameKey = MakeKey(strFileName);
+			m_pDisplay->GetFontManager()->Load(uNameKey, strFileName);
 		}
 
 		if (false != bResult)

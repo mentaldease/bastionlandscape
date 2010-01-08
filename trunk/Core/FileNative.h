@@ -34,10 +34,10 @@ namespace ElixirEngine
 		virtual unsigned int Read(VoidPtr _pBuffer, const int& _sBytes);
 		virtual unsigned int Write(const VoidPtr _pBuffer, const int& _sBytes);
 
+		virtual bool EndOfFile();
+
 	protected:
 		FILE*	m_pFile;
-
-	private:
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -56,9 +56,6 @@ namespace ElixirEngine
 
 		virtual FilePtr OpenFile(const string& _strPath, const EOpenMode& _eMode);
 		virtual void CloseFile(FilePtr _pFile);
-
-	protected:
-	private:
 	};
 }
 
