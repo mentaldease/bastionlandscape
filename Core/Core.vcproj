@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="Core"
 	ProjectGUID="{CBE47F8D-B2DB-4439-90DC-084AF086A9AA}"
 	RootNamespace="Core"
@@ -252,6 +252,10 @@
 			</File>
 			<File
 				RelativePath=".\noiseutils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Pool.h"
 				>
 			</File>
 			<File

@@ -56,6 +56,29 @@ namespace ElixirEngine
 	protected:
 	private:
 	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	#define DECLARE_WEAKSINGLETON(TypeName) \
+	protected: \
+		static TypeName* s_pInstance; \
+	public: \
+		static void SetInstance(TypeName* _pInstance); \
+		static TypeName* GetInstance();
+
+
+	#define DEFINE_WEAKSINGLETON(TypeName) \
+		TypeName* TypeName::s_pInstance = NULL; \
+		void TypeName::SetInstance(TypeName* _pInstance) \
+		{ \
+			s_pInstance = _pInstance; \
+		} \
+		TypeName* TypeName::GetInstance() \
+		{ \
+			return s_pInstance; \
+		}
 }
 
 #endif // __CORE_H__

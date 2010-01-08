@@ -16,8 +16,8 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	LandscapeChunk::LandscapeChunk(Landscape& _rLandscape, DisplayRef _rDisplay, const unsigned int& _uLOD)
-	:	DisplayObject(_rDisplay),
+	LandscapeChunk::LandscapeChunk(Landscape& _rLandscape, const unsigned int& _uLOD)
+	:	DisplayObject(),
 		m_rLandscape(_rLandscape),
 		m_uStartVertexIndex(0),
 		m_uLOD(_uLOD),
@@ -85,7 +85,7 @@ namespace ElixirEngine
 			{
 				for (unsigned int i = 0 ; 2 > i ; ++i)
 				{
-					LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(m_rLandscape, m_rDisplay, m_uLOD - 1);
+					LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(m_rLandscape, m_uLOD - 1);
 					oLCCInfo.m_uX = pInfo->m_uX * 2 + i;
 					oLCCInfo.m_uZ = pInfo->m_uZ * 2 + j;
 					bResult = pLandscapeChunk->Create(boost::any(&oLCCInfo));
@@ -117,7 +117,7 @@ namespace ElixirEngine
 
 	void LandscapeChunk::RenderBegin()
 	{
-		m_rDisplay.GetMaterialManager()->SetFloatBySemantic(s_uMorphFactorKey, &m_fMorphFactor);
+		Display::GetInstance()->GetMaterialManager()->SetFloatBySemantic(s_uMorphFactorKey, &m_fMorphFactor);
 		m_rLandscape.UseLayering();
 	}
 
@@ -128,7 +128,7 @@ namespace ElixirEngine
 			const unsigned int uVertexCount = m_pLODInfo->m_uNumVertices;
 			const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
 			const unsigned int uStripSize = m_pLODInfo->m_uStripSize - 2;
-			m_rDisplay.GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, m_uStartVertexIndex, 0, uVertexCount, uStartIndex, uStripSize);
+			Display::GetInstance()->GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, m_uStartVertexIndex, 0, uVertexCount, uStartIndex, uStripSize);
 		}
 	}
 
@@ -141,7 +141,7 @@ namespace ElixirEngine
 		const Vector3 oDelta = oWorld + m_oCenter - _rCamPos;
 		const float fExtends = D3DXVec3Length(&m_oExtends);
 
-		if (DisplayCamera::ECollision_OUT != m_rDisplay.GetCurrentCamera()->CollisionWithSphere(oWorld + m_oCenter, fExtends))
+		if (DisplayCamera::ECollision_OUT != Display::GetInstance()->GetCurrentCamera()->CollisionWithSphere(oWorld + m_oCenter, fExtends))
 		{
 #if LANDSCAPE_USE_HIGHEST_LOD_ONLY
 			if (0 == m_uLOD)

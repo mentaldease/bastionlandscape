@@ -191,4 +191,13 @@ namespace ElixirEngine
 		uPos = _strDstExt.find_first_of(s_ExtSeparator);
 		_strDstExt = (string::npos != uPos) ? _strDstExt.substr(uPos + 1) : _strDstExt;
 	}
+
+	void FS::GetPathWithoutFileName(const string& _strSrcPath, string& _strDstPath, const bool bKeepEndingDirSeparator)
+	{
+		const string::size_type uWPos = _strSrcPath.find_last_of(s_WDirSeparator);
+		const string::size_type uUPos = _strSrcPath.find_last_of(s_UDirSeparator);
+		string::size_type uPos = (string::npos == uWPos) ? uUPos : ((string::npos == uUPos) ? uWPos : ((uUPos > uWPos) ? uUPos : uWPos));
+		const string::size_type uEDS = (false != bKeepEndingDirSeparator) ? 1 : 0;
+		_strDstPath = (string::npos != uPos) ? _strSrcPath.substr(0, uPos + uEDS) : _strSrcPath;
+	}
 }

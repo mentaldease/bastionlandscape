@@ -30,8 +30,7 @@ namespace ElixirEngine
 		virtual unsigned int Read(VoidPtr _pBuffer, const int& _sBytes) = 0;
 		virtual unsigned int Write(const VoidPtr _pBuffer, const int& _sBytes) = 0;
 
-	protected:
-	private:
+		virtual bool EndOfFile() = 0;
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -78,6 +77,7 @@ namespace ElixirEngine
 		static void GetPathWithoutFS(const string& _strSrcPath, string& _strDstPath);
 		static void GetFileNameWithoutExt(const string& _strSrcPath, string& _strDstPath);
 		static void GetFileExt(const string& _strSrcPath, string& _strDstExt);
+		static void GetPathWithoutFileName(const string& _strSrcPath, string& _strDstPath, const bool bKeepEndingDirSeparator);
 
 		const static char s_FSMarkerInPath = '@';
 		const static char s_WDirSeparator = '\\';

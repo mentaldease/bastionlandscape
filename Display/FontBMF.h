@@ -1,0 +1,378 @@
+#ifndef __FONTBMF_H__
+#define __FONTBMF_H__
+
+#include "../Display/Font.h"
+#include "../Core/File.h"
+#include "../Core/Pool.h"
+
+namespace ElixirEngine
+{
+	namespace BitmapFont
+	{
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+		class DisplayFont;
+		typedef DisplayFont* DisplayFontPtr;
+		typedef DisplayFont& DisplayFontRef;
+
+		class DisplayFontText;
+		typedef DisplayFontText* DisplayFontTextPtr;
+		typedef DisplayFontText& DisplayFontTextRef;
+
+		class DisplayFontLoader;
+		typedef DisplayFontLoader* DisplayFontLoaderPtr;
+		typedef DisplayFontLoader& DisplayFontLoaderRef;
+
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+		// see Bitmap Font binary format documentation.
+
+		struct BlockInfo
+		{
+			enum EBitField
+			{
+				EBitField_SMOOTH		= 0x01 << 0,
+				EBitField_UNICODE		= 0x01 << 1,
+				EBitField_ITALIC		= 0x01 << 2,
+				EBitField_BOLD			= 0x01 << 3,
+				EBitField_FIXEDHEIGHT	= 0x01 << 4,
+				EBitField_RESERVED5		= 0x01 << 5,
+				EBitField_RESERVED6		= 0x01 << 6,
+				EBitField_RESERVED7		= 0x01 << 7,
+			};
+
+			short	m_sFontSize;
+			Byte	m_uBitField;
+			Byte	m_uCharSet;
+			Word	m_uStretchH;
+			Byte	m_uAA;
+			Byte	m_uPaddingUp;
+			Byte	m_uPaddingRight;
+			Byte	m_uPaddingDown;
+			Byte	m_uPaddingLeft;
+			Byte	m_uSpacingHoriz;
+			Byte	m_uSpacingVert;
+			Byte	m_uOutline;
+			string	m_strFontName;
+		};
+
+		struct BlockCommon
+		{
+			enum EBitField
+			{
+				EBitField_RESERVED0		= 0x01 << 0,
+				EBitField_RESERVED1		= 0x01 << 1,
+				EBitField_RESERVED2		= 0x01 << 2,
+				EBitField_RESERVED3		= 0x01 << 3,
+				EBitField_RESERVED4		= 0x01 << 4,
+				EBitField_RESERVED5		= 0x01 << 5,
+				EBitField_RESERVED6		= 0x01 << 6,
+				EBitField_PACKED		= 0x01 << 7,
+			};
+
+			Word	m_uLineHeight;
+			Word	m_uBase;
+			Word	m_uScaleW;
+			Word	m_uScaleH;
+			Word	m_uPages;
+			Byte	m_uBitField;
+			Byte	m_uAlphaChannel;
+			Byte	m_uRedChannel;
+			Byte	m_uGreenChannel;
+			Byte	m_uBlueChannel;
+		};
+
+		struct BlockPages
+		{
+			StringVec	m_vPageNames;
+		};
+
+		struct BlockChar
+		{
+			UInt	m_uID;
+			Word	m_uX;
+			Word	m_uY;
+			Word	m_uWidth;
+			Word	m_uHeight;
+			Word	m_uXOffset;
+			Word	m_uYOffset;
+			Word	m_uXAdvance;
+			Byte	m_uPage;
+			Byte	m_uChannel;
+			// Followings are not part of BMF binary format.
+			// They have been added to ease vertex initialization.
+			float	m_fX;
+			float	m_fY;
+			float	m_fWidth;
+			float	m_fHeight;
+		};
+		typedef BlockChar* BlockCharPtr;
+		typedef BlockChar& BlockCharRef;
+		typedef vector<BlockChar> BlockCharVec;
+		typedef map<UInt, BlockChar> BlockCharMap;
+
+		struct BlockKerning
+		{
+			UInt	m_uFirst;
+			UInt	m_uSecond;
+			short	m_sAmount;
+		};
+		typedef BlockKerning* BlockKerningPtr;
+		typedef BlockKerning& BlockKerningRef;
+		typedef vector<BlockKerning> BlockKerningVec;
+
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+		struct VertexFont
+		{
+			Vector3	m_oPos;		// xyz
+			Vector4	m_oColor;	// rgba
+			Vector3	m_oUV;		// u, v, texture index
+			static VertexElement s_VertexElement[4];
+		};
+		typedef VertexFont* VertexFontPtr;
+		typedef VertexFont& VertexFontRef;
+
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+		typedef Pool<VertexFont> VertexFontPool;
+		typedef VertexFontPool* VertexFontPoolPtr;
+		typedef VertexFontPool& VertexFontPoolRef;
+
+		template<typename T>
+		class FontObjectBuffer : public CoreObject
+		{
+		public:
+			typedef T* TPtr;
+			typedef T& TRef;
+			typedef Pool<T> TPool;
+			typedef TPool* TPoolPtr;
+			typedef TPool& TPoolRef;
+
+		public:
+			FontObjectBuffer()
+			:	CoreObject(),
+				m_pPool(NULL),
+				m_uMax(0)
+			{
+
+			}
+
+			virtual ~FontObjectBuffer()
+			{
+
+			}
+
+			virtual bool Create(const boost::any& _rConfig)
+			{
+				return Reserve(boost::any_cast<const UInt>(_rConfig));
+			}
+
+			virtual void Update()
+			{
+
+			}
+
+			virtual void Release()
+			{
+				if (NULL != m_pPool)
+				{
+					delete m_pPool;
+					m_pPool = NULL;
+					m_uMax = 0;
+				}
+			}
+
+			TPtr Alloc(UIntRef _uSize)
+			{
+				return m_pPool->Alloc(_uSize);
+			}
+
+			void Free(TPtr _pT)
+			{
+
+				m_pPool->Free(_pT);
+			}
+
+		protected:
+			bool Reserve(UInt _uSize)
+			{
+				if ((NULL != m_pPool) && (m_uMax != _uSize))
+				{
+					delete m_pPool;
+					m_pPool = NULL;
+				}
+
+				m_uMax = _uSize;
+				if (0 < m_uMax)
+				{
+					m_pPool = new TPool(m_uMax);
+				}
+
+				return ((0 < m_uMax) && (m_uMax == m_pPool->Size()));
+			}
+
+		protected:
+			TPoolPtr	m_pPool;
+			UInt		m_uMax;
+		};
+
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+#if 1
+		typedef FontObjectBuffer<VertexFont> VertexBuffer;
+		typedef VertexBuffer* VertexBufferPtr;
+		typedef VertexBuffer& VertexBufferRef;
+#else
+		typedef Pool<VertexFont> VertexFontPool;
+		typedef VertexFontPool* VertexFontPoolPtr;
+		typedef VertexFontPool& VertexFontPoolRef;
+
+		class VertexBuffer;
+		typedef VertexBuffer* VertexBufferPtr;
+		typedef VertexBuffer& VertexBufferRef;
+
+		class VertexBuffer : public CoreObject
+		{
+		public:
+			VertexBuffer();
+			virtual ~VertexBuffer();
+
+			static VertexBufferPtr GetInstance();
+			static void SetInstance(VertexBufferPtr _pInstance);
+
+			virtual bool Create(const boost::any& _rConfig);
+			virtual void Update();
+			virtual void Release();
+
+			VertexFontPtr Alloc(UIntRef _uSize);
+			void Free(VertexFontPtr _pFont);
+
+		protected:
+			bool Reserve(UInt _uSize);
+
+		protected:
+			static VertexBufferPtr s_pInstance;
+
+			VertexFontPoolPtr	m_pPool;
+			UInt				m_uMaxVertex;
+		};
+#endif
+
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+		class DisplayFontText : public ElixirEngine::DisplayFontText
+		{
+		public:
+			struct CreateInfo
+			{
+				DisplayPtr		m_pDisplay;
+				DisplayFontPtr	m_pFont;
+			};
+
+		public:
+			DisplayFontText();
+			virtual ~DisplayFontText();
+
+			virtual bool Create(const boost::any& _rConfig);
+			virtual void Release();
+
+			virtual void Render();
+
+			virtual void SetWorldMatrix(MatrixRef _rWorld);
+			virtual void SetText(const wstring& _wstrText);
+
+		protected:
+			void BuildText();
+
+		protected:
+			wstring			m_wstrText;
+			DisplayFontPtr	m_pFont;
+			VertexFontPtr	m_pVertex;
+			UInt			m_uVertexCount;
+			bool			m_bTextChanged;
+			bool			m_bSizeChanged;
+		};
+		typedef FontObjectBuffer<DisplayFontText> TextBuffer;
+		typedef TextBuffer* TextBufferPtr;
+		typedef TextBuffer& TextBufferRef;
+
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+		class DisplayFont : public ElixirEngine::DisplayFont
+		{
+			friend class DisplayFontText;
+
+		public:
+			DisplayFont(DisplayFontManagerRef _rFontManager, DisplayFontLoaderRef _rFontLoader);
+			virtual ~DisplayFont();
+
+			virtual bool Create(const boost::any& _rConfig);
+			virtual void Update();
+			virtual void Release();
+
+			virtual ElixirEngine::DisplayFontTextPtr CreateText();
+			virtual void ReleaseText(ElixirEngine::DisplayFontTextPtr _pText);
+			virtual DisplayRef GetDisplay();
+
+		protected:
+			bool CheckHeader(FilePtr _pFile, Byte& _uVersion);
+			bool ReadBlockInfo(FilePtr _pFile, UInt& _uBlockSise);
+			bool ReadBlockCommon(FilePtr _pFile, UInt& _uBlockSise);
+			bool ReadBlockPages(FilePtr _pFile, UInt& _uBlockSise);
+			bool ReadBlockChars(FilePtr _pFile, UInt& _uBlockSise);
+			bool ReadBlockKerning(FilePtr _pFile, UInt& _uBlockSise);
+
+			bool LoadTextures(const string& _strPath);
+
+		protected:
+			BlockInfo				m_oBlockInfo;
+			BlockCommon				m_oBlockCommon;
+			BlockPages				m_oBlockPages;
+			BlockCharMap			m_mBlockChars;
+			BlockKerningVec			m_vBlockKernings;
+			DisplayTexturePtrMap	m_mTextures;
+			DisplayFontLoaderRef	m_rFontLoader;
+		};
+
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------
+
+		class DisplayFontLoader : public ElixirEngine::DisplayFontLoader
+		{
+		public:
+			DisplayFontLoader(DisplayFontManagerRef _rFontManager);
+			virtual ~DisplayFontLoader();
+
+			virtual bool Create(const boost::any& _rConfig);
+			virtual void Release();
+
+			virtual ElixirEngine::DisplayFontPtr Load(const string& _strFileName);
+			virtual void Unload(ElixirEngine::DisplayFontPtr _pFont);
+
+			VertexBufferRef GetVertexBuffer();
+			TextBufferRef GetTextBuffer();
+
+		protected:
+			VertexBufferPtr	m_pVertexBuffer;
+			TextBufferPtr	m_pTextBuffer;
+		};
+	}
+}
+
+#endif

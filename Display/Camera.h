@@ -4,7 +4,7 @@
 #include "../Display/Display.h"
 
 #define CAMERA_VIEWINV_AS_VIEW	1
-#define CAMERA_LINEARIZED_DEPTH	0
+#define CAMERA_LINEARIZED_DEPTH	0  // if set to 1 then water post effect won't work correctly :'(
 
 namespace ElixirEngine
 {

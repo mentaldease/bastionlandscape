@@ -39,12 +39,16 @@ namespace ElixirEngine
 	VertexElement VertexLiquid::s_VertexElement[6] =
 	{
 		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
-		{ 0,	1 * sizeof(Vector3),	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
-		{ 0,	2 * sizeof(Vector3),	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_BINORMAL,	0 },
-		{ 0,	3 * sizeof(Vector3),	D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT,	0 },
-		{ 0,	4 * sizeof(Vector3),	D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
+		{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
+		{ 0,	2 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_BINORMAL,	0 },
+		{ 0,	3 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TANGENT,	0 },
+		{ 0,	4 * SV3,				D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
 		D3DDECL_END()
 	};
+
+	#undef SV2
+	#undef SV3
+	#undef SV4
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -149,7 +153,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	Landscape::Landscape(DisplayRef _rDisplay)
-	:	DisplayObject(_rDisplay),
+	:	DisplayObject(),
 		m_oGlobalInfo(),
 		m_vGrid(),
 		m_vVertexBuffers(),
@@ -192,10 +196,10 @@ namespace ElixirEngine
 
 	void Landscape::Update()
 	{
-		//m_rDisplay.RenderRequest(this);
+		//Display::GetInstance()->RenderRequest(this);
 		m_uOutOfFrustum = 0;
-		const float fPixelSize = m_rDisplay.GetCurrentCamera()->GetPixelSize();
-		const Vector3& rCamPos = m_rDisplay.GetCurrentCamera()->GetPosition();
+		const float fPixelSize = Display::GetInstance()->GetCurrentCamera()->GetPixelSize();
+		const Vector3& rCamPos = Display::GetInstance()->GetCurrentCamera()->GetPosition();
 		m_vGrid.back()->Traverse(m_vRenderList, rCamPos, fPixelSize);
 
 		struct LODCompareFunction
@@ -213,7 +217,7 @@ namespace ElixirEngine
 		{
 			*((*iChunk)->GetWorldMatrix()) = *(GetWorldMatrix());
 			(*iChunk)->SetMaterial(m_pMaterial);
-			m_rDisplay.RenderRequest(*iChunk);
+			Display::GetInstance()->RenderRequest(*iChunk);
 			++iChunk;
 		}
 		m_vRenderList.clear();
@@ -307,7 +311,7 @@ namespace ElixirEngine
 
 		while (false == m_vVertexBuffers.empty())
 		{
-			m_rDisplay.ReleaseVertexBuffer(m_vVertexBuffers.back());
+			Display::GetInstance()->ReleaseVertexBuffer(m_vVertexBuffers.back());
 			m_vVertexBuffers.pop_back();
 		}
 
@@ -325,7 +329,7 @@ namespace ElixirEngine
 
 		if (NULL != m_pIndexBuffer)
 		{
-			m_rDisplay.ReleaseIndexBuffer(m_pIndexBuffer);
+			Display::GetInstance()->ReleaseIndexBuffer(m_pIndexBuffer);
 			m_pIndexBuffer = NULL;
 		}
 
@@ -418,7 +422,7 @@ namespace ElixirEngine
 			}
 
 			DisplayIndexBuffer::CreateInfo oIBCInfo = { m_oGlobalInfo.m_uTotalLODStripSize, false };
-			m_pIndexBuffer = m_rDisplay.CreateIndexBuffer(oIBCInfo);
+			m_pIndexBuffer = Display::GetInstance()->CreateIndexBuffer(oIBCInfo);
 			bResult = (NULL != m_pIndexBuffer);
 			if (false != bResult)
 			{
@@ -445,7 +449,7 @@ namespace ElixirEngine
 		// create chunks recursively
 		if (false != bResult)
 		{
-			LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(*this, m_rDisplay, m_oGlobalInfo.m_uLODCount - 1);
+			LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(*this, m_oGlobalInfo.m_uLODCount - 1);
 			LandscapeChunk::CreateInfo oLCCInfo;
 			oLCCInfo.m_uX = 0;
 			oLCCInfo.m_uZ = 0;
@@ -461,8 +465,8 @@ namespace ElixirEngine
 
 	bool Landscape::LoadHeightmap(const string& _strFileName)
 	{
-		bool bResult = m_rDisplay.GetSurfaceManager()->Load(_strFileName, _strFileName);
-		DisplaySurfacePtr pSurface = m_rDisplay.GetSurfaceManager()->Get(_strFileName);
+		bool bResult = Display::GetInstance()->GetSurfaceManager()->Load(_strFileName, _strFileName);
+		DisplaySurfacePtr pSurface = Display::GetInstance()->GetSurfaceManager()->Get(_strFileName);
 
 		// load heightmap through a surface
 		if ((false != bResult) && (NULL != pSurface) && (pSurface->Lock(false)))
@@ -538,7 +542,7 @@ namespace ElixirEngine
 			}
 			// release heightmap surface
 			pSurface->Unlock();
-			m_rDisplay.GetSurfaceManager()->Unload(_strFileName);
+			Display::GetInstance()->GetSurfaceManager()->Unload(_strFileName);
 		}
 
 		return bResult;
