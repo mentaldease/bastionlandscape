@@ -114,9 +114,9 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class Display : public CoreObject
+	class Display : public CoreObject, public WeakSingleton<Display>
 	{
-		DECLARE_WEAKSINGLETON(Display)
+		//DECLARE_WEAKSINGLETON(Display)
 
 	public:
 		Display();

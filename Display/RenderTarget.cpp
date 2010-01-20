@@ -436,7 +436,11 @@ namespace ElixirEngine
 		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
 		while (iEnd != iRT)
 		{
-			(*iRT)->RenderBegin(_eMode);
+			DisplayRenderTargetPtr pRT = *iRT;
+			if (false != pRT->IsEnabled())
+			{
+				pRT->RenderBegin(_eMode);
+			}
 			++iRT;
 		}
 	}
@@ -449,8 +453,11 @@ namespace ElixirEngine
 		while (iEnd != iRT)
 		{
 			DisplayRenderTargetPtr pRT = *iRT;
-			pRT->RenderBeginPass(_uIndex);
-			bSwap = bSwap || pRT->SwapOccured();
+			if (false != pRT->IsEnabled())
+			{
+				pRT->RenderBeginPass(_uIndex);
+				bSwap = bSwap || pRT->SwapOccured();
+			}
 			++iRT;
 		}
 		// Since SetRenderViewport reset the view port to full screen size we need to force back previously requested view port.
@@ -466,7 +473,11 @@ namespace ElixirEngine
 		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
 		while (iEnd != iRT)
 		{
-			(*iRT)->RenderEndPass();
+			DisplayRenderTargetPtr pRT = *iRT;
+			if (false != pRT->IsEnabled())
+			{
+				pRT->RenderEndPass();
+			}
 			++iRT;
 		}
 	}
@@ -477,7 +488,11 @@ namespace ElixirEngine
 		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
 		while (iEnd != iRT)
 		{
-			(*iRT)->RenderEnd();
+			DisplayRenderTargetPtr pRT = *iRT;
+			if (false != pRT->IsEnabled())
+			{
+				pRT->RenderEnd();
+			}
 			++iRT;
 		}
 

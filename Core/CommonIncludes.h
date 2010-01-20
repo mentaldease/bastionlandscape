@@ -1,6 +1,10 @@
 #ifndef __COMMONINCLUDES_H__
 #define __COMMONINCLUDES_H__
 
+#ifndef D3D_DEBUG_INFO
+#define D3D_DEBUG_INFO
+#endif // D3D_DEBUG_INFO
+
 // Windows Header Files:
 #include <windows.h>
 #include <d3dx9.h>

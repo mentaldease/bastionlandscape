@@ -98,9 +98,9 @@ namespace ElixirEngine
 			Word	m_uY;
 			Word	m_uWidth;
 			Word	m_uHeight;
-			Word	m_uXOffset;
-			Word	m_uYOffset;
-			Word	m_uXAdvance;
+			short	m_sXOffset;
+			short	m_sYOffset;
+			short	m_sXAdvance;
 			Byte	m_uPage;
 			Byte	m_uChannel;
 			// Followings are not part of BMF binary format.
@@ -229,45 +229,9 @@ namespace ElixirEngine
 		//-----------------------------------------------------------------------------------------------
 		//-----------------------------------------------------------------------------------------------
 
-#if 1
 		typedef FontObjectBuffer<VertexFont> VertexBuffer;
 		typedef VertexBuffer* VertexBufferPtr;
 		typedef VertexBuffer& VertexBufferRef;
-#else
-		typedef Pool<VertexFont> VertexFontPool;
-		typedef VertexFontPool* VertexFontPoolPtr;
-		typedef VertexFontPool& VertexFontPoolRef;
-
-		class VertexBuffer;
-		typedef VertexBuffer* VertexBufferPtr;
-		typedef VertexBuffer& VertexBufferRef;
-
-		class VertexBuffer : public CoreObject
-		{
-		public:
-			VertexBuffer();
-			virtual ~VertexBuffer();
-
-			static VertexBufferPtr GetInstance();
-			static void SetInstance(VertexBufferPtr _pInstance);
-
-			virtual bool Create(const boost::any& _rConfig);
-			virtual void Update();
-			virtual void Release();
-
-			VertexFontPtr Alloc(UIntRef _uSize);
-			void Free(VertexFontPtr _pFont);
-
-		protected:
-			bool Reserve(UInt _uSize);
-
-		protected:
-			static VertexBufferPtr s_pInstance;
-
-			VertexFontPoolPtr	m_pPool;
-			UInt				m_uMaxVertex;
-		};
-#endif
 
 		//-----------------------------------------------------------------------------------------------
 		//-----------------------------------------------------------------------------------------------
@@ -289,7 +253,9 @@ namespace ElixirEngine
 			virtual bool Create(const boost::any& _rConfig);
 			virtual void Release();
 
+			virtual void RenderBegin();
 			virtual void Render();
+			virtual void RenderEnd();
 
 			virtual void SetWorldMatrix(MatrixRef _rWorld);
 			virtual void SetText(const wstring& _wstrText);
@@ -298,12 +264,16 @@ namespace ElixirEngine
 			void BuildText();
 
 		protected:
-			wstring			m_wstrText;
-			DisplayFontPtr	m_pFont;
-			VertexFontPtr	m_pVertex;
-			UInt			m_uVertexCount;
-			bool			m_bTextChanged;
-			bool			m_bSizeChanged;
+			wstring							m_wstrText;
+			DisplayFontPtr					m_pFont;
+			VertexFontPtr					m_pVertex;
+			ElixirEngine::VertexBufferPtr	m_pPreviousVertexBuffer;
+			VertexDeclPtr					m_pPreviousVertexDecl;
+			unsigned int					m_uPreviousVBOffset;
+			unsigned int					m_uPreviousVBStride;
+			UInt							m_uVertexCount;
+			bool							m_bTextChanged;
+			bool							m_bSizeChanged;
 		};
 		typedef FontObjectBuffer<DisplayFontText> TextBuffer;
 		typedef TextBuffer* TextBufferPtr;
@@ -329,6 +299,8 @@ namespace ElixirEngine
 			virtual void ReleaseText(ElixirEngine::DisplayFontTextPtr _pText);
 			virtual DisplayRef GetDisplay();
 
+			DisplayFontLoaderRef GetLoader();
+
 		protected:
 			bool CheckHeader(FilePtr _pFile, Byte& _uVersion);
 			bool ReadBlockInfo(FilePtr _pFile, UInt& _uBlockSise);
@@ -338,6 +310,7 @@ namespace ElixirEngine
 			bool ReadBlockKerning(FilePtr _pFile, UInt& _uBlockSise);
 
 			bool LoadTextures(const string& _strPath);
+			short GetKerning(const wchar_t _wcFirst, const wchar_t _wcSecond);
 
 		protected:
 			BlockInfo				m_oBlockInfo;
@@ -367,10 +340,12 @@ namespace ElixirEngine
 
 			VertexBufferRef GetVertexBuffer();
 			TextBufferRef GetTextBuffer();
+			VertexDeclPtr GetVertexDecl();
 
 		protected:
 			VertexBufferPtr	m_pVertexBuffer;
 			TextBufferPtr	m_pTextBuffer;
+			VertexDeclPtr	m_pVertexDecl;
 		};
 	}
 }

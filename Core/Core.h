@@ -61,6 +61,27 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	template <typename T>
+	class WeakSingleton
+	{
+	public:
+		WeakSingleton() {};
+		virtual ~WeakSingleton() {};
+
+		inline static void SetInstance(T* _pInstance) { s_pInstance = _pInstance; }
+		inline static T* GetInstance() { return s_pInstance; }
+
+	protected:
+		static T* s_pInstance;
+	};
+
+	template <typename T>
+	T* WeakSingleton<T>::s_pInstance = NULL;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	#define DECLARE_WEAKSINGLETON(TypeName) \
 	protected: \
 		static TypeName* s_pInstance; \
