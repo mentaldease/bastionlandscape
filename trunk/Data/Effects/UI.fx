@@ -22,6 +22,7 @@ struct VS_OUTPUT
 	float4 Position	: POSITION;   // vertex position
 	float4 Diffuse	: COLOR0;     // vertex diffuse color (note that COLOR0 is clamped from 0..1)
 	float3 UV		: TEXCOORD0;
+	//float  Depth	: TEXCOORD1;  // vertex depth
 };
 
 
@@ -32,7 +33,7 @@ VS_OUTPUT RenderSceneVS(float4 vPos : POSITION, float4 vDiffuse : COLOR0, float3
 {
 	VS_OUTPUT Output;
 
-	Output.Position = vPos;//mul( vPos, g_mWorldViewProjection );
+	Output.Position = mul( vPos, g_mWorldViewProjection );
 	Output.Diffuse = vDiffuse;
 	Output.UV = vUV;
 
@@ -45,7 +46,9 @@ VS_OUTPUT RenderSceneVS(float4 vPos : POSITION, float4 vDiffuse : COLOR0, float3
 //--------------------------------------------------------------------------------------
 struct PS_OUTPUT
 {
-	float4 RGBColor : COLOR0;  // Pixel color    
+	float4 vColor		: COLOR0;  // Pixel color
+	float4 vPosition	: COLOR1;  // Pixel position
+	float4 vNormal		: COLOR2;  // Pixel normal
 };
 
 
@@ -57,7 +60,10 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 { 
 	PS_OUTPUT Output;
 
-	Output.RGBColor = In.Diffuse * tex2D(DiffuseSampler0, In.UV);
+	Output.vColor = In.Diffuse * tex2D(DiffuseSampler0, In.UV);
+	//Output.vColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+	Output.vNormal = float4(0.0f, 0.0f, -1.0f, 1.0f);
+	Output.vPosition = float4(0.01f, 1.0f, 1.0f, 1.0f);
 
 	return Output;
 }
@@ -72,7 +78,8 @@ technique RenderScene
     pass P0
     {          
 		Lighting = FALSE;
-		FillMode = wireframe;
+		//FillMode = wireframe;
+		CullMode = none;
 
         VertexShader = compile vs_2_0 RenderSceneVS();
         PixelShader  = compile ps_2_0 RenderScenePS();

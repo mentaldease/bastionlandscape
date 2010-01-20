@@ -368,7 +368,7 @@ namespace BastionGame
 			}
 			else
 			{
-				m_pDisplay->GetCurrentCamera()->GetPosition() = Vector3(0.0f, 2.0f, -10.0f);
+				m_pDisplay->GetCurrentCamera()->GetPosition() = Vector3(0.0f, 0.0f, 0.0f);
 				m_pUpdateFunction = boost::bind(&Application::RenderScene, this);
 			}
 		}
