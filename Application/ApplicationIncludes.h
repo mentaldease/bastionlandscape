@@ -14,6 +14,7 @@
 #include "../Display/NormalProcess.h"
 #include "../Core/Scripting.h"
 #include "../Display/Font.h"
+#include "../Display/RenderPass.h"
 using namespace ElixirEngine;
 
 #include "../Application/ApplicationTypes.h"

@@ -103,6 +103,8 @@ namespace ElixirEngine
 	class DisplayCamera;
 	typedef DisplayCamera* DisplayCameraPtr;
 	typedef DisplayCamera& DisplayCameraRef;
+	typedef vector<DisplayCameraPtr> DisplayCameraPtrVec;
+	typedef map<Key, DisplayCameraPtr> DisplayCameraPtrMap;
 
 	struct AABB;
 	typedef AABB* AABBPtr;
@@ -224,6 +226,17 @@ namespace ElixirEngine
 	class DisplayFontManager;
 	typedef DisplayFontManager* DisplayFontManagerPtr;
 	typedef DisplayFontManager& DisplayFontManagerRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayRenderPass;
+	typedef DisplayRenderPass* DisplayRenderPassPtr;
+	typedef DisplayRenderPass& DisplayRenderPassRef;
+	typedef map<Key, DisplayRenderPassPtr> DisplayRenderPassPtrMap;
+	typedef vector<DisplayRenderPassPtr> DisplayRenderPassPtrVec;
+	typedef map<Key, DisplayObjectPtrVec> DisplayRenderRequestListMap;
 }
 
 #endif // __DISPLAYTYPES_H__

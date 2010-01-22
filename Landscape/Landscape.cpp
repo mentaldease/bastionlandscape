@@ -196,7 +196,6 @@ namespace ElixirEngine
 
 	void Landscape::Update()
 	{
-		//Display::GetInstance()->RenderRequest(this);
 		m_uOutOfFrustum = 0;
 		const float fPixelSize = Display::GetInstance()->GetCurrentCamera()->GetPixelSize();
 		const Vector3& rCamPos = Display::GetInstance()->GetCurrentCamera()->GetPosition();
@@ -213,11 +212,14 @@ namespace ElixirEngine
 
 		LandscapeChunkPtrVec::iterator iChunk = m_vRenderList.begin();
 		LandscapeChunkPtrVec::iterator iEnd = m_vRenderList.end();
+		DisplayPtr pDisplay = Display::GetInstance();
+		const Key uPassNameKey = MakeKey(string("scene"));
 		while (iEnd != iChunk)
 		{
-			*((*iChunk)->GetWorldMatrix()) = *(GetWorldMatrix());
-			(*iChunk)->SetMaterial(m_pMaterial);
-			Display::GetInstance()->RenderRequest(*iChunk);
+			LandscapeChunkPtr pChunk = *iChunk;
+			*(pChunk->GetWorldMatrix()) = *(GetWorldMatrix());
+			pChunk->SetMaterial(m_pMaterial);
+			pDisplay->RenderRequest(uPassNameKey, pChunk);
 			++iChunk;
 		}
 		m_vRenderList.clear();

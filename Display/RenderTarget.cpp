@@ -123,7 +123,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetGeometry::RenderEnd()
 	{
-		if (m_pPreviousVertexDecl != m_pVertDeclPP)
+		if ((m_pPreviousVertexDecl != m_pVertDeclPP) && (NULL != m_pPreviousVertexDecl))
 		{
 			Display::GetInstance()->GetDevicePtr()->SetStreamSource(0, m_pPreviousVertexBuffer, m_uPreviousVBOffset, m_uPreviousVBStride);
 			Display::GetInstance()->GetDevicePtr()->SetVertexDeclaration(m_pPreviousVertexDecl);

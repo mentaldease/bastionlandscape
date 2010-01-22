@@ -39,6 +39,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	CoreObject::CoreObject()
+	:	m_uRefCount(0)
 	{
 		//s_mObjects[this] = 1;
 	}
