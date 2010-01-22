@@ -10,7 +10,9 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	DisplayCamera::CreateInfo::CreateInfo()
-	:	m_fX(0.0f),
+	:	m_oPos(0.0f, 0.0f, 0.0f),
+		m_oRot(0.0f, 0.0f, 0.0f),
+		m_fX(0.0f),
 		m_fY(0.0f),
 		m_fWidth(1.0f),
 		m_fHeight(1.0f),
@@ -177,31 +179,11 @@ namespace ElixirEngine
 
 	void DisplayCamera::Release()
 	{
-		m_mViewports.clear();
-	}
-
-	bool DisplayCamera::AddViewport(const Key& _uNameKey, ViewportRef _rViewPort)
-	{
-		ViewportMap::iterator iPair = m_mViewports.find(_uNameKey);
-		bool bResult = (m_mViewports.end() == iPair);
-
-		if (false != bResult)
-		{
-			m_mViewports[_uNameKey] = _rViewPort;
-		}
-
-		return bResult;
 	}
 
 	ViewportPtr DisplayCamera::GetCurrentViewport()
 	{
 		return m_pCurrentViewport;
-	}
-
-	ViewportPtr DisplayCamera::GetViewport(const Key& _uNameKey)
-	{
-		ViewportMap::iterator iPair = m_mViewports.find(_uNameKey);
-		return (m_mViewports.end() == iPair) ? NULL : &iPair->second;
 	}
 
 	void DisplayCamera::SetViewport(const Key& _uNameKey)
@@ -217,7 +199,7 @@ namespace ElixirEngine
 			}
 			else
 			{
-				ViewportPtr pViewport = GetViewport(_uNameKey);
+				ViewportPtr pViewport = m_rDisplay.GetViewport(_uNameKey);
 				if (NULL != pViewport)
 				{
 					m_pCurrentViewport = pViewport;

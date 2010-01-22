@@ -16,10 +16,10 @@ namespace BastionGame
 		m_mAllObjects(),
 		m_mLandscapes(),
 		m_mMaterials(),
-		m_mPostProcesses(),
-		m_vPostProcesses(),
-		m_mNormalProcesses(),
-		m_vNormalProcesses(),
+		m_mAdditionalRTs(),
+		m_mCameras(),
+		m_mRenderPasses(),
+		m_vRenderPasses(),
 		m_oLightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
 		m_uWaterDataCount(0),
@@ -75,6 +75,11 @@ namespace BastionGame
 			}
 		}
 
+		if (false != bResult)
+		{
+			m_rApplication.GetDisplay()->AddRenderPasses(m_vRenderPasses);
+		}
+
 		return bResult;
 	}
 
@@ -96,6 +101,16 @@ namespace BastionGame
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 
+		m_rApplication.GetDisplay()->RemoveRenderPasses(m_vRenderPasses);
+
+		// camera
+		while (m_mCameras.end() != m_mCameras.begin())
+		{
+			m_rApplication.GetDisplay()->ReleaseCamera(m_mCameras.begin()->first);
+			m_mCameras.erase(m_mCameras.begin());
+		}
+
+		// ui test
 		if (NULL != m_pUIText)
 		{
 			m_pUIFont->ReleaseText(m_pUIText);
@@ -131,26 +146,6 @@ namespace BastionGame
 			m_mMaterials.erase(m_mMaterials.begin());
 		}
 
-		// render post processes
-		while (m_mPostProcesses.end() != m_mPostProcesses.begin())
-		{
-			DisplayPostProcessPtr pPostProcess = m_mPostProcesses.begin()->second;
-			pPostProcess->Release();
-			delete pPostProcess;
-			m_mPostProcesses.erase(m_mPostProcesses.begin());
-		}
-		m_vPostProcesses.clear();
-
-		// render normal processes
-		while (m_mNormalProcesses.end() != m_mNormalProcesses.begin())
-		{
-			DisplayNormalProcessPtr pNormalProcess = m_mNormalProcesses.begin()->second;
-			pNormalProcess->Release();
-			delete pNormalProcess;
-			m_mNormalProcesses.erase(m_mNormalProcesses.begin());
-		}
-		m_vNormalProcesses.clear();
-
 		// specific param creators
 		pMaterialManager->UnregisterParamCreator(m_uWaterDataKey);
 		pMaterialManager->UnregisterParamCreator(m_uWaterLevelKey);
@@ -167,26 +162,19 @@ namespace BastionGame
 
 	void Scene::PreUpdate()
 	{
-		if (false == m_vPostProcesses.empty())
-		{
-			m_rApplication.GetDisplay()->SetPostProcessesList(&m_vPostProcesses);
-		}
-		if (false == m_vNormalProcesses.empty())
-		{
-			m_rApplication.GetDisplay()->SetNormalProcessesList(&m_vNormalProcesses);
-		}
 	}
 
 	void Scene::DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _oColor)
 	{
 		if (NULL != m_pUIText)
 		{
+			const Key uPassNameKey = MakeKey(string("ui"));
 			m_pUIText->SetText(_wstrText);
 			Matrix oMPos;
 			Vector3 oVPos(_fX, _fY, 0.0f);
 			D3DXMatrixTransformation(&oMPos, NULL, NULL, NULL, NULL, NULL, &oVPos);
 			m_pUIText->SetWorldMatrix(oMPos);
-			m_rApplication.GetDisplay()->RenderRequest(m_pUIText);
+			m_rApplication.GetDisplay()->RenderRequest(uPassNameKey, m_pUIText);
 		}
 	}
 
@@ -207,9 +195,9 @@ namespace BastionGame
 			bResult = CreateLoadRenderTargets(oRoot)
 				&& CreateLoadMaterials(oRoot)
 				&& CreateLoadLandscapes(oRoot)
-				&& CreateLoadPostProcesses(oRoot)
-				&& CreateLoadNormalProcesses(oRoot)
-				&& CreateLoadWaterDataList(oRoot);
+				&& CreateLoadWaterDataList(oRoot)
+				&& CreateLoadCameras(oRoot)
+				&& CreateLoadRenderPasses(oRoot);
 		}
 		return bResult;
 	}
@@ -271,7 +259,7 @@ namespace BastionGame
 		bool bResult = true;
 
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-		LuaObject oMaterialLibs = _rLuaObject["materiallibs"];
+		LuaObject oMaterialLibs = _rLuaObject["materials"];
 		const int uCount = oMaterialLibs.GetCount();
 		for (int i = 0 ; uCount > i ; ++i)
 		{
@@ -392,111 +380,28 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene::CreateLoadPostProcesses(LuaObjectRef _rLuaObject)
-	{
-		LuaObject oPostProcesses = _rLuaObject["postprocesses"];
-		bool bResult = true;
-
-		if (false == oPostProcesses.IsNil())
-		{
-			const int sCount = oPostProcesses.GetCount();
-			for (int i = 0 ; sCount > i ; ++i)
-			{
-				bResult = CreateLoadPostProcess(oPostProcesses[i + 1]);
-				if (false == bResult)
-				{
-					break;
-				}
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadPostProcess(LuaObjectRef _rLuaObject)
-	{
-		DisplayPostProcessPtr pPostProcess = new DisplayPostProcess(*m_rApplication.GetDisplay());
-		DisplayPostProcess::CreateInfo oPPCInfo;
-		oPPCInfo.m_bImmediateWrite = _rLuaObject["immediate_write"].GetBoolean();
-		oPPCInfo.m_strName = _rLuaObject["name"].GetString();
-		const string strMaterialName = _rLuaObject["material"].GetString();
-		const Key uMaterialNameKey = MakeKey(strMaterialName);
-		const Key uNameKey = MakeKey(oPPCInfo.m_strName);
-		bool bResult = (m_mPostProcesses.end() == m_mPostProcesses.find(uNameKey)) // <== check that there is NOT another post process with the same name
-			&& (oPPCInfo.m_uMaterialNameKey = uMaterialNameKey)
-			&& pPostProcess->Create(boost::any(&oPPCInfo));
-
-		if (false != bResult)
-		{
-			m_mPostProcesses[uNameKey] = pPostProcess;
-			m_vPostProcesses.push_back(pPostProcess);
-		}
-		else
-		{
-			pPostProcess->Release();
-			delete pPostProcess;
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadNormalProcesses(LuaObjectRef _rLuaObject)
-	{
-		LuaObject oNormalProcesses = _rLuaObject["normalprocesses"];
-		bool bResult = true;
-
-		if (false == oNormalProcesses.IsNil())
-		{
-			const int sCount = oNormalProcesses.GetCount();
-			for (int i = 0 ; sCount > i ; ++i)
-			{
-				bResult = CreateLoadNormalProcess(oNormalProcesses[i + 1]);
-				if (false == bResult)
-				{
-					break;
-				}
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadNormalProcess(LuaObjectRef _rLuaObject)
-	{
-		DisplayNormalProcessPtr pNormalProcess = new DisplayNormalProcess(*m_rApplication.GetDisplay());
-		DisplayNormalProcess::CreateInfo oNPCInfo = { &_rLuaObject };
-		bool bResult = pNormalProcess->Create(boost::any(&oNPCInfo));
-
-
-		if (false != bResult)
-		{
-			m_mNormalProcesses[pNormalProcess->GetNameKey()] = pNormalProcess;
-			m_vNormalProcesses.push_back(pNormalProcess);
-		}
-		else
-		{
-			pNormalProcess->Release();
-			delete pNormalProcess;
-		}
-
-		return bResult;
-	}
-
 	bool Scene::CreateLoadWaterDataList(LuaObjectRef _rLuaObject)
 	{
-		LuaObject oWater = _rLuaObject["water"];
-		bool bResult = true;
+		string strWaterConfig;
+		Scripting::Lua::Get(_rLuaObject, "water_config", string(""), strWaterConfig);
+		bool bResult = (false == strWaterConfig.empty()) && (false != Scripting::Lua::Loadfile(strWaterConfig));
 
-		if ((false == oWater.IsNil()) && (m_uWaterDataCount = oWater.GetCount()))
+		if (false != bResult)
 		{
-			m_uWaterDataCount = (WATER_COUNT < m_uWaterDataCount) ? WATER_COUNT : m_uWaterDataCount;
-			m_pWaterData = new WaterData[m_uWaterDataCount];
-			for (UInt i = 0 ; m_uWaterDataCount > i ; ++i)
+			LuaObject oGlobals = Scripting::Lua::GetStateInstance()->GetGlobals();
+			LuaObject oWater = oGlobals["water"];
+
+			if ((false == oWater.IsNil()) && (m_uWaterDataCount = oWater.GetCount()))
 			{
-				bResult = CreateLoadWaterData(oWater[i + 1], m_pWaterData[i]);
-				if (false == bResult)
+				m_uWaterDataCount = (WATER_COUNT < m_uWaterDataCount) ? WATER_COUNT : m_uWaterDataCount;
+				m_pWaterData = new WaterData[m_uWaterDataCount];
+				for (UInt i = 0 ; m_uWaterDataCount > i ; ++i)
 				{
-					break;
+					bResult = CreateLoadWaterData(oWater[i + 1], m_pWaterData[i]);
+					if (false == bResult)
+					{
+						break;
+					}
 				}
 			}
 		}
@@ -532,6 +437,95 @@ namespace BastionGame
 		Scripting::Lua::Get(_rLuaObject, "Wind", Vector2(-0.3f, 0.7f), _rWaterData.m_vWind);
 		Scripting::Lua::Get(_rLuaObject, "Forward", Vector3(0.0f, 0.0f, 0.0f), _rWaterData.m_vForward);
 		Scripting::Lua::Get(_rLuaObject, "AtlasInfo", Vector4(0.0f, 0.0f, 0.0f, 0.0f), _rWaterData.m_vAtlasInfo);
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadCameras(LuaObjectRef _rLuaObject)
+	{
+		DisplayPtr pDisplay = m_rApplication.GetDisplay();
+		string strCameraName;
+		bool bResult = true;
+
+		LuaObject oCameraLibs = _rLuaObject["cameras"];
+		const int uCount = oCameraLibs.GetCount();
+		for (int i = 0 ; uCount > i ; ++i)
+		{
+			string strFileName = oCameraLibs[i + 1].GetString();
+			bool bResult = Scripting::Lua::Loadfile(strFileName);
+			if (false == bResult)
+			{
+				break;
+			}
+			string strCameraLibrary;
+			FS::GetFileNameWithoutExt(strFileName, strCameraLibrary);
+			strCameraLibrary = strtolower(strCameraLibrary);
+			LuaObject oCameraLibrary = _rLuaObject.GetState()->GetGlobal(strCameraLibrary.c_str());
+			if (false != oCameraLibrary.IsNil())
+			{
+				bResult = false;
+				break;
+			}
+			const int uCameraCount = oCameraLibrary.GetCount();
+			for (int j = 0 ; uCameraCount > j ; ++j)
+			{
+				LuaObject oCamera = oCameraLibrary[j + 1];
+				strCameraName = oCamera["name"].GetString();
+				Key uCameraNameKey = MakeKey(strCameraName);
+				bResult = (NULL == pDisplay->GetCamera(uCameraNameKey))
+					&& (false != pDisplay->CreateCamera(uCameraNameKey, oCamera));
+				if (false == bResult)
+				{
+					break;
+				}
+				m_mCameras[uCameraNameKey] = pDisplay->GetCamera(uCameraNameKey);
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadRenderPasses(LuaObjectRef _rLuaObject)
+	{
+		LuaObject oRenderPasses = _rLuaObject["renderpasses"];
+		bool bResult = true;
+
+		if (false == oRenderPasses.IsNil())
+		{
+			const int sCount = oRenderPasses.GetCount();
+			for (int i = 0 ; sCount > i ; ++i)
+			{
+				bResult = CreateLoadRenderPass(oRenderPasses[i + 1]);
+				if (false == bResult)
+				{
+					break;
+				}
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene::CreateLoadRenderPass(LuaObjectRef _rLuaObject)
+	{
+		DisplayRenderPassPtr pRenderPass = new DisplayRenderPass(*m_rApplication.GetDisplay());
+		string strName;
+		Scripting::Lua::Get(_rLuaObject, "name", string(""), strName);
+		const Key uNameKey = MakeKey(strName);
+		bool bResult = (false == strName.empty())
+			&& (m_mRenderPasses.end() == m_mRenderPasses.find(uNameKey)) // <== check that there is NOT another render pass with the same name
+			&& pRenderPass->Create(boost::any(&_rLuaObject));
+
+		if (false != bResult)
+		{
+			m_mRenderPasses[uNameKey] = pRenderPass;
+			m_vRenderPasses.push_back(pRenderPass);
+		}
+		else
+		{
+			pRenderPass->Release();
+			delete pRenderPass;
+		}
 
 		return bResult;
 	}

@@ -51,9 +51,15 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		inline void IncRef() { ++m_uRefCount; };
+		inline void DecRef() { --m_uRefCount; };
+		inline UInt GetRef() { return m_uRefCount; };
+
 		static CoreObjectPtrCounterMap s_mObjects;
 
 	protected:
+		UInt	m_uRefCount;
+
 	private:
 	};
 

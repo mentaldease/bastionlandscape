@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RenderPass.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RenderTarget.cpp"
 				>
 			</File>
@@ -254,6 +258,10 @@
 			</File>
 			<File
 				RelativePath=".\PostProcess.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RenderPass.h"
 				>
 			</File>
 			<File

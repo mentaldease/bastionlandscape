@@ -130,8 +130,7 @@ namespace ElixirEngine
 		void CloseVideo();
 
 		void UpdateRequest(CoreObjectPtr _pCoreObject);
-		void RenderRequest(DisplayObjectPtr _pDisplayObject);
-		void Render();
+		void RenderRequest(const Key& _uRenderPassKey, DisplayObjectPtr _pDisplayObject);
 
 		DisplayVertexBufferPtr CreateVertexBuffer(DisplayVertexBuffer::CreateInfo& _rCreateInfo);
 		void ReleaseVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
@@ -144,7 +143,6 @@ namespace ElixirEngine
 		DisplayTextureManagerPtr GetTextureManager();
 		DisplaySurfaceManagerPtr GetSurfaceManager();
 		DisplayFontManagerPtr GetFontManager();
-		DisplayCameraPtr GetCurrentCamera();
 
 		void SetCurrentWorldMatrix(MatrixPtr _pMatrix);
 		MatrixPtr GetCurrentWorldMatrix();
@@ -158,6 +156,17 @@ namespace ElixirEngine
 		DisplayRenderTargetChainPtr GetRenderTargetChain();
 		DisplayNormalProcessPtr GetCurrentNormalProcess();
 
+		DisplayCameraPtr CreateCamera(const Key& _uNameKey, LuaObjectRef _rLuaObject);
+		void ReleaseCamera(const Key& _uNameKey);
+		DisplayCameraPtr GetCamera(const Key& _uNameKey);
+		DisplayCameraPtr GetCurrentCamera();
+		void SetCurrentCamera(DisplayCameraPtr _pCamera);
+		bool AddViewport(const Key& _uNameKey, ViewportRef _rViewPort);
+		ViewportPtr GetViewport(const Key& _uNameKey);
+
+		void AddRenderPasses(DisplayRenderPassPtrVec _vRenderPasses);
+		void RemoveRenderPasses(DisplayRenderPassPtrVec _vRenderPasses);
+
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
 		static D3DFORMAT StringToDisplayFormat(const string& _strFormatName, const D3DFORMAT& _uDefaultFormat);
@@ -169,12 +178,19 @@ namespace ElixirEngine
 		static void InitDisplayFormatMap();
 
 		void RenderUpdate();
+		void RenderPass(DisplayRenderPassPtr _pRP);
+		void Render(DisplayRenderPassPtr _pRP);
 
 		Direct3DPtr						m_pDirect3D;
 		DevicePtr						m_pDevice;
 		DisplayEffectPtrVec				m_vRenderList;
 		CoreObjectPtrVec				m_vUpdateList;
-		DisplayCameraPtr				m_pCamera;
+		ViewportMap						m_mViewports;
+		DisplayCameraPtrMap				m_mCameras;
+		DisplayRenderPassPtrVec			m_vRenderPasses;
+		DisplayRenderPassPtrMap			m_mRenderPasses;
+		DisplayRenderRequestListMap		m_mRenderRequests;
+		DisplayCameraPtr				m_pCurrentCamera;
 		DisplayMaterialManagerPtr		m_pMaterialManager;
 		DisplayTextureManagerPtr		m_pTextureManager;
 		DisplaySurfaceManagerPtr		m_pSurfaceManager;

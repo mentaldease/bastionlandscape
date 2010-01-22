@@ -102,7 +102,9 @@ namespace BastionGame
 		m_uRLTimerID(0xffffffff),
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f),
-		m_pCameraListener(NULL)
+		m_pCameraListener(NULL),
+		m_pLuaState(NULL),
+		m_pCamera(NULL)
 	{
 	}
 
@@ -227,16 +229,6 @@ namespace BastionGame
 			}
 		}
 
-		if (false != bResult)
-		{
-			m_pCameraListener = new CameraListener(*m_pDisplay);
-			bResult = m_pCameraListener->Create(boost::any(0));
-			if (false != bResult)
-			{
-				m_pDisplay->GetCurrentCamera()->AddListener(m_pCameraListener);
-			}
-		}
-
 		// test
 		if (false != bResult)
 		{
@@ -278,7 +270,7 @@ namespace BastionGame
 	{
 		if (NULL != m_pCameraListener)
 		{
-			m_pDisplay->GetCurrentCamera()->RemoveListener(m_pCameraListener);
+			m_pCamera->RemoveListener(m_pCameraListener);
 			m_pCameraListener->Release();
 			delete m_pCameraListener;
 			m_pCameraListener = NULL;
@@ -357,19 +349,26 @@ namespace BastionGame
 	{
 		if (NULL == m_pScene)
 		{
-			//Scene::CreateInfo oSCInfo = { "data/scenes/test00.scene" };
 			Scene::CreateInfo oSCInfo = { "data/scenes/scenetest00.lua" };
 			m_pScene = new Scene(*this);
-			if (false == m_pScene->Create(boost::any(&oSCInfo)))
+			bool bResult = m_pScene->Create(boost::any(&oSCInfo));
+			if (false != bResult)
+			{
+				m_pCamera = m_pDisplay->GetCamera(MakeKey(string("scenecamera00")));
+				m_pCamera->GetPosition() = Vector3(0.0f, 0.0f, 0.0f);
+				m_pCameraListener = new CameraListener(*m_pDisplay);
+				bool bResult = m_pCameraListener->Create(boost::any(0));
+				if (false != bResult)
+				{
+					m_pCamera->AddListener(m_pCameraListener);
+					m_pUpdateFunction = boost::bind(&Application::RenderScene, this);
+				}
+			}
+			if (false == bResult)
 			{
 				m_pScene->Release();
 				delete m_pScene;
 				m_pScene = NULL;
-			}
-			else
-			{
-				m_pDisplay->GetCurrentCamera()->GetPosition() = Vector3(0.0f, 0.0f, 0.0f);
-				m_pUpdateFunction = boost::bind(&Application::RenderScene, this);
 			}
 		}
 	}
@@ -383,7 +382,6 @@ namespace BastionGame
 			m_fRelativeTime += fElapsedTime;
 			m_pInput->Update();
 			UpdateSpectatorCamera(fElapsedTime);
-			m_pScene->PreUpdate();
 			m_pDisplay->UpdateRequest(m_pScene);
 			m_pDisplay->Update();
 		}
@@ -409,8 +407,8 @@ namespace BastionGame
 			}
 		}
 
-		Vector3& rCamPos = m_pDisplay->GetCurrentCamera()->GetPosition();
-		Vector3& rCamRot = m_pDisplay->GetCurrentCamera()->GetRotation();
+		Vector3& rCamPos = m_pCamera->GetPosition();
+		Vector3& rCamRot = m_pCamera->GetRotation();
 		Vector3 oCamFrontDir;
 		Vector3 oCamRightDir;
 		Vector3 oCamUpDir;
@@ -423,7 +421,7 @@ namespace BastionGame
 			rCamRot.x += m_oMouseInfo.lY * fCameraRotSpeed;
 		}
 
-		m_pDisplay->GetCurrentCamera()->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
+		m_pCamera->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
 		if (!((m_aKeysInfo[DIK_RSHIFT]) || (m_aKeysInfo[DIK_LSHIFT])))
 		{
 			rCamPos += oCamFrontDir * ( m_aKeysInfo[DIK_UP] | m_aKeysInfo[DIK_W] ? 1.0f : 0.0f ) * fCameraMoveSpeed;
@@ -475,10 +473,9 @@ namespace BastionGame
 
 	bool Application::AddViewportFromLua(LuaObjectRef _rLuaObject)
 	{
-		DisplayCameraPtr pCamera = m_pDisplay->GetCurrentCamera();
 		const string strName = _rLuaObject["name"].GetString();
 		const Key uNameKey = MakeKey(strName);
-		bool bResult = (NULL == pCamera->GetViewport(uNameKey));
+		bool bResult = (NULL == m_pDisplay->GetViewport(uNameKey));
 
 		if (false != bResult)
 		{
@@ -497,7 +494,7 @@ namespace BastionGame
 			oViewport.MinZ = 0.0f;
 			oViewport.MaxZ = 1.0f;
 
-			pCamera->AddViewport(uNameKey, oViewport);
+			m_pDisplay->AddViewport(uNameKey, oViewport);
 		}
 
 		return bResult;

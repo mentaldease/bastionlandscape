@@ -8,6 +8,8 @@
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
 #include "../Display/Font.h"
+#include "../Display/RenderPass.h"
+#include "../Core/Scripting.h"
 
 namespace ElixirEngine
 {
@@ -240,7 +242,9 @@ namespace ElixirEngine
 		m_pDevice(NULL),
 		m_vRenderList(),
 		m_vUpdateList(),
-		m_pCamera(NULL),
+		m_mViewports(),
+		m_mCameras(),
+		m_pCurrentCamera(NULL),
 		m_pMaterialManager(NULL),
 		m_pTextureManager(NULL),
 		m_pSurfaceManager(NULL),
@@ -291,70 +295,26 @@ namespace ElixirEngine
 
 	void Display::Update()
 	{
-		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
-		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
-		const UInt uClearColor = uBlack;
-
 		m_pSurfaceManager->Update();
 		m_pTextureManager->Update();
 		m_pFontManager->Update();
 		m_pMaterialManager->Update();
 
-		// Render scene to buffers
-		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
+		DisplayRenderPassPtrVec::iterator iRP = m_vRenderPasses.begin();
+		DisplayRenderPassPtrVec::iterator iEnd = m_vRenderPasses.end();
+		while (iEnd != iRP)
 		{
-			DisplayNormalProcessPtrVec::iterator iNormalProcess = m_pNormalProcesses->begin();
-			DisplayNormalProcessPtrVec::iterator iEnd = m_pNormalProcesses->end();
-			while (iEnd != iNormalProcess)
-			{
-				m_pCurrentNormalProcess = *iNormalProcess;
-				m_pCurrentNormalProcess->Update();
-				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-				m_pRTChain->RenderBeginPass(0);
-				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
-				m_pRTChain->RenderEndPass();
-				Render();
-				m_pRTChain->RenderEnd();
-
-				++iNormalProcess;
-			}
-			m_pCurrentNormalProcess = NULL;
-			m_pNormalProcesses = NULL;
-		}
-		else
-		{
-			m_pRTChain->EnableAllRenderTargets();
-			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-			m_pRTChain->RenderBeginPass(0);
-			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
-			Render();
-			m_pRTChain->RenderEndPass();
-			m_pRTChain->RenderEnd();
-		}
-
-		if ((NULL != m_pPostProcesses) && (false == m_pPostProcesses->empty()))
-		{
-			// Apply post processes effects
-			m_pRTChain->EnableAllRenderTargets();
-			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
-			DisplayPostProcessPtrVec::iterator iPostProcess = m_pPostProcesses->begin();
-			DisplayPostProcessPtrVec::iterator iEnd = m_pPostProcesses->end();
-			while (iEnd != iPostProcess)
-			{
-				DisplayPostProcessPtr pPostProcess = *iPostProcess;
-				pPostProcess->Update();
-				++iPostProcess;
-			}
-			m_pRTChain->RenderEnd();
-			m_pPostProcesses = NULL;
+			DisplayRenderPassPtr pRP = *iRP;
+			RenderPass(pRP);
+			++iRP;
 		}
 
 		// copy back to back buffer
-		if (SUCCEEDED( m_pDevice->BeginScene()))
+		if (SUCCEEDED(m_pDevice->BeginScene()))
 		{
-			TexturePtr pPrevTarget = static_cast<TexturePtr>(m_pRTChain->GetTexture(0)->GetBase());
+			TexturePtr pFinalRenderTex = static_cast<TexturePtr>(m_pRTChain->GetTexture(0)->GetBase());
 			m_pEffectPP->SetTechnique("RenderScene");
-			m_pEffectPP->SetTexture("g_ColorTex", pPrevTarget);
+			m_pEffectPP->SetTexture("g_ColorTex", pFinalRenderTex);
 			UINT cPasses;
 			m_pEffectPP->Begin(&cPasses, 0);
 			m_pPostProcessGeometry->RenderBegin();
@@ -424,15 +384,6 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			DisplayCamera::CreateInfo oDCCInfo;
-			m_pCamera = new DisplayCamera(*this);
-			oDCCInfo.m_fZNear = _rWindowData.m_fZNear;
-			oDCCInfo.m_fZFar = _rWindowData.m_fZFar;
-			bResult = m_pCamera->Create(boost::any(&oDCCInfo));
-		}
-
-		if (false != bResult)
-		{
 			m_pMaterialManager = new DisplayMaterialManager(*this);
 			bResult = m_pMaterialManager->Create(boost::any(0));
 		}
@@ -480,12 +431,14 @@ namespace ElixirEngine
 			m_pRTChain->Release();
 			m_pRTChain = NULL;
 		}
+
 		if (NULL != m_pPostProcessGeometry)
 		{
 			m_pPostProcessGeometry->Release();
 			delete m_pPostProcessGeometry;
 			m_pPostProcessGeometry = NULL;
 		}
+
 		if (NULL != m_pDispFXPP)
 		{
 			m_pMaterialManager->UnloadEffect("MRT");
@@ -498,18 +451,21 @@ namespace ElixirEngine
 			delete m_pFontManager;
 			m_pFontManager = NULL;
 		}
+
 		if (NULL != m_pSurfaceManager)
 		{
 			m_pSurfaceManager->Release();
 			delete m_pSurfaceManager;
 			m_pSurfaceManager = NULL;
 		}
+
 		if (NULL != m_pTextureManager)
 		{
 			m_pTextureManager->Release();
 			delete m_pTextureManager;
 			m_pTextureManager = NULL;
 		}
+
 		if (NULL != m_pMaterialManager)
 		{
 			m_pMaterialManager->Release();
@@ -517,17 +473,18 @@ namespace ElixirEngine
 			m_pMaterialManager = NULL;
 		}
 
-		if (NULL != m_pCamera)
-		{
-			m_pCamera->Release();
-			delete m_pCamera;
-			m_pCamera = NULL;
-		}
-
 		if (NULL != m_pDevice)
 		{
 			m_pDevice->Release();
 			m_pDevice = NULL;
+		}
+
+		m_mViewports.clear();
+
+		while (m_mCameras.end() != m_mCameras.begin())
+		{
+			ReleaseCamera(m_mCameras.begin()->first);
+			m_mCameras.erase(m_mCameras.begin());
 		}
 	}
 
@@ -539,33 +496,13 @@ namespace ElixirEngine
 		}
 	}
 
-	void Display::RenderRequest(DisplayObjectPtr _pDisplayObject)
+	void Display::RenderRequest(const Key& _uRenderPassKey, DisplayObjectPtr _pDisplayObject)
 	{
-		DisplayMaterialPtr pMaterial = _pDisplayObject->GetMaterial();
-		DisplayEffectPtr pEffect = pMaterial->GetEffect();
-		if (m_vRenderList.end() == find(m_vRenderList.begin(), m_vRenderList.end(), pEffect))
+		DisplayRenderPassPtr pRP = m_mRenderPasses[_uRenderPassKey];
+		if (NULL != pRP)
 		{
-			m_vRenderList.push_back(pEffect);
+			pRP->RenderRequest(_pDisplayObject);
 		}
-		pEffect->RenderRequest(pMaterial);
-		pMaterial->RenderRequest(_pDisplayObject);
-	}
-
-	void Display::Render()
-	{
-		m_pCamera->Update();
-
-		RenderUpdate();
-
-		struct RenderEffectFunction
-		{
-			void operator()(DisplayEffectPtr _pDisplayEffect)
-			{
-				_pDisplayEffect->Render();
-			}
-		};
-		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderEffectFunction());
-		m_vRenderList.clear();
 	}
 
 	DisplayVertexBufferPtr Display::CreateVertexBuffer(DisplayVertexBuffer::CreateInfo& _rCreateInfo)
@@ -633,11 +570,6 @@ namespace ElixirEngine
 		return m_pFontManager;
 	}
 
-	DisplayCameraPtr Display::GetCurrentCamera()
-	{
-		return m_pCamera;
-	}
-
 	void Display::SetCurrentWorldMatrix(MatrixPtr _pMatrix)
 	{
 		m_pWorldMatrix = _pMatrix;
@@ -696,6 +628,129 @@ namespace ElixirEngine
 		return m_pCurrentNormalProcess;
 	}
 
+	DisplayCameraPtr Display::CreateCamera(const Key& _uNameKey, LuaObjectRef _rLuaObject)
+	{
+		DisplayCameraPtr pCamera = GetCamera(_uNameKey);
+		bool bResult = (NULL == pCamera);
+
+		if (false != bResult)
+		{
+			string strViewportName;
+			DisplayCamera::CreateInfo oDCCInfo;
+			pCamera = new DisplayCamera(*this);
+			Scripting::Lua::Get(_rLuaObject, "depth_near", 0.1f, oDCCInfo.m_fZNear);
+			Scripting::Lua::Get(_rLuaObject, "depth_far", 10000.0f, oDCCInfo.m_fZFar);
+			Scripting::Lua::Get(_rLuaObject, "fovy", 45.0f, oDCCInfo.m_fDegreeFovy);
+			Scripting::Lua::Get(_rLuaObject, "viewport", string(""), strViewportName);
+			if (false == strViewportName.empty())
+			{
+				const Key uViewportKey = MakeKey(strViewportName);
+				ViewportPtr pViewport = GetViewport(uViewportKey);
+				if (NULL != pViewport)
+				{
+					oDCCInfo.m_fX = float(pViewport->X) / float(m_uWidth);
+					oDCCInfo.m_fY = float(pViewport->Y) / float(m_uHeight);
+					oDCCInfo.m_fWidth = float(pViewport->Width) / float(m_uWidth);
+					oDCCInfo.m_fHeight = float(pViewport->Height) / float(m_uHeight);
+					oDCCInfo.m_fAspectRatio = float(pViewport->Width) / float(pViewport->Height);
+				}
+			}
+			Scripting::Lua::Get(_rLuaObject, "aspect_ratio", oDCCInfo.m_fAspectRatio, oDCCInfo.m_fAspectRatio);
+			bool bResult = pCamera->Create(boost::any(&oDCCInfo));
+			if (false != bResult)
+			{
+				m_mCameras[_uNameKey] = pCamera;
+			}
+		}
+
+		return pCamera;
+	}
+
+	void Display::ReleaseCamera(const Key& _uNameKey)
+	{
+		DisplayCameraPtrMap::iterator iPair = m_mCameras.find(_uNameKey);
+		if (m_mCameras.end() != iPair)
+		{
+			DisplayCameraPtr pCamera =  iPair->second;
+			pCamera->Release();
+			delete pCamera;
+			m_mCameras.erase(iPair);
+		}
+	}
+
+	DisplayCameraPtr Display::GetCamera(const Key& _uNameKey)
+	{
+		DisplayCameraPtrMap::iterator iPair = m_mCameras.find(_uNameKey);
+		DisplayCameraPtr pResult = (m_mCameras.end() != iPair) ? iPair->second : NULL;
+		return pResult;
+	}
+
+	DisplayCameraPtr Display::GetCurrentCamera()
+	{
+		return m_pCurrentCamera;
+	}
+
+	void Display::SetCurrentCamera(DisplayCameraPtr _pCamera)
+	{
+		m_pCurrentCamera = _pCamera;
+	}
+
+	bool Display::AddViewport(const Key& _uNameKey, ViewportRef _rViewPort)
+	{
+		ViewportMap::iterator iPair = m_mViewports.find(_uNameKey);
+		bool bResult = (m_mViewports.end() == iPair);
+
+		if (false != bResult)
+		{
+			m_mViewports[_uNameKey] = _rViewPort;
+		}
+
+		return bResult;
+	}
+
+	ViewportPtr Display::GetViewport(const Key& _uNameKey)
+	{
+		ViewportMap::iterator iPair = m_mViewports.find(_uNameKey);
+		return (m_mViewports.end() == iPair) ? NULL : &iPair->second;
+	}
+
+	void Display::AddRenderPasses(DisplayRenderPassPtrVec _vRenderPasses)
+	{
+		DisplayRenderPassPtrVec::iterator iRP = _vRenderPasses.begin();
+		DisplayRenderPassPtrVec::iterator iEnd = _vRenderPasses.end();
+		while (iEnd != iRP)
+		{
+			DisplayRenderPassPtr pRP = *iRP;
+			m_vRenderPasses.push_back(pRP);
+			m_mRenderPasses[pRP->GetNameKey()] = pRP;
+			++iRP;
+		}
+	}
+
+	void Display::RemoveRenderPasses(DisplayRenderPassPtrVec _vRenderPasses)
+	{
+		DisplayRenderPassPtrVec::iterator iRP = _vRenderPasses.begin();
+		DisplayRenderPassPtrVec::iterator iEnd = _vRenderPasses.end();
+		while (iEnd != iRP)
+		{
+			DisplayRenderPassPtr pRP = *iRP;
+
+			DisplayRenderPassPtrVec::iterator iRPToErase = find(m_vRenderPasses.begin(), m_vRenderPasses.end(), pRP);
+			if (m_vRenderPasses.end() != iRPToErase)
+			{
+				m_vRenderPasses.erase(iRPToErase);
+			}
+
+			DisplayRenderPassPtrMap::iterator iPair = m_mRenderPasses.find(pRP->GetNameKey());
+			if (m_mRenderPasses.end() != iPair)
+			{
+				m_mRenderPasses.erase(iPair);
+			}
+
+			++iRP;
+		}
+	}
+
 	void Display::RenderUpdate()
 	{
 		CoreObjectPtrVec::iterator iCoreObject = m_vUpdateList.begin();
@@ -705,6 +760,101 @@ namespace ElixirEngine
 			(*iCoreObject)->Update();
 			++iCoreObject;
 		}
+	}
+
+	void Display::RenderPass(DisplayRenderPassPtr _pRP)
+	{
+		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
+		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
+		const UInt uClearColor = uBlack;
+
+		_pRP->Update();
+
+		// Render scene to buffers
+		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
+		{
+			DisplayNormalProcessPtrVec::iterator iNormalProcess = m_pNormalProcesses->begin();
+			DisplayNormalProcessPtrVec::iterator iEnd = m_pNormalProcesses->end();
+			while (iEnd != iNormalProcess)
+			{
+				m_pCurrentNormalProcess = *iNormalProcess;
+				m_pCurrentNormalProcess->Update();
+				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+				m_pRTChain->RenderBeginPass(0);
+				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
+				m_pRTChain->RenderEndPass();
+				Render(_pRP);
+				m_pRTChain->RenderEnd();
+
+				++iNormalProcess;
+			}
+			m_pCurrentNormalProcess = NULL;
+			m_pNormalProcesses = NULL;
+		}
+		else
+		{
+			m_pRTChain->EnableAllRenderTargets();
+			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+			m_pRTChain->RenderBeginPass(0);
+			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
+			Render(_pRP);
+			m_pRTChain->RenderEndPass();
+			m_pRTChain->RenderEnd();
+		}
+
+		if ((NULL != m_pPostProcesses) && (false == m_pPostProcesses->empty()))
+		{
+			// Apply post processes effects
+			m_pRTChain->EnableAllRenderTargets();
+			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
+			DisplayPostProcessPtrVec::iterator iPostProcess = m_pPostProcesses->begin();
+			DisplayPostProcessPtrVec::iterator iEnd = m_pPostProcesses->end();
+			while (iEnd != iPostProcess)
+			{
+				DisplayPostProcessPtr pPostProcess = *iPostProcess;
+				pPostProcess->Update();
+				++iPostProcess;
+			}
+			m_pRTChain->RenderEnd();
+			m_pPostProcesses = NULL;
+		}
+
+		_pRP->GetRenderList().clear();
+	}
+
+	void Display::Render(DisplayRenderPassPtr _pRP)
+	{
+		m_pCurrentCamera->Update();
+
+		RenderUpdate();
+
+		// only use registered objects for this pass
+		DisplayObjectPtrVec& vDisplayObjects = _pRP->GetRenderList();
+		DisplayObjectPtrVec::iterator iDisplayObject = vDisplayObjects.begin();
+		DisplayObjectPtrVec::iterator iEnd = vDisplayObjects.end();
+		while (iEnd != iDisplayObject)
+		{
+			DisplayObjectPtr pDisplayObject = *iDisplayObject;
+			DisplayMaterialPtr pMaterial = pDisplayObject->GetMaterial();
+			DisplayEffectPtr pEffect = pMaterial->GetEffect();
+			if (m_vRenderList.end() == find(m_vRenderList.begin(), m_vRenderList.end(), pEffect))
+			{
+				m_vRenderList.push_back(pEffect);
+			}
+			pEffect->RenderRequest(pMaterial);
+			pMaterial->RenderRequest(pDisplayObject);
+			++iDisplayObject;
+		}
+
+		struct RenderEffectFunction
+		{
+			void operator()(DisplayEffectPtr _pDisplayEffect)
+			{
+				_pDisplayEffect->Render();
+			}
+		};
+		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderEffectFunction());
+		m_vRenderList.clear();
 	}
 
 	unsigned int Display::GetFormatBitsPerPixel(const D3DFORMAT& _eFormat)

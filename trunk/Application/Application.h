@@ -78,6 +78,7 @@ namespace BastionGame
 		DIMouseState				m_oMouseInfoOld;
 		CameraListenerPtr			m_pCameraListener;
 		LuaStatePtr					m_pLuaState;
+		DisplayCameraPtr			m_pCamera;
 
 	private:
 	};

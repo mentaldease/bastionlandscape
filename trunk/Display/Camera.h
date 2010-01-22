@@ -34,10 +34,12 @@ namespace ElixirEngine
 		{
 			CreateInfo();
 
-			float		m_fX;
-			float		m_fY;
-			float		m_fWidth;
-			float		m_fHeight;
+			Vector3		m_oPos;
+			Vector3		m_oRot;
+			float		m_fX;				// viewport left
+			float		m_fY;				// viewport top
+			float		m_fWidth;			// viewport width
+			float		m_fHeight;			// viewport height
 			float		m_fDegreeFovy;
 			float		m_fAspectRatio;
 			float		m_fZNear;
@@ -100,9 +102,7 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		bool AddViewport(const Key& _uNameKey, ViewportRef _rViewPort);
 		ViewportPtr GetCurrentViewport();
-		ViewportPtr GetViewport(const Key& _uNameKey);
 		void SetViewport(const Key& _uNameKey);
 
 		Vector3& GetPosition();
@@ -147,7 +147,6 @@ namespace ElixirEngine
 		Matrix				m_oMZRot;
 		Matrix				m_oMXYRot;
 
-		ViewportMap			m_mViewports;
 		Viewport			m_oViewport;
 		ViewportPtr			m_pPreviousViewport;
 		ViewportPtr			m_pCurrentViewport;
