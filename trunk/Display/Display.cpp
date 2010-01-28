@@ -300,6 +300,8 @@ namespace ElixirEngine
 		m_pFontManager->Update();
 		m_pMaterialManager->Update();
 
+		m_pRTChain->SetImmediateWrite(false);
+
 		DisplayRenderPassPtrVec::iterator iRP = m_vRenderPasses.begin();
 		DisplayRenderPassPtrVec::iterator iEnd = m_vRenderPasses.end();
 		while (iEnd != iRP)
@@ -310,23 +312,26 @@ namespace ElixirEngine
 		}
 
 		// copy back to back buffer
-		if (SUCCEEDED(m_pDevice->BeginScene()))
+		if (false == m_pRTChain->GetImmediateWrite())
 		{
-			TexturePtr pFinalRenderTex = static_cast<TexturePtr>(m_pRTChain->GetTexture(0)->GetBase());
-			m_pEffectPP->SetTechnique("RenderScene");
-			m_pEffectPP->SetTexture("g_ColorTex", pFinalRenderTex);
-			UINT cPasses;
-			m_pEffectPP->Begin(&cPasses, 0);
-			m_pPostProcessGeometry->RenderBegin();
-			for(UINT p = 0; p < cPasses; ++p)
+			if (SUCCEEDED(m_pDevice->BeginScene()))
 			{
-				m_pEffectPP->BeginPass(p);
-				m_pPostProcessGeometry->Render();
-				m_pEffectPP->EndPass();
+				TexturePtr pFinalRenderTex = static_cast<TexturePtr>(m_pRTChain->GetTexture(0)->GetBase());
+				m_pEffectPP->SetTechnique("RenderScene");
+				m_pEffectPP->SetTexture("g_ColorTex", pFinalRenderTex);
+				UINT cPasses;
+				m_pEffectPP->Begin(&cPasses, 0);
+				m_pPostProcessGeometry->RenderBegin();
+				for(UINT p = 0; p < cPasses; ++p)
+				{
+					m_pEffectPP->BeginPass(p);
+					m_pPostProcessGeometry->Render();
+					m_pEffectPP->EndPass();
+				}
+				m_pPostProcessGeometry->RenderEnd();
+				m_pEffectPP->End();
+				m_pDevice->EndScene();
 			}
-			m_pPostProcessGeometry->RenderEnd();
-			m_pEffectPP->End();
-			m_pDevice->EndScene();
 		}
 
 		m_pDevice->Present(NULL, NULL, NULL, NULL);
@@ -656,6 +661,8 @@ namespace ElixirEngine
 				}
 			}
 			Scripting::Lua::Get(_rLuaObject, "aspect_ratio", oDCCInfo.m_fAspectRatio, oDCCInfo.m_fAspectRatio);
+			Scripting::Lua::Get(_rLuaObject, "position", oDCCInfo.m_oPos, oDCCInfo.m_oPos);
+			Scripting::Lua::Get(_rLuaObject, "rotation", oDCCInfo.m_oRot, oDCCInfo.m_oRot);
 			bool bResult = pCamera->Create(boost::any(&oDCCInfo));
 			if (false != bResult)
 			{
@@ -778,13 +785,9 @@ namespace ElixirEngine
 			while (iEnd != iNormalProcess)
 			{
 				m_pCurrentNormalProcess = *iNormalProcess;
-				m_pCurrentNormalProcess->Update();
-				m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-				m_pRTChain->RenderBeginPass(0);
-				m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
-				m_pRTChain->RenderEndPass();
+				m_pCurrentNormalProcess->RenderBegin();
 				Render(_pRP);
-				m_pRTChain->RenderEnd();
+				m_pCurrentNormalProcess->RenderEnd();
 
 				++iNormalProcess;
 			}
@@ -812,7 +815,9 @@ namespace ElixirEngine
 			while (iEnd != iPostProcess)
 			{
 				DisplayPostProcessPtr pPostProcess = *iPostProcess;
+				pPostProcess->RenderBegin();
 				pPostProcess->Update();
+				pPostProcess->RenderEnd();
 				++iPostProcess;
 			}
 			m_pRTChain->RenderEnd();

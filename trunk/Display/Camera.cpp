@@ -96,6 +96,10 @@ namespace ElixirEngine
 			m_oMProjection._33 /= pInfo->m_fZFar;
 			m_oMProjection._43 /= pInfo->m_fZFar;
 #endif // CAMERA_LINEARIZED_DEPTH
+
+			m_oVPosition = pInfo->m_oPos;
+			m_oVRotation = pInfo->m_oRot;
+
 			UpdatePixelSize();
 		}
 

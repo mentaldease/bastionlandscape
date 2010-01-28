@@ -102,6 +102,8 @@ namespace ElixirEngine
 		UInt GetIndex();
 		bool SwapOccured();
 		void SetRTOverride(DisplayTexturePtr _RTOverride);
+		void SetImmediateWrite(const bool& _bState);
+		bool GetImmediateWrite();
 
 	protected:
 		enum ERenderState
@@ -178,10 +180,13 @@ namespace ElixirEngine
 		void DisableAllRenderTargets();
 
 		void Clear(const UInt _uClearColor = 0);
+		void SetImmediateWrite(const bool& _bState);
+		bool GetImmediateWrite();
 
 	protected:
 		DisplayRenderTargetPtrVec	m_vGBuffer;
 		DisplayRef					m_rDisplay;
+		bool						m_bImmediateWrite;
 
 	private:
 	};

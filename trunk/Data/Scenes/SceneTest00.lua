@@ -48,6 +48,7 @@ scenetest00 =
 	{
 		"data/scenes/CameraLib00.lua",
 	},
+	water_config = "data/scenes/WaterSceneTest00.lua",
 	landscapes =
 	{
 		--[[
@@ -103,6 +104,7 @@ scenetest00 =
 				{
 					name = "reflection",
 					viewport = "default",
+					clear = true,
 					render_targets =
 					{
 						{
@@ -115,6 +117,7 @@ scenetest00 =
 				{
 					name = "reflection2",
 					viewport = "default",
+					clear = true,
 					render_targets =
 					{
 						{
@@ -127,6 +130,7 @@ scenetest00 =
 				{
 					name = "base",
 					viewport = "default",
+					clear = true,
 					render_targets =
 					{
 						{
@@ -149,33 +153,26 @@ scenetest00 =
 				{
 					name = "water",
 					material = "waterpost02",
-					immediate_write = false,
 				},
-				--[[
 				{
 					name = "monochrome",
 					material = "monochromepost00",
-					immediate_write = false,
+					immediate_write = true,
 				},
-				{
-					name = "inverse",
-					material = "inversepost00",
-					immediate_write = false,
-				},
-				{
-					name = "basicblur",
-					material = "basicblurpost00",
-					immediate_write = false,
-				},
-				{
-					name = "dofcombine",
-					material = "dofcombinepost00",
-					immediate_write = false,
-				},
-				]]
+				-- {
+					-- name = "inverse",
+					-- material = "inversepost00",
+				-- },
+				-- {
+					-- name = "basicblur",
+					-- material = "basicblurpost00",
+				-- },
+				-- {
+					-- name = "dofcombine",
+					-- material = "dofcombinepost00",
+				-- },
 			},
 		},
-		--[[
 		{
 			name = "ui",
 			camera = "uicamera00",
@@ -184,18 +181,9 @@ scenetest00 =
 				{
 					name = "ui",
 					viewport = "default",
-					render_targets =
-					{
-						{
-							type = "tex2d",
-							name = "ui",
-							index = 3,
-						},
-					},
+					clear = false,
 				},
 			},
 		},
-		]]
 	},
-	water_config = "data/scenes/waterscenetest00.lua",
 }

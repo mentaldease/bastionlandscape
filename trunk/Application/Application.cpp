@@ -355,7 +355,6 @@ namespace BastionGame
 			if (false != bResult)
 			{
 				m_pCamera = m_pDisplay->GetCamera(MakeKey(string("scenecamera00")));
-				m_pCamera->GetPosition() = Vector3(0.0f, 0.0f, 0.0f);
 				m_pCameraListener = new CameraListener(*m_pDisplay);
 				bool bResult = m_pCameraListener->Create(boost::any(0));
 				if (false != bResult)

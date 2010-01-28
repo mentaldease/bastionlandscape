@@ -28,7 +28,10 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		void RenderBegin();
+		void RenderEnd();
 		Key GetNameKey();
+		bool ClearRequired();
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
@@ -38,13 +41,15 @@ namespace ElixirEngine
 		static Key s_uTypeGBufferKey;
 
 	protected:
-		DisplayRef				m_rDisplay;
-		Key						m_uNameKey;
-		Key						m_uViewportNameKey;
-		KeyVec					m_vRTTypes;
-		KeyVec					m_vRTNames;
-		KeyVec					m_vRTIndexes;
-		DisplayTexturePtrMap	m_mTextures;
+		DisplayRef					m_rDisplay;
+		DisplayRenderTargetChainPtr	m_pRTChain;
+		Key							m_uNameKey;
+		Key							m_uViewportNameKey;
+		KeyVec						m_vRTTypes;
+		KeyVec						m_vRTNames;
+		KeyVec						m_vRTIndexes;
+		DisplayTexturePtrMap		m_mTextures;
+		bool						m_bClear;
 
 	private:
 	};

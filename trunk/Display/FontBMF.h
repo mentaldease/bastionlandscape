@@ -274,6 +274,7 @@ namespace ElixirEngine
 			UInt							m_uVertexCount;
 			bool							m_bTextChanged;
 			bool							m_bSizeChanged;
+			bool							m_bRebuildText;
 		};
 		typedef FontObjectBuffer<DisplayFontText> TextBuffer;
 		typedef TextBuffer* TextBufferPtr;
