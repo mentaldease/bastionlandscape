@@ -388,8 +388,11 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
+			string strGlobalName;
+			FS::GetFileNameWithoutExt(strWaterConfig, strGlobalName);
+			strGlobalName = strtolower(strGlobalName);
 			LuaObject oGlobals = Scripting::Lua::GetStateInstance()->GetGlobals();
-			LuaObject oWater = oGlobals["water"];
+			LuaObject oWater = oGlobals[strGlobalName.c_str()];
 
 			if ((false == oWater.IsNil()) && (m_uWaterDataCount = oWater.GetCount()))
 			{

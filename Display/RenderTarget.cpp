@@ -230,7 +230,7 @@ namespace ElixirEngine
 		if ((false != m_bEnabled) && ((ERenderState_UNKNOWN == m_eRenderState) || (ERenderState_RENDEREND == m_eRenderState)))
 		{
 			m_eRenderState = ERenderState_RENDERBEGIN;
-			if (false == m_bImmediateWrite)
+			//if (false == m_bImmediateWrite)
 			{
 				Display::GetInstance()->GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
 			}
@@ -257,10 +257,6 @@ namespace ElixirEngine
 				{
 					Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, m_pCurrentBufferTex);
 					Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, m_pDoubleBufferTex[c_uOriginalBuffer]);
-					if (1 <= m_uRTIndex)
-					{
-						return;
-					}
 				}
 				if (false == m_bImmediateWrite)
 				{
@@ -293,12 +289,11 @@ namespace ElixirEngine
 			m_eRenderState = ERenderState_RENDERENDPASS;
 			if (ERenderMode_POSTPROCESS == m_eMode)
 			{
-				if (1 <= m_uRTIndex)
-				{
-					return;
-				}
 				Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, NULL);
 				Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, NULL);
+			}
+			if (false == m_bImmediateWrite)
+			{
 				m_uCurrentBuffer = 1 - m_uCurrentBuffer;
 			}
 		}
@@ -311,14 +306,11 @@ namespace ElixirEngine
 		{
 			m_eRenderState = ERenderState_RENDEREND;
 			m_bFirstRender = false;
-			if (false == m_bImmediateWrite)
+			if (NULL != m_pPreviousBufferSurf)
 			{
 				Display::GetInstance()->GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
-				if (NULL != m_pPreviousBufferSurf)
-				{
-					m_pPreviousBufferSurf->Release();
-					m_pPreviousBufferSurf = NULL;
-				}
+				m_pPreviousBufferSurf->Release();
+				m_pPreviousBufferSurf = NULL;
 			}
 		}
 	}
@@ -372,6 +364,29 @@ namespace ElixirEngine
 		}
 	}
 
+	void DisplayRenderTarget::SetImmediateWrite(const bool& _bState)
+	{
+		if (m_bImmediateWrite != _bState)
+		{
+			m_bImmediateWrite = _bState;
+			if ((false != m_bImmediateWrite) && (NULL != m_pPreviousBufferSurf))
+			{
+				Display::GetInstance()->GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
+				m_pPreviousBufferSurf->Release();
+				m_pPreviousBufferSurf = NULL;
+			}
+			else if ((false == m_bImmediateWrite) && (NULL == m_pPreviousBufferSurf))
+			{
+				Display::GetInstance()->GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
+			}
+		}
+	}
+
+	bool DisplayRenderTarget::GetImmediateWrite()
+	{
+		return m_bImmediateWrite;
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -379,7 +394,8 @@ namespace ElixirEngine
 	DisplayRenderTargetChain::DisplayRenderTargetChain(DisplayRef _rDisplay)
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
-		m_vGBuffer()
+		m_vGBuffer(),
+		m_bImmediateWrite(false)
 	{
 
 	}
@@ -523,6 +539,7 @@ namespace ElixirEngine
 			++iRT;
 			++uIndex;
 		}
+		//SetImmediateWrite(false);
 	}
 
 	void DisplayRenderTargetChain::DisableAllRenderTargets()
@@ -534,6 +551,7 @@ namespace ElixirEngine
 			(*iRT)->SetEnabled(false);
 			++iRT;
 		}
+		//SetImmediateWrite(true);
 	}
 
 	void DisplayRenderTargetChain::Clear(const UInt _uClearColor)
@@ -544,5 +562,25 @@ namespace ElixirEngine
 		Display::GetInstance()->GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, _uClearColor, 1.0f, 0L);
 		RenderEndPass();
 		RenderEnd();
+	}
+
+	void DisplayRenderTargetChain::SetImmediateWrite(const bool& _bState)
+	{
+		if (_bState != m_bImmediateWrite)
+		{
+			m_bImmediateWrite = _bState;
+			DisplayRenderTargetPtrVec::iterator iRT = m_vGBuffer.begin();
+			DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
+			while (iEnd != iRT)
+			{
+				(*iRT)->SetImmediateWrite(_bState);
+				++iRT;
+			}
+		}
+	}
+
+	bool DisplayRenderTargetChain::GetImmediateWrite()
+	{
+		return m_bImmediateWrite;
 	}
 }

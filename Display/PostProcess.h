@@ -15,6 +15,8 @@ namespace ElixirEngine
 	public:
 		struct CreateInfo
 		{
+			CreateInfo();
+
 			string	m_strName;
 			Key		m_uMaterialNameKey;
 			bool	m_bImmediateWrite;
@@ -29,13 +31,17 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		void RenderBegin();
+		void RenderEnd();
+
 	protected:
-		string				m_strName;
-		DisplayRef			m_rDisplay;
-		DisplayMaterialPtr	m_pMaterial;
-		DisplayObjectPtr	m_pDisplayObject;
-		Key					m_uMaterialNameKey;
-		bool				m_bImmediateWrite;
+		string						m_strName;
+		DisplayRef					m_rDisplay;
+		DisplayRenderTargetChainPtr	m_pRTChain;
+		DisplayMaterialPtr			m_pMaterial;
+		DisplayObjectPtr			m_pDisplayObject;
+		Key							m_uMaterialNameKey;
+		bool						m_bImmediateWrite;
 
 	private:
 	};

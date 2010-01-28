@@ -42,7 +42,8 @@ namespace ElixirEngine
 			m_uPreviousVBStride(0),
 			m_uVertexCount(0),
 			m_bTextChanged(false),
-			m_bSizeChanged(false)
+			m_bSizeChanged(false),
+			m_bRebuildText(false)
 		{
 
 		}
@@ -81,10 +82,12 @@ namespace ElixirEngine
 
 		void DisplayFontText::Render()
 		{
-			if (false != m_bTextChanged)
+			if (false != m_bRebuildText)
 			{
 				BuildText();
 				m_bTextChanged = false;
+				m_bSizeChanged = false;
+				m_bRebuildText = false;
 			}
 
 			if (NULL != m_pVertex)
@@ -110,7 +113,8 @@ namespace ElixirEngine
 		void DisplayFontText::SetText(const wstring& _wstrText)
 		{
 			m_bSizeChanged = (m_wstrText.length() != _wstrText.length());
-			m_bTextChanged = (m_wstrText != _wstrText);
+			m_bTextChanged = (m_wstrText != _wstrText) || ((false == _wstrText.empty()) && (NULL == m_pVertex));
+			m_bRebuildText = m_bSizeChanged || m_bTextChanged;
 			m_wstrText = _wstrText;
 		}
 
@@ -122,7 +126,7 @@ namespace ElixirEngine
 			const UInt uCharCount = UInt(m_wstrText.length());
 			const UInt uVertexCount = uCharCount * (4 + 2) - 2;
 
-			if ((NULL != m_pVertex) && (m_uVertexCount != uVertexCount))
+			if ((NULL != m_pVertex) && (false != m_bSizeChanged))
 			{
 				m_pFont->m_rFontLoader.GetVertexBuffer().Free(m_pVertex);
 				m_pVertex = NULL;
@@ -130,7 +134,7 @@ namespace ElixirEngine
 
 			m_uVertexCount = uVertexCount;
 
-			if (NULL == m_pVertex)
+			if ((NULL == m_pVertex) && (0 < m_uVertexCount))
 			{
 				m_pVertex = m_pFont->m_rFontLoader.GetVertexBuffer().Alloc(m_uVertexCount);
 			}

@@ -1,5 +1,6 @@
 materiallib00 =
 {
+	--[[
 	{
 		name = "water00",
 		effect = "data/effects/ocean.fx",
@@ -18,6 +19,7 @@ materiallib00 =
 			}
 		},
 	},
+	]]
 	{
 		name = "basicblurpost00",
 		effect = "data/effects/BasicBlurPost.fx",

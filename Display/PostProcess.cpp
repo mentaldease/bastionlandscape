@@ -2,6 +2,7 @@
 #include "../Display/PostProcess.h"
 #include "../Display/Display.h"
 #include "../Display/Effect.h"
+#include "../Display/RenderTarget.h"
 
 namespace ElixirEngine
 {
@@ -9,9 +10,22 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	DisplayPostProcess::CreateInfo::CreateInfo()
+	:	m_strName(),
+		m_uMaterialNameKey(0),
+		m_bImmediateWrite(false)
+	{
+
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	DisplayPostProcess::DisplayPostProcess(DisplayRef _rDisplay)
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
+		m_pRTChain(NULL),
 		m_pMaterial(NULL),
 		m_pDisplayObject(NULL),
 		m_bImmediateWrite(false)
@@ -32,7 +46,13 @@ namespace ElixirEngine
 		m_pDisplayObject = m_rDisplay.GetPostProcessGeometry();
 		m_strName = pInfo->m_strName;
 		m_bImmediateWrite = pInfo->m_bImmediateWrite;
-		bool bResult = (NULL != m_pMaterial);
+
+		const bool bResult = (NULL != m_pMaterial);
+
+		if (false != bResult)
+		{
+			m_pRTChain = m_rDisplay.GetRenderTargetChain();
+		}
 
 		return bResult;
 	}
@@ -50,5 +70,15 @@ namespace ElixirEngine
 			m_rDisplay.GetMaterialManager()->UnloadMaterial(m_uMaterialNameKey);
 			m_pMaterial = NULL;
 		}
+	}
+
+	void DisplayPostProcess::RenderBegin()
+	{
+		m_pRTChain->SetImmediateWrite(m_bImmediateWrite);
+	}
+
+	void DisplayPostProcess::RenderEnd()
+	{
+
 	}
 }
