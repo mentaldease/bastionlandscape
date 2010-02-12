@@ -55,8 +55,10 @@ namespace ElixirEngine
 
 		bool DisplayFontText::Create(const boost::any& _rConfig)
 		{
+			Release();
+
 			m_pFont = boost::any_cast<DisplayFontPtr>(_rConfig);
-			bool bResult = (NULL != m_pFont);
+			const bool bResult = (NULL != m_pFont);
 
 			return (NULL != m_pFont);
 		}
@@ -235,6 +237,30 @@ namespace ElixirEngine
 		:	ElixirEngine::DisplayFont(_rFontManager),
 			m_rFontLoader(_rFontLoader)
 		{
+			m_oBlockInfo.m_sFontSize = 0;
+			m_oBlockInfo.m_uBitField = 0;
+			m_oBlockInfo.m_uCharSet = 0;
+			m_oBlockInfo.m_uStretchH = 0;
+			m_oBlockInfo.m_uAA = 0;
+			m_oBlockInfo.m_uPaddingUp = 0;
+			m_oBlockInfo.m_uPaddingRight = 0;
+			m_oBlockInfo.m_uPaddingDown = 0;
+			m_oBlockInfo.m_uPaddingLeft = 0;
+			m_oBlockInfo.m_uSpacingHoriz = 0;
+			m_oBlockInfo.m_uSpacingVert = 0;
+			m_oBlockInfo.m_uOutline = 0;
+			m_oBlockInfo.m_strFontName.clear();
+
+			m_oBlockCommon.m_uLineHeight = 0;
+			m_oBlockCommon.m_uBase = 0;
+			m_oBlockCommon.m_uScaleW = 0;
+			m_oBlockCommon.m_uScaleH = 0;
+			m_oBlockCommon.m_uPages = 0;
+			m_oBlockCommon.m_uBitField = 0;
+			m_oBlockCommon.m_uAlphaChannel = 0;
+			m_oBlockCommon.m_uRedChannel = 0;
+			m_oBlockCommon.m_uGreenChannel = 0;
+			m_oBlockCommon.m_uBlueChannel = 0;
 		}
 
 		DisplayFont::~DisplayFont()
@@ -243,6 +269,8 @@ namespace ElixirEngine
 
 		bool DisplayFont::Create(const boost::any& _rConfig)
 		{
+			Release();
+
 			const string& strFileName = boost::any_cast<const string&>(_rConfig);
 			FilePtr pFile = FS::GetRoot()->OpenFile(strFileName, FS::EOpenMode_READBINARY);
 			bool bResult = (NULL != pFile);
@@ -472,8 +500,8 @@ namespace ElixirEngine
 					_pFile->Read(&rBlockChar.m_uPage, sizeof(Byte));
 					_pFile->Read(&rBlockChar.m_uChannel, sizeof(Byte));
 
-					rBlockChar.m_fX = float(rBlockChar.m_uX) / float(m_oBlockCommon.m_uScaleW);
-					rBlockChar.m_fY = float(rBlockChar.m_uY) / float(m_oBlockCommon.m_uScaleH);
+					rBlockChar.m_fX = (float(rBlockChar.m_uX) + 0.5f) / float(m_oBlockCommon.m_uScaleW);
+					rBlockChar.m_fY = (float(rBlockChar.m_uY) + 0.5f) / float(m_oBlockCommon.m_uScaleH);
 					rBlockChar.m_fWidth = float(rBlockChar.m_uWidth) / float(m_oBlockCommon.m_uScaleW);
 					rBlockChar.m_fHeight = float(rBlockChar.m_uHeight) / float(m_oBlockCommon.m_uScaleH);
 				}

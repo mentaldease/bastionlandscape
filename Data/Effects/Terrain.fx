@@ -34,7 +34,7 @@ struct VS_MORPHINPUT
 };
 
 //--------------------------------------------------------------------------------------
-// VertexDefault shader output structure
+// LandscapeVertexDefault shader output structure
 //--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {

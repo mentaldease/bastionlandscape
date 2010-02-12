@@ -5,7 +5,7 @@ float4x4 g_mWorldViewProjection : WORLDVIEWPROJ;	// World * View * Projection ma
 float g_fMorphFactor : MORPHFACTOR;
 
 //--------------------------------------------------------------------------------------
-// VertexDefault shader output structure
+// LandscapeVertexDefault shader output structure
 //--------------------------------------------------------------------------------------
 struct VS_OUTPUT
 {

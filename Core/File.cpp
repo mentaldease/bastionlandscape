@@ -54,8 +54,8 @@ namespace ElixirEngine
 
 	bool FS::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-		return bResult;
+		Release();
+		return true;
 	}
 
 	void FS::Update()

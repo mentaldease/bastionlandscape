@@ -2,7 +2,7 @@ cameralib00 =
 {
 	{
 		name = "scenecamera00",
-		position = { 0.0, 0.0, 0.0 },
+		position = { 0.0, 0.0, -300.0 },
 		rotation = { 0.0, 0.0, 0.0 },
 		viewport = "default",
 		depth_near = 1.0,
@@ -11,7 +11,7 @@ cameralib00 =
 	},
 	{
 		name = "uicamera00",
-		position = { 0.0, 0.0, -100.0 },
+		position = { 0.0, 0.0, -1000.0 },
 		rotation = { 0.0, 0.0, 0.0 },
 		viewport = "default",
 		depth_near = 1.0,

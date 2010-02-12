@@ -232,7 +232,7 @@ namespace BastionGame
 		// test
 		if (false != bResult)
 		{
-			const string strFileName = "Data/Fonts/FGMC.fnt";
+			const string strFileName = "Data/Fonts/arial24.fnt";
 			const Key uNameKey = MakeKey(strFileName);
 			m_pDisplay->GetFontManager()->Load(uNameKey, strFileName);
 		}
@@ -328,6 +328,7 @@ namespace BastionGame
 			delete m_pTime;
 			m_pTime = NULL;
 		}
+		m_eStateMode = EStateMode_UNINITIALIZED;
 	}
 
 	const Application::EStateMode& Application::GetStateMode() const

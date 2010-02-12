@@ -42,63 +42,68 @@ namespace ElixirEngine
 
 	bool LandscapeChunk::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
-		m_pLODInfo = &rGlobalInfo.m_pLODs[m_uLOD];
-		m_uIndexX = pInfo->m_uX * rGlobalInfo.m_uQuadSize;
-		m_uIndexZ = pInfo->m_uZ * rGlobalInfo.m_uQuadSize;
-		//{
-		//	wchar_t wszBuffer[1024];
-		//	wsprintf(wszBuffer, L"%d;%d;%d\n", m_uIndexX, m_uIndexZ, m_uLOD);
-		//	OutputDebugString(wszBuffer);
-		//}
-		m_uStartVertexIndex = m_uIndexX + m_uIndexZ * m_pLODInfo->m_uVertexPerRowCount;
+		bool bResult = (NULL != pInfo);
 
-		// center and extend
-		const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
-		const unsigned int uStripSize = m_pLODInfo->m_uStripSize;
-		Vector3 oAABB[2] =
+		if (false != bResult)
 		{
-			Vector3( FLT_MAX, FLT_MAX, FLT_MAX ),
-			Vector3( -FLT_MAX, -FLT_MAX, -FLT_MAX )
-		};
-		Vector3 oTemp;
-		for (unsigned int i = 0 ; uStripSize > i ; ++i)
-		{
-			m_rLandscape.GetVertexPosition(*m_pLODInfo, i, m_uStartVertexIndex, oTemp);
-			if (oAABB[0].x > oTemp.x) oAABB[0].x = oTemp.x;
-			if (oAABB[0].y > oTemp.y) oAABB[0].y = oTemp.y;
-			if (oAABB[0].z > oTemp.z) oAABB[0].z = oTemp.z;
-			if (oAABB[1].x < oTemp.x) oAABB[1].x = oTemp.x;
-			if (oAABB[1].y < oTemp.y) oAABB[1].y = oTemp.y;
-			if (oAABB[1].z < oTemp.z) oAABB[1].z = oTemp.z;
-		}
-		m_oExtends = (oAABB[1] - oAABB[0]) / 2.0f;
-		m_oCenter = oAABB[0] + m_oExtends;
+			Release();
+			const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
+			m_pLODInfo = &rGlobalInfo.m_pLODs[m_uLOD];
+			m_uIndexX = pInfo->m_uX * rGlobalInfo.m_uQuadSize;
+			m_uIndexZ = pInfo->m_uZ * rGlobalInfo.m_uQuadSize;
+			//{
+			//	wchar_t wszBuffer[1024];
+			//	wsprintf(wszBuffer, L"%d;%d;%d\n", m_uIndexX, m_uIndexZ, m_uLOD);
+			//	OutputDebugString(wszBuffer);
+			//}
+			m_uStartVertexIndex = m_uIndexX + m_uIndexZ * m_pLODInfo->m_uVertexPerRowCount;
 
-		if (0 < m_uLOD)
-		{
-			CreateInfo oLCCInfo;
-			unsigned int uChild = ESubChild_NORTHWEST;
-			for (unsigned int j = 0 ; 2 > j ; ++j)
+			// center and extend
+			const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
+			const unsigned int uStripSize = m_pLODInfo->m_uStripSize;
+			Vector3 oAABB[2] =
 			{
-				for (unsigned int i = 0 ; 2 > i ; ++i)
+				Vector3( FLT_MAX, FLT_MAX, FLT_MAX ),
+				Vector3( -FLT_MAX, -FLT_MAX, -FLT_MAX )
+			};
+			Vector3 oTemp;
+			for (unsigned int i = 0 ; uStripSize > i ; ++i)
+			{
+				m_rLandscape.GetVertexPosition(*m_pLODInfo, i, m_uStartVertexIndex, oTemp);
+				if (oAABB[0].x > oTemp.x) oAABB[0].x = oTemp.x;
+				if (oAABB[0].y > oTemp.y) oAABB[0].y = oTemp.y;
+				if (oAABB[0].z > oTemp.z) oAABB[0].z = oTemp.z;
+				if (oAABB[1].x < oTemp.x) oAABB[1].x = oTemp.x;
+				if (oAABB[1].y < oTemp.y) oAABB[1].y = oTemp.y;
+				if (oAABB[1].z < oTemp.z) oAABB[1].z = oTemp.z;
+			}
+			m_oExtends = (oAABB[1] - oAABB[0]) / 2.0f;
+			m_oCenter = oAABB[0] + m_oExtends;
+
+			if (0 < m_uLOD)
+			{
+				CreateInfo oLCCInfo;
+				unsigned int uChild = ESubChild_NORTHWEST;
+				for (unsigned int j = 0 ; 2 > j ; ++j)
 				{
-					LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(m_rLandscape, m_uLOD - 1);
-					oLCCInfo.m_uX = pInfo->m_uX * 2 + i;
-					oLCCInfo.m_uZ = pInfo->m_uZ * 2 + j;
-					bResult = pLandscapeChunk->Create(boost::any(&oLCCInfo));
+					for (unsigned int i = 0 ; 2 > i ; ++i)
+					{
+						LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(m_rLandscape, m_uLOD - 1);
+						oLCCInfo.m_uX = pInfo->m_uX * 2 + i;
+						oLCCInfo.m_uZ = pInfo->m_uZ * 2 + j;
+						bResult = pLandscapeChunk->Create(boost::any(&oLCCInfo));
+						if (false == bResult)
+						{
+							break;
+						}
+						m_pChildren[uChild] = pLandscapeChunk;
+						++uChild;
+					}
 					if (false == bResult)
 					{
 						break;
 					}
-					m_pChildren[uChild] = pLandscapeChunk;
-					++uChild;
-				}
-				if (false == bResult)
-				{
-					break;
 				}
 			}
 		}

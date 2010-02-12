@@ -26,8 +26,13 @@ namespace ElixirEngine
 	bool DisplaySurface::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		FilePtr pFile = FS::GetRoot()->OpenFile(pInfo->m_strPath, FS::EOpenMode_READBINARY);
-		bool bResult = (NULL != pFile);
+		FilePtr pFile = NULL;
+
+		bool bResult = (NULL != pInfo);
+		{
+			pFile = FS::GetRoot()->OpenFile(pInfo->m_strPath, FS::EOpenMode_READBINARY);
+			bResult = (NULL != pFile);
+		}
 
 		if (false != bResult)
 		{
@@ -180,8 +185,8 @@ namespace ElixirEngine
 
 	bool DisplaySurfaceManager::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-		return bResult;
+		Release();
+		return true;
 	}
 
 	void DisplaySurfaceManager::Update()

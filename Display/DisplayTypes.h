@@ -237,6 +237,18 @@ namespace ElixirEngine
 	typedef map<Key, DisplayRenderPassPtr> DisplayRenderPassPtrMap;
 	typedef vector<DisplayRenderPassPtr> DisplayRenderPassPtrVec;
 	typedef map<Key, DisplayObjectPtrVec> DisplayRenderRequestListMap;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	struct GeometryHelperVertex;
+	typedef GeometryHelperVertex* GeometryHelperVertexPtr;
+	typedef GeometryHelperVertex& GeometryHelperVertexRef;
+
+	class DisplayGeometrySphere;
+	typedef DisplayGeometrySphere* DisplayGeometrySpherePtr;
+	typedef DisplayGeometrySphere& DisplayGeometrySphereRef;
 }
 
 #endif // __DISPLAYTYPES_H__

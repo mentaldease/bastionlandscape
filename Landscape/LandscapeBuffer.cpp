@@ -8,7 +8,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	VertexDefaultRef VertexDefault::operator = (VertexIndependentRef _rVertexIndependent)
+	LandscapeVertexDefaultRef LandscapeVertexDefault::operator = (LandscapeVertexIndependentRef _rVertexIndependent)
 	{
 		m_oPosition = _rVertexIndependent.m_oPosition;
 #if LANDSCAPE_USE_MORPHING
@@ -26,7 +26,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	VertexLiquidRef VertexLiquid::operator = (VertexIndependentRef _rVertexIndependent)
+	LandscapeVertexLiquidRef LandscapeVertexLiquid::operator = (LandscapeVertexIndependentRef _rVertexIndependent)
 	{
 		m_oPosition = _rVertexIndependent.m_oPosition;
 		m_oNormal = _rVertexIndependent.m_oNormal;
@@ -38,7 +38,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	void VertexIndependent::AddLink(const unsigned int& _uLOD, const unsigned int& _uIndex)
+	void LandscapeVertexIndependent::AddLink(const unsigned int& _uLOD, const unsigned int& _uIndex)
 	{
 		LODVertexLink oLink = { _uLOD, _uIndex };
 		m_vLinks.push_back(oLink);
@@ -59,8 +59,8 @@ namespace ElixirEngine
 			const unsigned int uLODIncrement = 0x00000001 << k;
 			const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
 			const float fZOffset = float(m_oGlobalInfo.m_uRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-			VertexIndependentPtr pVertexes = new VertexIndependent[uLODVertexCount];
-			VertexIndependentPtr pVertex = pVertexes;
+			LandscapeVertexIndependentPtr pVertexes = new LandscapeVertexIndependent[uLODVertexCount];
+			LandscapeVertexIndependentPtr pVertex = pVertexes;
 			for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += uLODIncrement)
 			{
 				for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += uLODIncrement)
@@ -102,8 +102,8 @@ namespace ElixirEngine
 
 	void Landscape::ComputeVertexIndependentMorphs(LODInfoRef _rLODInfo)
 	{
-		VertexIndependentPtr pVertex = _rLODInfo.m_pVertexesIndependent;
-		VertexIndependentPtr pPrevVertex = NULL;
+		LandscapeVertexIndependentPtr pVertex = _rLODInfo.m_pVertexesIndependent;
+		LandscapeVertexIndependentPtr pPrevVertex = NULL;
 		for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += _rLODInfo.m_uIncrement)
 		{
 			for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += _rLODInfo.m_uIncrement)
@@ -156,7 +156,7 @@ namespace ElixirEngine
 			0 + int(_rLODInfo.m_uVertexPerRowCount), 1
 		};
 		const Vector3 oUp(0.0f, 1.0f, 0.0f);
-		VertexIndependentPtr pVertex = _rLODInfo.m_pVertexesIndependent;
+		LandscapeVertexIndependentPtr pVertex = _rLODInfo.m_pVertexesIndependent;
 		for (int j = 0 ; int(_rLODInfo.m_uRowCount) > j ; ++j)
 		{
 			for (int i = 0 ; int(_rLODInfo.m_uVertexPerRowCount) > i ; ++i)
@@ -196,7 +196,7 @@ namespace ElixirEngine
 			const unsigned int uLODVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
 			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
 			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
-			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(VertexDefault), sizeof(VertexDefault), VertexDefault::s_VertexElement };
+			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(LandscapeVertexDefault), sizeof(LandscapeVertexDefault), LandscapeVertexDefault::s_VertexElement };
 			DisplayVertexBufferPtr pVertexBuffer = Display::GetInstance()->CreateVertexBuffer(oVBCreateInfo);
 			bResult = (NULL != pVertexBuffer);
 			if (false != bResult)
@@ -204,9 +204,9 @@ namespace ElixirEngine
 				const unsigned int uLODIncrement = 0x00000001 << k;
 				const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
 				const float fZOffset = float(m_oGlobalInfo.m_uRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-				VoidPtr pVertexes = new VertexDefault[uLODVertexCount];
-				VertexDefaultPtr pVertex = (VertexDefaultPtr)pVertexes;
-				VertexIndependentPtr pVertexIndependent = m_oGlobalInfo.m_pLODs[0].m_pVertexesIndependent;
+				VoidPtr pVertexes = new LandscapeVertexDefault[uLODVertexCount];
+				LandscapeVertexDefaultPtr pVertex = (LandscapeVertexDefaultPtr)pVertexes;
+				LandscapeVertexIndependentPtr pVertexIndependent = m_oGlobalInfo.m_pLODs[0].m_pVertexesIndependent;
 				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += uLODIncrement)
 				{
 					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += uLODIncrement)
@@ -251,7 +251,7 @@ namespace ElixirEngine
 			const unsigned int uLODVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
 			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
 			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
-			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(VertexLiquid), sizeof(VertexLiquid), VertexLiquid::s_VertexElement };
+			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(LandscapeVertexLiquid), sizeof(LandscapeVertexLiquid), LandscapeVertexLiquid::s_VertexElement };
 			DisplayVertexBufferPtr pVertexBuffer = Display::GetInstance()->CreateVertexBuffer(oVBCreateInfo);
 			bResult = (NULL != pVertexBuffer);
 			if (false != bResult)
@@ -259,9 +259,9 @@ namespace ElixirEngine
 				const unsigned int uLODIncrement = 0x00000001 << k;
 				const float fXOffset = float(m_oGlobalInfo.m_uVertexPerRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
 				const float fZOffset = float(m_oGlobalInfo.m_uRowCount - 1) * m_oGlobalInfo.m_fFloorScale / 2.0f;
-				VoidPtr pVertexes = new VertexLiquid[uLODVertexCount];
-				VertexLiquidPtr pVertex = (VertexLiquidPtr)pVertexes;
-				VertexIndependentPtr pVertexIndependent = m_oGlobalInfo.m_pLODs[0].m_pVertexesIndependent;
+				VoidPtr pVertexes = new LandscapeVertexLiquid[uLODVertexCount];
+				LandscapeVertexLiquidPtr pVertex = (LandscapeVertexLiquidPtr)pVertexes;
+				LandscapeVertexIndependentPtr pVertexIndependent = m_oGlobalInfo.m_pLODs[0].m_pVertexesIndependent;
 				for (unsigned int j = 0 ; m_oGlobalInfo.m_uRowCount > j ; j += uLODIncrement)
 				{
 					for (unsigned int i = 0 ; m_oGlobalInfo.m_uVertexPerRowCount > i ; i += uLODIncrement)

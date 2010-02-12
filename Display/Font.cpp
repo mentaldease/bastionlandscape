@@ -69,15 +69,13 @@ namespace ElixirEngine
 
 	bool DisplayFontManager::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
+		Release();
 
+		DisplayFontLoaderPtr pLoader = new BitmapFont::DisplayFontLoader(*this);
+		bool bResult = pLoader->Create(boost::any(0));
+		if (false != bResult)
 		{
-			DisplayFontLoaderPtr pLoader = new BitmapFont::DisplayFontLoader(*this);
-			bResult = pLoader->Create(boost::any(0));
-			if (false != bResult)
-			{
-				RegisterLoader(MakeKey(string("fnt")), pLoader);
-			}
+			RegisterLoader(MakeKey(string("fnt")), pLoader);
 		}
 
 		return bResult;

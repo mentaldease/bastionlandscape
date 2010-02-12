@@ -26,7 +26,7 @@ namespace ElixirEngine
 		ELandscapeVertexFormat_LIQUID,
 	};
 
-	struct VertexDefault
+	struct LandscapeVertexDefault
 	{
 #if LANDSCAPE_USE_MORPHING
 		static VertexElement s_VertexElement[7];
@@ -34,7 +34,7 @@ namespace ElixirEngine
 		static VertexElement s_VertexElement[6];
 #endif // LANDSCAPE_USE_MORPHING
 
-		VertexDefaultRef operator = (VertexIndependentRef _rVertexIndependent);
+		LandscapeVertexDefaultRef operator = (LandscapeVertexIndependentRef _rVertexIndependent);
 
 		Vector3	m_oPosition;
 #if LANDSCAPE_USE_MORPHING
@@ -46,11 +46,11 @@ namespace ElixirEngine
 		Vector3	m_oUV2; // slope, height, water level
 	};
 
-	struct VertexLiquid
+	struct LandscapeVertexLiquid
 	{
 		static VertexElement s_VertexElement[6];
 
-		VertexLiquidRef operator = (VertexIndependentRef _rVertexIndependent);
+		LandscapeVertexLiquidRef operator = (LandscapeVertexIndependentRef _rVertexIndependent);
 
 		Vector3	m_oPosition;
 		Vector3	m_oNormal;
@@ -59,7 +59,7 @@ namespace ElixirEngine
 		Vector2	m_oUV;
 	};
 
-	struct VertexIndependent
+	struct LandscapeVertexIndependent
 	{
 		struct LODVertexLink
 		{
@@ -104,19 +104,19 @@ namespace ElixirEngine
 
 		struct LODInfo
 		{
-			unsigned int			m_uStartIndex;
-			unsigned int			m_uStripSize;
-			unsigned int			m_uGridSize;
-			unsigned int			m_uQuadSize;
-			unsigned int			m_uGeometricError;
-			unsigned int			m_uVertexPerRowCount;
-			unsigned int			m_uRowCount;
-			unsigned int			m_uVertexCount;
-			unsigned int			m_uNumVertices;
-			unsigned int			m_uIncrement;
-			DisplayVertexBufferPtr	m_pVertexBuffer;
-			VoidPtr					m_pVertexes;
-			VertexIndependentPtr	m_pVertexesIndependent;
+			unsigned int					m_uStartIndex;
+			unsigned int					m_uStripSize;
+			unsigned int					m_uGridSize;
+			unsigned int					m_uQuadSize;
+			unsigned int					m_uGeometricError;
+			unsigned int					m_uVertexPerRowCount;
+			unsigned int					m_uRowCount;
+			unsigned int					m_uVertexCount;
+			unsigned int					m_uNumVertices;
+			unsigned int					m_uIncrement;
+			DisplayVertexBufferPtr			m_pVertexBuffer;
+			VoidPtr							m_pVertexes;
+			LandscapeVertexIndependentPtr	m_pVertexesIndependent;
 		};
 		typedef LODInfo* LODInfoPtr;
 		typedef LODInfo& LODInfoRef;
@@ -183,16 +183,16 @@ namespace ElixirEngine
 		void InterpolatePixelA8R8G8B8(const DisplaySurface::UVInfo& _rUVInfo, ByteRef _uRed, ByteRef _uGreen, ByteRef _uBlue, ByteRef _uAlpha);
 
 	protected:
-		GlobalInfo					m_oGlobalInfo;
-		LandscapeChunkPtrVec		m_vGrid;
-		LandscapeChunkPtrVec		m_vRenderList;
-		DisplayVertexBufferPtrVec	m_vVertexBuffers;
-		VoidPtrVec					m_vVertexes;
-		VertexIndependentPtrVec		m_vVertexesIndependent;
-		DisplayVertexBufferPtr		m_pCurrentVertexBuffer;
-		DisplayIndexBufferPtr		m_pIndexBuffer;
-		UIntPtr						m_pIndexes;
-		LandscapeLayeringPtr		m_pLayering;
+		GlobalInfo							m_oGlobalInfo;
+		LandscapeChunkPtrVec				m_vGrid;
+		LandscapeChunkPtrVec				m_vRenderList;
+		DisplayVertexBufferPtrVec			m_vVertexBuffers;
+		VoidPtrVec							m_vVertexes;
+		LandscapeVertexIndependentPtrVec	m_vVertexesIndependent;
+		DisplayVertexBufferPtr				m_pCurrentVertexBuffer;
+		DisplayIndexBufferPtr				m_pIndexBuffer;
+		UIntPtr								m_pIndexes;
+		LandscapeLayeringPtr				m_pLayering;
 
 	private:
 	};

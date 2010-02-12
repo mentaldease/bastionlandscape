@@ -66,19 +66,22 @@ namespace ElixirEngine
 	bool DisplayCamera::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = false;
+		bool bResult = (NULL != pInfo);
 
-		unsigned int uTemp[2];
-		m_rDisplay.GetResolution(uTemp[0], uTemp[1]);
-
-		m_oViewport.X = (unsigned int)(pInfo->m_fX * uTemp[0]);
-		m_oViewport.Y = (unsigned int)(pInfo->m_fY * uTemp[1]);
-		m_oViewport.Width = (unsigned int)(pInfo->m_fWidth * uTemp[0]);
-		m_oViewport.Height = (unsigned int)(pInfo->m_fHeight * uTemp[1]);
-		m_oViewport.MinZ = 0.0f;
-		m_oViewport.MaxZ = 1.0f;
-		HRESULT hResult = m_rDisplay.GetDevicePtr()->SetViewport(&m_oViewport);
-		bResult = SUCCEEDED(hResult);
+		if (false != bResult)
+		{
+			Release();
+			unsigned int uTemp[2];
+			m_rDisplay.GetResolution(uTemp[0], uTemp[1]);
+			m_oViewport.X = (unsigned int)(pInfo->m_fX * uTemp[0]);
+			m_oViewport.Y = (unsigned int)(pInfo->m_fY * uTemp[1]);
+			m_oViewport.Width = (unsigned int)(pInfo->m_fWidth * uTemp[0]);
+			m_oViewport.Height = (unsigned int)(pInfo->m_fHeight * uTemp[1]);
+			m_oViewport.MinZ = 0.0f;
+			m_oViewport.MaxZ = 1.0f;
+			HRESULT hResult = m_rDisplay.GetDevicePtr()->SetViewport(&m_oViewport);
+			bResult = SUCCEEDED(hResult);
+		}
 
 		if (false != bResult)
 		{

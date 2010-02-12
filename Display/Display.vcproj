@@ -175,6 +175,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GeometryHelper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\NormalProcess.cpp"
 				>
 			</File>
@@ -250,6 +254,10 @@
 			</File>
 			<File
 				RelativePath=".\FontBMF.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GeometryHelper.h"
 				>
 			</File>
 			<File

@@ -44,10 +44,11 @@ namespace ElixirEngine
 	bool DisplayVertexBuffer::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = (NULL == m_pVertexBuffer) && (0 != pInfo->m_uBufferSize) && (NULL != pInfo->m_pVertexElement);
+		bool bResult = (NULL != pInfo) && (0 != pInfo->m_uBufferSize) && (NULL != pInfo->m_pVertexElement);
 
 		if (false != bResult)
 		{
+			Release();
 			m_uBufferSize = pInfo->m_uBufferSize;
 			m_uVertexSize = pInfo->m_uVertexSize;
 			HRESULT hResult =  m_rDisplay.GetDevicePtr()->CreateVertexBuffer(
@@ -144,10 +145,11 @@ namespace ElixirEngine
 	bool DisplayIndexBuffer::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = (NULL == m_pIndexBuffer) && (0 != pInfo->m_uBufferSize);
+		bool bResult = (NULL != pInfo) && (0 != pInfo->m_uBufferSize);
 
 		if (false != bResult)
 		{
+			Release();
 			m_uBufferSize = pInfo->m_uBufferSize * (m_b16Bits ? sizeof(unsigned short) : sizeof(unsigned int));
 			m_b16Bits = pInfo->m_b16Bits;
 			HRESULT hResult =  m_rDisplay.GetDevicePtr()->CreateIndexBuffer(
@@ -257,6 +259,8 @@ namespace ElixirEngine
 		m_pRTChain(NULL),
 		m_pNormalProcesses(NULL),
 		m_pCurrentNormalProcess(NULL),
+		m_pCurrentVertexBuffer(NULL),
+		m_pCurrentIndexBuffer(NULL),
 		m_oWorldInvTransposeMatrix(),
 		m_uWidth(0),
 		m_uHeight(0)
@@ -278,10 +282,11 @@ namespace ElixirEngine
 	bool Display::Create(const boost::any& _rConfig)
 	{
 		WindowData* pWindowData = boost::any_cast<WindowData*>(_rConfig);
-		bool bResult = (NULL == m_pDevice);
+		bool bResult = (NULL != pWindowData);
 
 		if (false != bResult)
 		{
+			Release();
 			m_pDirect3D = Direct3DCreate9(D3D_SDK_VERSION);
 			bResult = (NULL != m_pDirect3D);
 		}
@@ -431,6 +436,8 @@ namespace ElixirEngine
 
 	void Display::CloseVideo()
 	{
+		#pragma message("implement a generic notify system to enable unload/release data before a system shutdown")
+
 		if (NULL != m_pRTChain)
 		{
 			m_pRTChain->Release();
@@ -521,6 +528,25 @@ namespace ElixirEngine
 		return pVertexBuffer;
 	}
 
+	bool Display::SetCurrentVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer)
+	{
+		bool bResult = true;
+		if (m_pCurrentVertexBuffer != _pVertexBuffer)
+		{
+			m_pCurrentVertexBuffer = _pVertexBuffer;
+			if (NULL != m_pCurrentVertexBuffer)
+			{
+				bResult = m_pCurrentVertexBuffer->Use();
+			}
+		}
+		return bResult;
+	}
+
+	DisplayVertexBufferPtr Display::GetCurrentVertexBuffer()
+	{
+		return m_pCurrentVertexBuffer;
+	}
+
 	void Display::ReleaseVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer)
 	{
 		_pVertexBuffer->Release();
@@ -536,6 +562,25 @@ namespace ElixirEngine
 			pIndexBuffer = NULL;
 		}
 		return pIndexBuffer;
+	}
+
+	bool Display::SetCurrentIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer)
+	{
+		bool bResult = true;
+		if (m_pCurrentIndexBuffer != _pIndexBuffer)
+		{
+			m_pCurrentIndexBuffer = _pIndexBuffer;
+			if (NULL != m_pCurrentIndexBuffer)
+			{
+				bResult = m_pCurrentIndexBuffer->Use();
+			}
+		}
+		return bResult;
+	}
+
+	DisplayIndexBufferPtr Display::GetCurrentIndexBuffer()
+	{
+		return m_pCurrentIndexBuffer;
 	}
 
 	void Display::ReleaseIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer)

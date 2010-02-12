@@ -56,7 +56,14 @@ namespace ElixirEngine
 	bool LandscapeLayering::Create(const boost::any& _rConfig)
 	{
 		CreateInfoPtr pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		return CreateFromLuaConfig(*pInfo);
+		bool bResult = (NULL != pInfo);
+
+		if (false != bResult)
+		{
+			bResult = CreateFromLuaConfig(*pInfo);
+		}
+
+		return bResult;
 	}
 
 	void LandscapeLayering::Update()
@@ -467,8 +474,8 @@ namespace ElixirEngine
 
 	bool LandscapeLayerManager::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-		return bResult;
+		Release();
+		return true;
 	}
 
 	void LandscapeLayerManager::Update()

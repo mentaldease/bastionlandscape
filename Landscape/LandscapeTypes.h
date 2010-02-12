@@ -27,18 +27,18 @@ namespace ElixirEngine
 	typedef LandscapeLayerManager*	LandscapeLayerManagerPtr;
 	typedef LandscapeLayerManager&	LandscapeLayerManagerRef;
 
-	struct VertexDefault;
-	typedef VertexDefault*	VertexDefaultPtr;
-	typedef VertexDefault&	VertexDefaultRef;
+	struct LandscapeVertexDefault;
+	typedef LandscapeVertexDefault*	LandscapeVertexDefaultPtr;
+	typedef LandscapeVertexDefault&	LandscapeVertexDefaultRef;
 
-	struct VertexLiquid;
-	typedef VertexLiquid*	VertexLiquidPtr;
-	typedef VertexLiquid&	VertexLiquidRef;
+	struct LandscapeVertexLiquid;
+	typedef LandscapeVertexLiquid*	LandscapeVertexLiquidPtr;
+	typedef LandscapeVertexLiquid&	LandscapeVertexLiquidRef;
 
-	struct VertexIndependent;
-	typedef VertexIndependent*				VertexIndependentPtr;
-	typedef VertexIndependent&				VertexIndependentRef;
-	typedef vector<VertexIndependentPtr>	VertexIndependentPtrVec;
+	struct LandscapeVertexIndependent;
+	typedef LandscapeVertexIndependent*				LandscapeVertexIndependentPtr;
+	typedef LandscapeVertexIndependent&				LandscapeVertexIndependentRef;
+	typedef vector<LandscapeVertexIndependentPtr>	LandscapeVertexIndependentPtrVec;
 }
 
 #endif // __LANDSCAPETYPES_H__

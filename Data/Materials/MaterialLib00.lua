@@ -151,4 +151,9 @@ materiallib00 =
 		effect = "data/effects/UI.fx",
 		technique = "RenderScene",
 	},
+	{
+		name = "geomhelper",
+		effect = "data/effects/Geometryhelper.fx",
+		technique = "RenderScene",
+	},
 }
