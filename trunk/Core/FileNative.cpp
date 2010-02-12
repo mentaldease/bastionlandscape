@@ -13,7 +13,8 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	FileNative::FileNative()
-	:	File()
+	:	File(),
+		m_pFile(NULL)
 	{
 
 	}
@@ -26,33 +27,36 @@ namespace ElixirEngine
 	bool FileNative::Create(const boost::any& _rConfig)
 	{
 		FileNative::CreateInfoPtr pInfo = boost::any_cast<FileNative::CreateInfoPtr>(_rConfig);
-		bool bResult = false;
+		bool bResult = (NULL != pInfo);
 
-		switch (pInfo->m_eOpenMode)
+		if (false != bResult)
 		{
-			case FS::EOpenMode_READTEXT:
+			Release();
+			switch (pInfo->m_eOpenMode)
 			{
-				m_pFile = fopen(pInfo->m_strPath.c_str(), "rt");
-				break;
+				case FS::EOpenMode_READTEXT:
+				{
+					m_pFile = fopen(pInfo->m_strPath.c_str(), "rt");
+					break;
+				}
+				case FS::EOpenMode_READBINARY:
+				{
+					m_pFile = fopen(pInfo->m_strPath.c_str(), "rb");
+					break;
+				}
+				case FS::EOpenMode_CREATETEXT:
+				{
+					m_pFile = fopen(pInfo->m_strPath.c_str(), "wt");
+					break;
+				}
+				case FS::EOpenMode_CREATEBINARY:
+				{
+					m_pFile = fopen(pInfo->m_strPath.c_str(), "wb");
+					break;
+				}
 			}
-			case FS::EOpenMode_READBINARY:
-			{
-				m_pFile = fopen(pInfo->m_strPath.c_str(), "rb");
-				break;
-			}
-			case FS::EOpenMode_CREATETEXT:
-			{
-				m_pFile = fopen(pInfo->m_strPath.c_str(), "wt");
-				break;
-			}
-			case FS::EOpenMode_CREATEBINARY:
-			{
-				m_pFile = fopen(pInfo->m_strPath.c_str(), "wb");
-				break;
-			}
+			bResult = (NULL != m_pFile);
 		}
-
-		bResult = (NULL != m_pFile);
 
 		return bResult;
 	}
@@ -129,8 +133,8 @@ namespace ElixirEngine
 
 	bool FSNative::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-		return bResult;
+		Release();
+		return true;
 	}
 
 	void FSNative::Update()

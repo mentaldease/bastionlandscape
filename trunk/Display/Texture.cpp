@@ -26,7 +26,12 @@ namespace ElixirEngine
 	bool DisplayTexture::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = (false != pInfo->m_bLoadMode) ? Load(*pInfo) : New(*pInfo);
+		bool bResult = (NULL != pInfo);
+		if (false != bResult)
+		{
+			Release();
+			bResult = (false != pInfo->m_bLoadMode) ? Load(*pInfo) : New(*pInfo);
+		}
 		return bResult;
 	}
 
@@ -211,8 +216,8 @@ namespace ElixirEngine
 
 	bool DisplayTextureManager::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-		return bResult;
+		Release();
+		return true;
 	}
 
 	void DisplayTextureManager::Update()

@@ -38,8 +38,15 @@ namespace ElixirEngine
 	bool DisplayEffect::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		FilePtr pFile = FS::GetRoot()->OpenFile(pInfo->m_strPath, pInfo->m_bIsText ? FS::EOpenMode_READTEXT : FS::EOpenMode_READBINARY);
-		bool bResult = (NULL != pFile);
+		FilePtr pFile = NULL;
+		bool bResult = (NULL != pInfo);
+
+		if (false != bResult)
+		{
+			Release();
+			pFile = FS::GetRoot()->OpenFile(pInfo->m_strPath, pInfo->m_bIsText ? FS::EOpenMode_READTEXT : FS::EOpenMode_READBINARY);
+			bResult = (NULL != pFile);
+		}
 		if (false != bResult)
 		{
 			int sSize = pFile->Size();
@@ -76,6 +83,7 @@ namespace ElixirEngine
 				pCompilErrors->Release();
 			}
 		}
+
 		return bResult;
 	}
 
@@ -194,10 +202,11 @@ namespace ElixirEngine
 	bool DisplayMaterial::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = (NULL != pInfo->m_pEffect);
+		bool bResult = (NULL != pInfo) && (NULL != pInfo->m_pEffect);
 
 		if (false != bResult)
 		{
+			Release();
 			m_pEffect = pInfo->m_pEffect;
 			if (NULL != pInfo->m_pLuaObject)
 			{
@@ -367,6 +376,8 @@ namespace ElixirEngine
 	bool DisplayMaterialManager::Create(const boost::any& _rConfig)
 	{
 		bool bResult = true;
+
+		Release();
 
 		m_mParamCreators[MakeKey(string("WORLDVIEWPROJ"))] = boost::bind(&DisplayEffectParamWORLDVIEWPROJ::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("WORLD"))] = boost::bind(&DisplayEffectParamWORLD::CreateParam, _1);

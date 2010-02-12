@@ -153,12 +153,12 @@ scenetest00 =
 				{
 					name = "water",
 					material = "waterpost02",
-				},
-				{
-					name = "monochrome",
-					material = "monochromepost00",
 					immediate_write = true,
 				},
+				-- {
+					-- name = "monochrome",
+					-- material = "monochromepost00",
+				-- },
 				-- {
 					-- name = "inverse",
 					-- material = "inversepost00",

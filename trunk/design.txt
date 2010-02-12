@@ -1,7 +1,10 @@
 BASTION
 
+Histoire :
+
+
 Description :
-RTS de bataille navale principalement.
+RTS de bataille navale.
 Pour chaque carte on controle un ensemble de unités afin de remplir un ou plusieurs objectifs principaux/secondaires.
 Types d'objectifs :
 	* destruction de bâtiments adverses (marins, terrestres ou aeriens).
@@ -50,14 +53,36 @@ Gameplay :
 			- etc.
 		- système d'arbes de talents :
 			- stratégie qui améliore la vue d'ensemble du combat.
-				+ Radar amélioré : rayon de détection des radars plus grand.
+				+ radar amélioré : rayon de détection des radars plus grand.
 				+ vue satellite.
+				+ logistique : arrivée des renforts plus rapide.
+				+ ravitaillement : plus de renforts.
 			- charisme pour tout ce qui est amériolation des caractéristiques des entités ainsi que les effets bonus.
 				+ double shot : % de chance de déclenchement d'un second tir.
 				+ subversion : tentative de gagner le unité adversaire à sa cause lorsqu'il est en dessous de 20% de son endurance.
 			- saboteur pour tromper l'adversaire :
 				+ fumigène : plonge une zone donnée dans un fumigène qui empêche l'adversaire de voir vos unités.
 				+ mines : répend un champ de mines sur une zone donnée.
+	* Système de missions et achievements :
+		- basé sur un système très générique permettant de tester FACILEMENT certaines valeurs :
+			- compteur
+			- timer
+			- distance
+			- unité spécifique.
+		L'idée est que chaque mission/achievement s'enregistre auprès du système pour chaque valeur à surveiller.
+		En fait un achievement est une mission avec quelques particulatités :
+			- elle ne provoque pas l'echec des missions principales d'une carte.
+			- elle peut être attachée à différentes cartes.
+		- achievements simples :
+			+ finir la campagne solo en mode normale, difficile, expert.
+			+ détruire 500, 1000, 5000 unités ennemies.
+			+ lancer une attaque par satellite (implique qu'une telle attaque demande un certain investissement).
+		- achievements avancés :
+			+ finir une mission en moins de N minutes.
+			+ remplir un objectif sans utiliser certaines unités.
+		- achievements multijoueurs :
+			+ gagner 1, 50, 100, 500, 1000 parties multijoueurs.
+			+ gagner 5, 10, 20, (30, 50) parties multijoueurs d'affilé.
 
 Network/communications :
 	* les interactions des joueurs(ordinateurs/humains) passent par un système de messages/événements.

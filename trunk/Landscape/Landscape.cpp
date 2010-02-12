@@ -14,7 +14,7 @@ namespace ElixirEngine
 	#define SV4	sizeof(Vector4)
 
 #if LANDSCAPE_USE_MORPHING
-	VertexElement VertexDefault::s_VertexElement[7] =
+	VertexElement LandscapeVertexDefault::s_VertexElement[7] =
 	{
 		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
 		{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	1 },
@@ -25,7 +25,7 @@ namespace ElixirEngine
 		D3DDECL_END()
 	};
 #else // LANDSCAPE_USE_MORPHING
-	VertexElement VertexDefault::s_VertexElement[6] =
+	VertexElement LandscapeVertexDefault::s_VertexElement[6] =
 	{
 		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
 		{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
@@ -36,7 +36,7 @@ namespace ElixirEngine
 	};
 #endif // LANDSCAPE_USE_MORPHING
 
-	VertexElement VertexLiquid::s_VertexElement[6] =
+	VertexElement LandscapeVertexLiquid::s_VertexElement[6] =
 	{
 		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
 		{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
@@ -99,6 +99,7 @@ namespace ElixirEngine
 
 	bool Landscape::GlobalInfo::Create(const Landscape::OpenInfo& _rOpenInfo)
 	{
+		Release();
 		Reset();
 		m_strName = _rOpenInfo.m_strName;
 		m_uQuadSize = _rOpenInfo.m_uQuadSize;
@@ -190,8 +191,8 @@ namespace ElixirEngine
 
 	bool Landscape::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-		return bResult;
+		Release();
+		return true;
 	}
 
 	void Landscape::Update()
@@ -214,10 +215,11 @@ namespace ElixirEngine
 		LandscapeChunkPtrVec::iterator iEnd = m_vRenderList.end();
 		DisplayPtr pDisplay = Display::GetInstance();
 		const Key uPassNameKey = MakeKey(string("scene"));
+		MatrixRef rMatrix = *(GetWorldMatrix());
 		while (iEnd != iChunk)
 		{
 			LandscapeChunkPtr pChunk = *iChunk;
-			*(pChunk->GetWorldMatrix()) = *(GetWorldMatrix());
+			*(pChunk->GetWorldMatrix()) = rMatrix;
 			pChunk->SetMaterial(m_pMaterial);
 			pDisplay->RenderRequest(uPassNameKey, pChunk);
 			++iChunk;
@@ -356,13 +358,13 @@ namespace ElixirEngine
 		{
 			case ELandscapeVertexFormat_DEFAULT:
 			{
-				VertexDefaultPtr pBuffer = static_cast<VertexDefaultPtr>(_rLODInfo.m_pVertexes);
+				LandscapeVertexDefaultPtr pBuffer = static_cast<LandscapeVertexDefaultPtr>(_rLODInfo.m_pVertexes);
 				_rPosition = pBuffer[uVertexIndex].m_oPosition;
 				break;
 			}
 			case ELandscapeVertexFormat_LIQUID:
 			{
-				VertexLiquidPtr pBuffer = static_cast<VertexLiquidPtr>(_rLODInfo.m_pVertexes);
+				LandscapeVertexLiquidPtr pBuffer = static_cast<LandscapeVertexLiquidPtr>(_rLODInfo.m_pVertexes);
 				_rPosition = pBuffer[uVertexIndex].m_oPosition;
 				break;
 			}
@@ -371,17 +373,20 @@ namespace ElixirEngine
 
 	bool Landscape::SetIndices()
 	{
-		return m_pIndexBuffer->Use();
+		//return m_pIndexBuffer->Use();
+		return Display::GetInstance()->SetCurrentIndexBuffer(m_pIndexBuffer);
 	}
 
 	bool Landscape::UseLODVertexBuffer(const unsigned int& _uLOD)
 	{
-		bool bResult = (m_pCurrentVertexBuffer == m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer);
-		if (false == bResult)
-		{
-			m_pCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer;
-			bResult = m_pCurrentVertexBuffer->Use();
-		}
+		//bool bResult = (m_pCurrentVertexBuffer == m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer);
+		//if (false == bResult)
+		//{
+		//	m_pCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer;
+		//	bResult = m_pCurrentVertexBuffer->Use();
+		//}
+		m_pCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer;
+		bool bResult = Display::GetInstance()->SetCurrentVertexBuffer(m_pCurrentVertexBuffer);
 		return bResult;
 	}
 
@@ -483,8 +488,8 @@ namespace ElixirEngine
 				const unsigned int uLODIncrement = 0x00000001 << k;
 				const float fVStep = 1.0f / float(uLODRowCount);
 				const float fUStep = 1.0f / float(uLODVertexPerRowCount);
-				VertexIndependentPtr pVertexes = m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent;
-				VertexIndependentPtr pVertex = pVertexes;
+				LandscapeVertexIndependentPtr pVertexes = m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent;
+				LandscapeVertexIndependentPtr pVertex = pVertexes;
 				DisplaySurface::UVInfo oUVInfo;
 				Byte aRGBA[4];
 				// DO NOT USE (1.0f > v) or (1.0f > u) as break conditions !!

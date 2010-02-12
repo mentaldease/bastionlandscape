@@ -29,7 +29,8 @@ namespace BastionGame
 		m_uWaterDataKey(MakeKey(string("WATERDATA"))),
 		m_pUIText(NULL),
 		m_pUIFont(NULL),
-		m_pUIMaterial(NULL)
+		m_pUIMaterial(NULL),
+		m_pSphere(NULL)
 	{
 
 	}
@@ -42,11 +43,16 @@ namespace BastionGame
 	bool Scene::Create(const boost::any& _rConfig)
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-		pMaterialManager->RegisterParamCreator(m_uWaterLevelKey, boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
-		pMaterialManager->RegisterParamCreator(m_uWaterDataKey, boost::bind(&DisplayEffectParamSTRUCT::CreateParam, _1));
-
 		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
-		bool bResult = CreateFromLuaConfig(pInfo);
+		bool bResult = (NULL != pInfo);
+
+		if (false != bResult)
+		{
+			Release();
+			pMaterialManager->RegisterParamCreator(m_uWaterLevelKey, boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(m_uWaterDataKey, boost::bind(&DisplayEffectParamSTRUCT::CreateParam, _1));
+			bResult = CreateFromLuaConfig(pInfo);
+		}
 
 		if (false != bResult)
 		{
@@ -62,7 +68,7 @@ namespace BastionGame
 			DisplayPtr pDisplay = Display::GetInstance();
 			if (NULL == m_pUIText)
 			{
-				const string strFileName = "Data/Fonts/FGMC.fnt";
+				const string strFileName = "Data/Fonts/arial24.fnt";
 				Key uNameKey = MakeKey(strFileName);
 				m_pUIFont = pDisplay->GetFontManager()->Get(uNameKey);
 				uNameKey = MakeKey(string("ui"));
@@ -80,6 +86,37 @@ namespace BastionGame
 			m_rApplication.GetDisplay()->AddRenderPasses(m_vRenderPasses);
 		}
 
+		if (false != bResult)
+		{
+			m_pSphere = new DisplayGeometrySphere();
+			DisplayGeometrySphere::CreateInfo oGSCInfo;
+			oGSCInfo.m_bBottomHemisphere = true;
+			oGSCInfo.m_bTopHemisphere = true;
+			oGSCInfo.m_bViewFromInside = false;
+			oGSCInfo.m_oPos = Vector3(0.0f, 0.0f, 0.0f);
+			oGSCInfo.m_oRadius = Vector3(100.0f, 100.0f, 100.0f);
+			oGSCInfo.m_oRot = Vector3(0.0f, 0.0f, 0.0f);
+			oGSCInfo.m_uHorizSlices = 10;
+			oGSCInfo.m_uVertSlices = 10;
+			bResult = m_pSphere->Create(boost::any(&oGSCInfo));
+			if (false != bResult)
+			{
+				DisplayPtr pDisplay = Display::GetInstance();
+				const Key uNameKey = MakeKey(string("geomhelper"));
+				DisplayMaterialPtr pMaterial = pDisplay->GetMaterialManager()->GetMaterial(uNameKey);
+				if (NULL != pMaterial)
+				{
+					m_pSphere->SetMaterial(pMaterial);
+				}
+				else
+				{
+					m_pSphere->Release();
+					delete m_pSphere;
+					m_pSphere = NULL;
+				}
+			}
+		}
+
 		return bResult;
 	}
 
@@ -92,6 +129,12 @@ namespace BastionGame
 			iPair->second->Update();
 			++iPair;
 		}
+
+		{
+			const static Key uPassNameKey = MakeKey(string("scene"));
+			m_rApplication.GetDisplay()->RenderRequest(uPassNameKey, m_pSphere);
+		}
+
 		wstring wstrText = L"BASTION";
 		Vector4 oColor(1.0f, 1.0f, 1.0f, 1.0f);
 		DrawOverlayText(0.0f, 0.0f, wstrText, oColor);
@@ -102,6 +145,14 @@ namespace BastionGame
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 
 		m_rApplication.GetDisplay()->RemoveRenderPasses(m_vRenderPasses);
+
+		// sphere
+		if (NULL != m_pSphere)
+		{
+			m_pSphere->Release();
+			delete m_pSphere;
+			m_pSphere = NULL;
+		}
 
 		// camera
 		while (m_mCameras.end() != m_mCameras.begin())
@@ -168,7 +219,7 @@ namespace BastionGame
 	{
 		if (NULL != m_pUIText)
 		{
-			const Key uPassNameKey = MakeKey(string("ui"));
+			const static Key uPassNameKey = MakeKey(string("ui"));
 			m_pUIText->SetText(_wstrText);
 			Matrix oMPos;
 			Vector3 oVPos(_fX, _fY, 0.0f);

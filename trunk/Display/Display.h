@@ -133,8 +133,13 @@ namespace ElixirEngine
 		void RenderRequest(const Key& _uRenderPassKey, DisplayObjectPtr _pDisplayObject);
 
 		DisplayVertexBufferPtr CreateVertexBuffer(DisplayVertexBuffer::CreateInfo& _rCreateInfo);
+		bool SetCurrentVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
+		DisplayVertexBufferPtr GetCurrentVertexBuffer();
 		void ReleaseVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
+
 		DisplayIndexBufferPtr CreateIndexBuffer(DisplayIndexBuffer::CreateInfo& _rCreateInfo);
+		bool SetCurrentIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer);
+		DisplayIndexBufferPtr GetCurrentIndexBuffer();
 		void ReleaseIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer);
 
 		DevicePtr GetDevicePtr() const;
@@ -203,6 +208,8 @@ namespace ElixirEngine
 		DisplayRenderTargetChainPtr		m_pRTChain;
 		DisplayNormalProcessPtrVecPtr	m_pNormalProcesses;
 		DisplayNormalProcessPtr			m_pCurrentNormalProcess;
+		DisplayVertexBufferPtr			m_pCurrentVertexBuffer;
+		DisplayIndexBufferPtr			m_pCurrentIndexBuffer;
 		Matrix							m_oWorldInvTransposeMatrix;
 		unsigned int					m_uWidth;
 		unsigned int					m_uHeight;

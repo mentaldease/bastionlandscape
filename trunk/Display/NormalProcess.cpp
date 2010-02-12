@@ -42,13 +42,12 @@ namespace ElixirEngine
 	bool DisplayNormalProcess::Create(const boost::any& _rConfig)
 	{
 		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
-		bool bResult = false;
+		bool bResult = (NULL != pInfo) && (NULL != pInfo->m_pLuaObject);
 
-		if (NULL != pInfo->m_pLuaObject)
+		if (false != bResult)
 		{
 			bResult = CreateFromLuaConfig(*pInfo);
 		}
-
 		if (false != bResult)
 		{
 			m_pRTChain = m_rDisplay.GetRenderTargetChain();

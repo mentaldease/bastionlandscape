@@ -57,7 +57,8 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 { 
 	PS_OUTPUT Output;
 
-	Output.vColor = In.Diffuse * tex2D(DiffuseSampler0, In.UV);
+	float4 vTexColor = tex2D(DiffuseSampler0, In.UV);
+	Output.vColor = In.Diffuse * vTexColor;
 
 	return Output;
 }
@@ -74,6 +75,9 @@ technique RenderScene
 		Lighting = FALSE;
 		CullMode = NONE;
 		ZEnable = FALSE;
+		AlphaBlendEnable = TRUE;
+		DestBlend = INVSRCALPHA;
+		SrcBlend = SRCALPHA;
 
         VertexShader = compile vs_2_0 RenderSceneVS();
         PixelShader  = compile ps_2_0 RenderScenePS();

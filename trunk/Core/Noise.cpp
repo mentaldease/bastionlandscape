@@ -45,8 +45,8 @@ namespace ElixirEngine
 
 	bool NoiseGenerator::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-		return bResult;
+		Release();
+		return true;
 	}
 
 	void NoiseGenerator::Update()

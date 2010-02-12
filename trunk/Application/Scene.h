@@ -65,6 +65,8 @@ namespace BastionGame
 		DisplayMaterialPtr			m_pUIMaterial;
 		wstring						m_wstrText;
 
+		DisplayGeometrySpherePtr	m_pSphere;
+
 	private:
 	};
 }

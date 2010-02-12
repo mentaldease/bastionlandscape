@@ -136,7 +136,8 @@ namespace ElixirEngine
 
 	bool Time::Create(const boost::any& _rConfig)
 	{
-		bool bResult = (FALSE != QueryPerformanceFrequency(&m_lTicksPerSeconds));
+		Release();
+		const bool bResult = (FALSE != QueryPerformanceFrequency(&m_lTicksPerSeconds));
 		return bResult;
 	}
 

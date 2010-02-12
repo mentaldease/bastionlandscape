@@ -31,13 +31,20 @@ namespace ElixirEngine
 
 	bool DisplayRenderPass::Create(const boost::any& _rConfig)
 	{
-		LuaObjectRef oRoot = *boost::any_cast<LuaObjectPtr>(_rConfig);
+		LuaObjectPtr pRoot = boost::any_cast<LuaObjectPtr>(_rConfig);
 		string strPassName;
 		string strCameraName;
-		bool bResult = Scripting::Lua::Get(oRoot, "camera", string(""), strCameraName)
-			&& Scripting::Lua::Get(oRoot, "name", string(""), strPassName)
-			&& CreatePostProcesses(oRoot)
-			&& CreateNormalProcesses(oRoot);
+		bool bResult = (NULL != pRoot);
+
+		if (false != bResult)
+		{
+			Release();
+			LuaObjectRef oRoot = *pRoot;
+			bResult = Scripting::Lua::Get(oRoot, "camera", string(""), strCameraName)
+				&& Scripting::Lua::Get(oRoot, "name", string(""), strPassName)
+				&& CreatePostProcesses(oRoot)
+				&& CreateNormalProcesses(oRoot);
+		}
 
 		if (false != bResult)
 		{
@@ -126,14 +133,11 @@ namespace ElixirEngine
 	bool DisplayRenderPass::CreatePostProcess(LuaObjectRef _rLuaObject)
 	{
 		DisplayPostProcessPtr pPostProcess = new DisplayPostProcess(m_rDisplay);
-		DisplayPostProcess::CreateInfo oPPCInfo;
-		Scripting::Lua::Get(_rLuaObject, "immediate_write", oPPCInfo.m_bImmediateWrite, oPPCInfo.m_bImmediateWrite);
-		Scripting::Lua::Get(_rLuaObject, "name", string(""), oPPCInfo.m_strName);
-		const string strMaterialName = _rLuaObject["material"].GetString();
-		const Key uMaterialNameKey = MakeKey(strMaterialName);
-		const Key uNameKey = MakeKey(oPPCInfo.m_strName);
+		DisplayPostProcess::CreateInfo oPPCInfo = { &_rLuaObject };
+		string strName;
+		Scripting::Lua::Get(_rLuaObject, "name", strName, strName);
+		const Key uNameKey = MakeKey(strName);
 		bool bResult = (m_mPostProcesses.end() == m_mPostProcesses.find(uNameKey)) // <== check that there is NOT another post process with the same name
-			&& (oPPCInfo.m_uMaterialNameKey = uMaterialNameKey)
 			&& pPostProcess->Create(boost::any(&oPPCInfo));
 
 		if (false != bResult)
@@ -175,12 +179,15 @@ namespace ElixirEngine
 	{
 		DisplayNormalProcessPtr pNormalProcess = new DisplayNormalProcess(m_rDisplay);
 		DisplayNormalProcess::CreateInfo oNPCInfo = { &_rLuaObject };
-		bool bResult = pNormalProcess->Create(boost::any(&oNPCInfo));
-
+		string strName;
+		Scripting::Lua::Get(_rLuaObject, "name", strName, strName);
+		const Key uNameKey = MakeKey(strName);
+		bool bResult = (m_mNormalProcesses.end() == m_mNormalProcesses.find(uNameKey)) // <== check that there is NOT another normal process with the same name
+			&& pNormalProcess->Create(boost::any(&oNPCInfo));
 
 		if (false != bResult)
 		{
-			m_mNormalProcesses[pNormalProcess->GetNameKey()] = pNormalProcess;
+			m_mNormalProcesses[uNameKey] = pNormalProcess;
 			m_vNormalProcesses.push_back(pNormalProcess);
 		}
 		else

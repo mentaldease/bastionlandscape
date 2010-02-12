@@ -60,14 +60,17 @@ namespace ElixirEngine
 	bool Input::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = true;
+		bool bResult = (NULL != pInfo);
 
-		if ((false != pInfo->m_bCreateDefaultKeyboard) || (false != pInfo->m_bCreateDefaultMouse))
+		if (false != bResult)
 		{
-			HRESULT hResult = DirectInput8Create(pInfo->m_hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_pDI, NULL);
-			bResult = SUCCEEDED(hResult);
+			Release();
+			if ((false != pInfo->m_bCreateDefaultKeyboard) || (false != pInfo->m_bCreateDefaultMouse))
+			{
+				HRESULT hResult = DirectInput8Create(pInfo->m_hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_pDI, NULL);
+				bResult = SUCCEEDED(hResult);
+			}
 		}
-
 		if (false != bResult)
 		{
 			if (false != pInfo->m_bCreateDefaultKeyboard)
@@ -223,10 +226,15 @@ namespace ElixirEngine
 	bool InputDeviceKeyboard::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		DIPtr pDI = pInfo->m_pInput->GetDirectInput();
-		HRESULT hResult = pDI->CreateDevice(GUID_SysKeyboard, &m_pDevice, NULL); 
-		bool bResult = SUCCEEDED(hResult);
+		bool bResult = (NULL != pInfo);
 
+		if (false != bResult)
+		{
+			Release();
+			DIPtr pDI = pInfo->m_pInput->GetDirectInput();
+			HRESULT hResult = pDI->CreateDevice(GUID_SysKeyboard, &m_pDevice, NULL); 
+			bResult = SUCCEEDED(hResult);
+		}
 		if (false != bResult)
 		{
 			bResult = SUCCEEDED(m_pDevice->SetDataFormat(&c_dfDIKeyboard));
@@ -279,10 +287,14 @@ namespace ElixirEngine
 	bool InputDeviceMouse::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		DIPtr pDI = pInfo->m_pInput->GetDirectInput();
-		HRESULT hResult = pDI->CreateDevice(GUID_SysMouse, &m_pDevice, NULL); 
-		bool bResult = SUCCEEDED(hResult);
+		bool bResult = (NULL != pInfo);
 
+		if (false != bResult)
+		{
+			DIPtr pDI = pInfo->m_pInput->GetDirectInput();
+			HRESULT hResult = pDI->CreateDevice(GUID_SysMouse, &m_pDevice, NULL); 
+			bResult = SUCCEEDED(hResult);
+		}
 		if (false != bResult)
 		{
 			bResult = SUCCEEDED(m_pDevice->SetDataFormat(&c_dfDIMouse2));

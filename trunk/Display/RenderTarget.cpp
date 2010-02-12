@@ -37,23 +37,28 @@ namespace ElixirEngine
 	bool DisplayRenderTargetGeometry::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = true;
+		bool bResult = (NULL != pInfo);
 
-		m_fFullWidth = float(pInfo->m_uWidth);
-		m_fFullHeight = float(pInfo->m_uHeight);
-
-		const float fWidth = pInfo->m_uWidth * 0.5f;
-		const float fHeight = pInfo->m_uHeight * 0.5f;
-		const Vertex aQuad[4] =
+		if (false != bResult)
 		{
-			{ -0.5f,					-0.5f,						1.0f,	1.0f,	0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT),		0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT)		},
-			{ -0.5f,					fHeight - 0.5f,				1.0f,	1.0f,	0.0f,	0.5f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT),		0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT)	},
-			{ fWidth - 0.5f,			-0.5f,						1.0f,	1.0f,	0.5f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT),		1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT)	},
-			{ fWidth - 0.5f,			fHeight - 0.5f,				1.0f,	1.0f,	0.5f,	0.5f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT),	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT)	}
-		};
-		memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
+			Release();
 
-		bResult = SUCCEEDED(Display::GetInstance()->GetDevicePtr()->CreateVertexDeclaration(DisplayRenderTargetGeometry::Vertex::s_aDecl, &m_pVertDeclPP));
+			m_fFullWidth = float(pInfo->m_uWidth);
+			m_fFullHeight = float(pInfo->m_uHeight);
+
+			const float fWidth = pInfo->m_uWidth * 0.5f;
+			const float fHeight = pInfo->m_uHeight * 0.5f;
+			const Vertex aQuad[4] =
+			{
+				{ -0.5f,					-0.5f,						1.0f,	1.0f,	0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT),		0.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPLEFT)		},
+				{ -0.5f,					fHeight - 0.5f,				1.0f,	1.0f,	0.0f,	0.5f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT),		0.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMLEFT)	},
+				{ fWidth - 0.5f,			-0.5f,						1.0f,	1.0f,	0.5f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT),		1.0f,	0.0f,	float(DisplayCamera::EFrustumCorner_FARTOPRIGHT)	},
+				{ fWidth - 0.5f,			fHeight - 0.5f,				1.0f,	1.0f,	0.5f,	0.5f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT),	1.0f,	1.0f,	float(DisplayCamera::EFrustumCorner_FARBOTTOMRIGHT)	}
+			};
+			memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
+
+			bResult = SUCCEEDED(Display::GetInstance()->GetDevicePtr()->CreateVertexDeclaration(DisplayRenderTargetGeometry::Vertex::s_aDecl, &m_pVertDeclPP));
+		}
 
 		return bResult;
 	}
@@ -169,32 +174,37 @@ namespace ElixirEngine
 	bool DisplayRenderTarget::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = false;
+		bool bResult = (NULL != pInfo);
 
-		m_strName = pInfo->m_strName;
-		m_uRTIndex = pInfo->m_uIndex;
-		m_bImmediateWrite = pInfo->m_bImmediateWrite;
-		m_eRenderState = ERenderState_UNKNOWN;
-		m_eMode = ERenderMode_UNKNOWNPROCESS;
-		m_pCurrentBufferTex = NULL;
-		m_uCurrentBuffer = 0;
-
-		string strSemanticName = boost::str(boost::format("RT2D0%1%") % m_uRTIndex);
-		m_uRTSemanticNameKey = MakeKey(strSemanticName);
-		strSemanticName = boost::str(boost::format("ORT2D0%1%") % m_uRTIndex);
-		m_uORTSemanticNameKey = MakeKey(strSemanticName);
-
-		for (UInt i = 0 ; c_uBufferCount > i ; ++i)
+		if (false != bResult)
 		{
-			string strTexName = boost::str(boost::format("%1%_%2%") % m_strName % i);
-			bResult = Display::GetInstance()->GetTextureManager()->New(strTexName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, false, DisplayTexture::EType_2D, DisplayTexture::EUsage_RENDERTARGET);
-			if (false == bResult)
+			Release();
+
+			m_strName = pInfo->m_strName;
+			m_uRTIndex = pInfo->m_uIndex;
+			m_bImmediateWrite = pInfo->m_bImmediateWrite;
+			m_eRenderState = ERenderState_UNKNOWN;
+			m_eMode = ERenderMode_UNKNOWNPROCESS;
+			m_pCurrentBufferTex = NULL;
+			m_uCurrentBuffer = 0;
+
+			string strSemanticName = boost::str(boost::format("RT2D0%1%") % m_uRTIndex);
+			m_uRTSemanticNameKey = MakeKey(strSemanticName);
+			strSemanticName = boost::str(boost::format("ORT2D0%1%") % m_uRTIndex);
+			m_uORTSemanticNameKey = MakeKey(strSemanticName);
+
+			for (UInt i = 0 ; c_uBufferCount > i ; ++i)
 			{
-				break;
+				string strTexName = boost::str(boost::format("%1%_%2%") % m_strName % i);
+				bResult = Display::GetInstance()->GetTextureManager()->New(strTexName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, false, DisplayTexture::EType_2D, DisplayTexture::EUsage_RENDERTARGET);
+				if (false == bResult)
+				{
+					break;
+				}
+				m_pDoubleBufferTex[i] = Display::GetInstance()->GetTextureManager()->Get(strTexName);
+				TexturePtr pTexture = static_cast<TexturePtr>(m_pDoubleBufferTex[i]->GetBase());
+				pTexture->GetSurfaceLevel(0, &m_pDoubleBufferSurf[i]);
 			}
-			m_pDoubleBufferTex[i] = Display::GetInstance()->GetTextureManager()->Get(strTexName);
-			TexturePtr pTexture = static_cast<TexturePtr>(m_pDoubleBufferTex[i]->GetBase());
-			pTexture->GetSurfaceLevel(0, &m_pDoubleBufferSurf[i]);
 		}
 
 		return bResult;
@@ -408,21 +418,24 @@ namespace ElixirEngine
 	bool DisplayRenderTargetChain::Create(const boost::any& _rConfig)
 	{
 		CreateInfo* pInfo = boost::any_cast<CreateInfo*>(_rConfig);
-		bool bResult = false;
+		bool bResult = (NULL != pInfo);
 
-		for (UInt i = 0 ; pInfo->m_uBufferCount > i ; ++i)
+		if (false != bResult)
 		{
-			const string strRTName = boost::str(boost::format("%1%_buffer%2%") % pInfo->m_strName % i);
-			DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, D3DFORMAT(pInfo->m_pFormats[i]), i };
-			DisplayRenderTargetPtr pRT = new DisplayRenderTarget(m_rDisplay);
-			bResult = pRT->Create(boost::any(&oRTRTCInfo));
-			if (false == bResult)
+			for (UInt i = 0 ; pInfo->m_uBufferCount > i ; ++i)
 			{
-				pRT->Release();
-				delete pRT;
-				break;
+				const string strRTName = boost::str(boost::format("%1%_buffer%2%") % pInfo->m_strName % i);
+				DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, D3DFORMAT(pInfo->m_pFormats[i]), i };
+				DisplayRenderTargetPtr pRT = new DisplayRenderTarget(m_rDisplay);
+				bResult = pRT->Create(boost::any(&oRTRTCInfo));
+				if (false == bResult)
+				{
+					pRT->Release();
+					delete pRT;
+					break;
+				}
+				m_vGBuffer.push_back(pRT);
 			}
-			m_vGBuffer.push_back(pRT);
 		}
 
 		return bResult;
@@ -562,7 +575,7 @@ namespace ElixirEngine
 		Display::GetInstance()->GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, _uClearColor, 1.0f, 0L);
 		RenderEndPass();
 		RenderEnd();
-	}
+         	}
 
 	void DisplayRenderTargetChain::SetImmediateWrite(const bool& _bState)
 	{

@@ -55,6 +55,7 @@ namespace ElixirEngine
 
 	bool CoreObject::Create(const boost::any& _rConfig)
 	{
+		Release();
 		return true;
 	}
 
