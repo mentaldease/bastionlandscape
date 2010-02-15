@@ -343,6 +343,10 @@ namespace BastionGame
 				}
 				m_mMaterials[uMaterialNameKey] = pMaterialManager->GetMaterial(strMaterialName);
 			}
+			if (false == bResult)
+			{
+				break;
+			}
 		}
 
 		return bResult;
