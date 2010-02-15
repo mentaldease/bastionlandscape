@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="Application"
 	ProjectGUID="{DBD11E5B-2E62-44DA-9210-DF82C0B03185}"
 	RootNamespace="Application"
@@ -153,6 +153,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DebugTextOverlay.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Scene.cpp"
 				>
 			</File>
@@ -192,6 +196,10 @@
 			</File>
 			<File
 				RelativePath=".\ApplicationTypes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DebugTextOverlay.h"
 				>
 			</File>
 			<File

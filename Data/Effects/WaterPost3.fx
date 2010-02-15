@@ -46,7 +46,7 @@ struct WaterData
 #define WATER_COUNT 4
 float g_fWaterPostCount = (float)WATER_COUNT;
 float g_fWaterPostCountInv = 1.0f / (float)WATER_COUNT;
-uint g_uWaterIndex = 0;
+int g_uWaterIndex = 0;
 WaterData g_WaterData[WATER_COUNT] : WATERDATA;
 
 float4 g_vFrustumCorners[8] : FRUSTUMCORNERS;
@@ -286,7 +286,7 @@ float4 RenderScenePS(VertexOutput IN): COLOR0
 	float3 color2 = base_color.rgb;
 	float3 color = color2;
 
-	g_uWaterIndex = (uint)(base_color.a / g_fWaterPostCountInv);
+	g_uWaterIndex = (int)(base_color.a / g_fWaterPostCountInv);
 
 	float3 position = VSPositionFromDepth(IN.texCoord, IN.texCoord3, IN.texCoord4);
 	float level = g_WaterData[g_uWaterIndex].fWaterLevel;
