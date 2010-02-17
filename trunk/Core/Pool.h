@@ -152,7 +152,8 @@ namespace ElixirEngine
 			m_mAvailable.erase(iPair);
 			if (_uSize < uSize)
 			{
-				m_mAvailable[&_pStart[uSize]] = uSize - _uSize;
+				TPtr pNewStart = &_pStart[_uSize];
+				m_mAvailable[pNewStart] = uSize - _uSize;
 			}
 		}
 	}

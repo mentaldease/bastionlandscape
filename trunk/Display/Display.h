@@ -116,8 +116,6 @@ namespace ElixirEngine
 
 	class Display : public CoreObject, public WeakSingleton<Display>
 	{
-		//DECLARE_WEAKSINGLETON(Display)
-
 	public:
 		Display();
 		virtual ~Display();
@@ -171,6 +169,7 @@ namespace ElixirEngine
 
 		void AddRenderPasses(DisplayRenderPassPtrVec _vRenderPasses);
 		void RemoveRenderPasses(DisplayRenderPassPtrVec _vRenderPasses);
+		DisplayRenderPassPtr GetCurrentRenderPass();
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
@@ -210,6 +209,7 @@ namespace ElixirEngine
 		DisplayNormalProcessPtr			m_pCurrentNormalProcess;
 		DisplayVertexBufferPtr			m_pCurrentVertexBuffer;
 		DisplayIndexBufferPtr			m_pCurrentIndexBuffer;
+		DisplayRenderPassPtr			m_pCurrentRenderPass;
 		Matrix							m_oWorldInvTransposeMatrix;
 		unsigned int					m_uWidth;
 		unsigned int					m_uHeight;

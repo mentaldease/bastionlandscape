@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Application/Application.h"
 #include "../Application/Scene.h"
+#include "../Application/DebugTextOverlay.h"
 #include "../Core/Scripting.h"
 #include "../Core/Util.h"
 
@@ -27,9 +28,9 @@ namespace BastionGame
 		m_fWaterLevel(200.0f),
 		m_uWaterLevelKey(MakeKey(string("WATERLEVEL"))),
 		m_uWaterDataKey(MakeKey(string("WATERDATA"))),
-		m_pUIText(NULL),
-		m_pUIFont(NULL),
-		m_pUIMaterial(NULL),
+		m_pUITextOverlay(NULL),
+		m_uUIMainFontLabel(0),
+		m_uUIRenderPass(0),
 		m_pSphere(NULL)
 	{
 
@@ -65,20 +66,20 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
+			m_uUIMainFontLabel = MakeKey(string("Normal"));
+			m_uUIRenderPass = MakeKey(string("ui"));
+
 			DisplayPtr pDisplay = Display::GetInstance();
-			if (NULL == m_pUIText)
-			{
-				const string strFileName = "Data/Fonts/arial24.fnt";
-				Key uNameKey = MakeKey(strFileName);
-				m_pUIFont = pDisplay->GetFontManager()->Get(uNameKey);
-				uNameKey = MakeKey(string("ui"));
-				m_pUIMaterial = pDisplay->GetMaterialManager()->GetMaterial(uNameKey);
-				if ((NULL != m_pUIFont) && (NULL != m_pUIMaterial))
-				{
-					m_pUIText = m_pUIFont->CreateText();
-					m_pUIText->SetMaterial(m_pUIMaterial);
-				}
-			}
+			DebugTextOverlay::CreateInfo oDTOCInfo;
+			unsigned int uTemp[2];
+			pDisplay->GetResolution(uTemp[0], uTemp[1]);
+			oDTOCInfo.m_mFontNameList[m_uUIMainFontLabel] = "Data/Fonts/arial24.fnt";
+			oDTOCInfo.m_mFontMaterialList[m_uUIMainFontLabel] = "ui";
+			oDTOCInfo.m_f3ScreenOffset = Vector3(-float(uTemp[0] / 2), float(uTemp[1] / 2), 0.0f);
+			oDTOCInfo.m_uRenderPassKey = m_uUIRenderPass;
+			oDTOCInfo.m_uMaxText = 50;
+			m_pUITextOverlay = new DebugTextOverlay();
+			bResult = m_pUITextOverlay->Create(boost::any(&oDTOCInfo));
 		}
 
 		if (false != bResult)
@@ -135,9 +136,21 @@ namespace BastionGame
 			m_rApplication.GetDisplay()->RenderRequest(uPassNameKey, m_pSphere);
 		}
 
-		wstring wstrText = L"BASTION";
-		Vector4 oColor(1.0f, 1.0f, 1.0f, 1.0f);
-		DrawOverlayText(0.0f, 0.0f, wstrText, oColor);
+		{
+			wstring wstrText = L"BASTION";
+			Vector4 f4Color(1.0f, 1.0f, 1.0f, 1.0f);
+			DrawOverlayText(0.0f, 0.0f, wstrText, f4Color);
+		}
+		{
+			wstring wstrText = L"33S";
+			Vector4 f4Color(1.0f, 1.0f, 0.0f, 1.0f);
+			DrawOverlayText(0.0f, -30.0f, wstrText, f4Color);
+		}
+
+		if (NULL != m_pUITextOverlay)
+		{
+			m_pUITextOverlay->Update();
+		}
 	}
 
 	void Scene::Release()
@@ -161,14 +174,13 @@ namespace BastionGame
 			m_mCameras.erase(m_mCameras.begin());
 		}
 
-		// ui test
-		if (NULL != m_pUIText)
+		// ui
+		if (NULL != m_pUITextOverlay)
 		{
-			m_pUIFont->ReleaseText(m_pUIText);
-			m_pUIText = NULL;
+			m_pUITextOverlay->Release();
+			delete m_pUITextOverlay;
+			m_pUITextOverlay = NULL;
 		}
-		m_pUIMaterial = NULL;
-		m_pUIFont = NULL;
 
 		// water rendering configuration data
 		if (NULL != m_pWaterData)
@@ -215,17 +227,16 @@ namespace BastionGame
 	{
 	}
 
-	void Scene::DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _oColor)
+	void Scene::DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _f4Color)
 	{
-		if (NULL != m_pUIText)
+		DisplayPtr pDisplay = Display::GetInstance();
+		if (m_uUIRenderPass == pDisplay->GetCurrentRenderPass()->GetNameKey())
 		{
-			const static Key uPassNameKey = MakeKey(string("ui"));
-			m_pUIText->SetText(_wstrText);
-			Matrix oMPos;
-			Vector3 oVPos(_fX, _fY, 0.0f);
-			D3DXMatrixTransformation(&oMPos, NULL, NULL, NULL, NULL, NULL, &oVPos);
-			m_pUIText->SetWorldMatrix(oMPos);
-			m_rApplication.GetDisplay()->RenderRequest(uPassNameKey, m_pUIText);
+			if (NULL != m_pUITextOverlay)
+			{
+				const static Key uFontLabelKey = MakeKey(string("Normal"));
+				m_pUITextOverlay->DrawRequest(_fX, _fY, uFontLabelKey, _wstrText, _f4Color);
+			}
 		}
 	}
 

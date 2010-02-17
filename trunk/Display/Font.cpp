@@ -72,7 +72,8 @@ namespace ElixirEngine
 		Release();
 
 		DisplayFontLoaderPtr pLoader = new BitmapFont::DisplayFontLoader(*this);
-		bool bResult = pLoader->Create(boost::any(0));
+		BitmapFont::DisplayFontLoader::CreateInfo BMFDLCInfo = { 5000, 100 };
+		bool bResult = pLoader->Create(boost::any(&BMFDLCInfo));
 		if (false != bResult)
 		{
 			RegisterLoader(MakeKey(string("fnt")), pLoader);
