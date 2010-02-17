@@ -229,14 +229,6 @@ namespace BastionGame
 			}
 		}
 
-		// test
-		if (false != bResult)
-		{
-			const string strFileName = "Data/Fonts/arial24.fnt";
-			const Key uNameKey = MakeKey(strFileName);
-			m_pDisplay->GetFontManager()->Load(uNameKey, strFileName);
-		}
-
 		if (false != bResult)
 		{
 			m_eStateMode = EStateMode_READY;

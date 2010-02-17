@@ -13,8 +13,6 @@
 
 namespace ElixirEngine
 {
-	//DEFINE_WEAKSINGLETON(Display)
-
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -261,6 +259,7 @@ namespace ElixirEngine
 		m_pCurrentNormalProcess(NULL),
 		m_pCurrentVertexBuffer(NULL),
 		m_pCurrentIndexBuffer(NULL),
+		m_pCurrentRenderPass(NULL),
 		m_oWorldInvTransposeMatrix(),
 		m_uWidth(0),
 		m_uHeight(0)
@@ -311,10 +310,11 @@ namespace ElixirEngine
 		DisplayRenderPassPtrVec::iterator iEnd = m_vRenderPasses.end();
 		while (iEnd != iRP)
 		{
-			DisplayRenderPassPtr pRP = *iRP;
-			RenderPass(pRP);
+			m_pCurrentRenderPass = *iRP;
+			RenderPass(m_pCurrentRenderPass);
 			++iRP;
 		}
+		m_pCurrentRenderPass = NULL;
 
 		// copy back to back buffer
 		if (false == m_pRTChain->GetImmediateWrite())
@@ -801,6 +801,11 @@ namespace ElixirEngine
 
 			++iRP;
 		}
+	}
+
+	DisplayRenderPassPtr Display::GetCurrentRenderPass()
+	{
+		return m_pCurrentRenderPass;
 	}
 
 	void Display::RenderUpdate()

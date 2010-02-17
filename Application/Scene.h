@@ -29,7 +29,7 @@ namespace BastionGame
 		virtual void Release();
 
 		void PreUpdate();
-		void DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _oColor);
+		void DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _f4Color);
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
@@ -60,10 +60,9 @@ namespace BastionGame
 		Key							m_uWaterLevelKey;
 		Key							m_uWaterDataKey;
 
-		DisplayFontTextPtr			m_pUIText;
-		DisplayFontPtr				m_pUIFont;
-		DisplayMaterialPtr			m_pUIMaterial;
-		wstring						m_wstrText;
+		DebugTextOverlayPtr			m_pUITextOverlay;
+		Key							m_uUIMainFontLabel;
+		Key							m_uUIRenderPass;
 
 		DisplayGeometrySpherePtr	m_pSphere;
 

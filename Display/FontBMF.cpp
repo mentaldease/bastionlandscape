@@ -34,6 +34,7 @@ namespace ElixirEngine
 		DisplayFontText::DisplayFontText()
 		:	ElixirEngine::DisplayFontText(),
 			m_wstrText(),
+			m_f4Color(0.0f, 0.0f, 0.0f, 0.0f),
 			m_pFont(NULL),
 			m_pVertex(NULL),
 			m_pPreviousVertexBuffer(NULL),
@@ -43,7 +44,8 @@ namespace ElixirEngine
 			m_uVertexCount(0),
 			m_bTextChanged(false),
 			m_bSizeChanged(false),
-			m_bRebuildText(false)
+			m_bRebuildText(false),
+			m_bRebuildColor(false)
 		{
 
 		}
@@ -67,14 +69,14 @@ namespace ElixirEngine
 		{
 			if (NULL != m_pVertex)
 			{
-				m_pFont->m_rFontLoader.GetVertexBuffer().Free(m_pVertex);
+				m_pFont->m_rFontLoader.GetVertexPool().Free(m_pVertex);
 				m_pVertex = NULL;
 			}
 		}
 
 		void DisplayFontText::RenderBegin()
 		{
-			Display::GetInstance()->GetDevicePtr()->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
+			//Display::GetInstance()->GetDevicePtr()->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
 			Display::GetInstance()->GetDevicePtr()->GetVertexDeclaration(&m_pPreviousVertexDecl);
 			if (m_pPreviousVertexDecl != m_pFont->GetLoader().GetVertexDecl())
 			{
@@ -87,6 +89,7 @@ namespace ElixirEngine
 			if (false != m_bRebuildText)
 			{
 				BuildText();
+				m_bRebuildColor = false;
 				m_bTextChanged = false;
 				m_bSizeChanged = false;
 				m_bRebuildText = false;
@@ -102,7 +105,7 @@ namespace ElixirEngine
 		{
 			if ((m_pPreviousVertexDecl != m_pFont->GetLoader().GetVertexDecl()) && (NULL != m_pPreviousVertexDecl))
 			{
-				Display::GetInstance()->GetDevicePtr()->SetStreamSource(0, m_pPreviousVertexBuffer, m_uPreviousVBOffset, m_uPreviousVBStride);
+				//Display::GetInstance()->GetDevicePtr()->SetStreamSource(0, m_pPreviousVertexBuffer, m_uPreviousVBOffset, m_uPreviousVBStride);
 				Display::GetInstance()->GetDevicePtr()->SetVertexDeclaration(m_pPreviousVertexDecl);
 			}
 		}
@@ -117,7 +120,15 @@ namespace ElixirEngine
 			m_bSizeChanged = (m_wstrText.length() != _wstrText.length());
 			m_bTextChanged = (m_wstrText != _wstrText) || ((false == _wstrText.empty()) && (NULL == m_pVertex));
 			m_bRebuildText = m_bSizeChanged || m_bTextChanged;
+			m_bRebuildColor = m_bRebuildColor || m_bSizeChanged;
 			m_wstrText = _wstrText;
+		}
+
+		void DisplayFontText::SetColor(const Vector4& _f4Color)
+		{
+			m_bRebuildColor = (m_f4Color != _f4Color);
+			m_bRebuildText = m_bRebuildText || m_bRebuildColor;
+			m_f4Color = _f4Color;
 		}
 
 		void DisplayFontText::BuildText()
@@ -130,7 +141,7 @@ namespace ElixirEngine
 
 			if ((NULL != m_pVertex) && (false != m_bSizeChanged))
 			{
-				m_pFont->m_rFontLoader.GetVertexBuffer().Free(m_pVertex);
+				m_pFont->m_rFontLoader.GetVertexPool().Free(m_pVertex);
 				m_pVertex = NULL;
 			}
 
@@ -138,92 +149,111 @@ namespace ElixirEngine
 
 			if ((NULL == m_pVertex) && (0 < m_uVertexCount))
 			{
-				m_pVertex = m_pFont->m_rFontLoader.GetVertexBuffer().Alloc(m_uVertexCount);
+				m_pVertex = m_pFont->m_rFontLoader.GetVertexPool().Alloc(m_uVertexCount);
 			}
 
 			if (NULL != m_pVertex)
 			{
-				const Vector4 oWhite(1.0f, 1.0f, 1.0f, 1.0f);
 				VertexFontPtr pVertex = m_pVertex;
 				float fXOffset = 0.0f;
 				float fYOffset = 0.0f;
 				float fZOffset = 0.0f;
 				const float fScale = 1.0f;
-				wchar_t wcPrevChar = 0;
+				UInt wcPrevChar = 0;
 
 				for (UInt i = 0 ; uCharCount > i ; ++i)
 				{
-					wchar_t wcChar = m_wstrText[i];
-					BlockChar& rChar = m_pFont->m_mBlockChars[wcChar];
+					UInt wcChar = m_wstrText[i];
+					BlockCharRef rChar = m_pFont->m_mBlockChars[wcChar];
+					float fPageID = float(rChar.m_uPage);
+
+					{
+						char szBuffer[1024];
+						const char* pBuffer = &szBuffer[0];
+						sprintf(szBuffer, "fheight=%f fwidth=%f fx=%f fy=%f adv=%d offx=%d offy=%d ID=%u\n", rChar.m_fHeight, rChar.m_fWidth, rChar.m_fX, rChar.m_fY, rChar.m_sXAdvance, rChar.m_sXOffset, rChar.m_sYOffset, rChar.m_uID);
+						wchar_t wszBuffer[1024];
+						mbsrtowcs(wszBuffer, &pBuffer, strlen(szBuffer) + 1, NULL);
+						OutputDebugString(wszBuffer);
+					}
 
 					fXOffset += float(m_pFont->GetKerning(wcPrevChar, wcChar));
 
 					// top left
 					{
 						VertexFontRef rVertex = pVertex[0];
-						rVertex.m_oPos.x = fXOffset + 0.0f;
-						rVertex.m_oPos.y = fYOffset + 0.0f;
-						rVertex.m_oPos.z = fZOffset + 0.0f;
-						rVertex.m_oUV = Vector3(rChar.m_fX, rChar.m_fY, float(rChar.m_uPage));
-						rVertex.m_oColor = oWhite;
-						rVertex.m_oPos.x *= fScale;
-						rVertex.m_oPos.y *= fScale;
+						rVertex.m_f3Pos.x = fXOffset + 0.0f;
+						rVertex.m_f3Pos.y = fYOffset + 0.0f;
+						rVertex.m_f3Pos.z = fZOffset + 0.0f;
+						rVertex.m_f2UV = Vector3(rChar.m_fX, rChar.m_fY, fPageID);
+						//rVertex.m_f4Color = m_f4Color;
+						rVertex.m_f3Pos.x *= fScale;
+						rVertex.m_f3Pos.y *= fScale;
 					}
 					// bottom left
 					{
 						VertexFontRef rVertex = pVertex[1];
-						rVertex.m_oPos.x = fXOffset + 0.0f;
-						rVertex.m_oPos.y = fYOffset - float(rChar.m_sYOffset + rChar.m_uHeight);
-						rVertex.m_oPos.z = fZOffset + 0.0f;
-						rVertex.m_oUV = Vector3(rChar.m_fX, rChar.m_fY + rChar.m_fHeight, float(rChar.m_uPage));
-						rVertex.m_oColor = oWhite;
-						rVertex.m_oPos.x *= fScale;
-						rVertex.m_oPos.y *= fScale;
+						rVertex.m_f3Pos.x = fXOffset + 0.0f;
+						rVertex.m_f3Pos.y = fYOffset - float(rChar.m_sYOffset + rChar.m_uHeight);
+						rVertex.m_f3Pos.z = fZOffset + 0.0f;
+						rVertex.m_f2UV = Vector3(rChar.m_fX, rChar.m_fY + rChar.m_fHeight, fPageID);
+						//rVertex.m_f4Color = m_f4Color;
+						rVertex.m_f3Pos.x *= fScale;
+						rVertex.m_f3Pos.y *= fScale;
 					}
 					// top right
 					{
 						VertexFontRef rVertex = pVertex[2];
-						rVertex.m_oPos.x = fXOffset + float(rChar.m_sXOffset + rChar.m_uWidth);
-						rVertex.m_oPos.y = fYOffset + 0.0f;
-						rVertex.m_oPos.z = fZOffset + 0.0f;
-						rVertex.m_oUV = Vector3(rChar.m_fX + rChar.m_fWidth, rChar.m_fY, float(rChar.m_uPage));
-						rVertex.m_oColor = oWhite;
-						rVertex.m_oPos.x *= fScale;
-						rVertex.m_oPos.y *= fScale;
+						rVertex.m_f3Pos.x = fXOffset + float(rChar.m_sXOffset + rChar.m_uWidth);
+						rVertex.m_f3Pos.y = fYOffset + 0.0f;
+						rVertex.m_f3Pos.z = fZOffset + 0.0f;
+						rVertex.m_f2UV = Vector3(rChar.m_fX + rChar.m_fWidth, rChar.m_fY, fPageID);
+						//rVertex.m_f4Color = m_f4Color;
+						rVertex.m_f3Pos.x *= fScale;
+						rVertex.m_f3Pos.y *= fScale;
 					}
 					// bottom right
 					{
 						VertexFontRef rVertex = pVertex[3];
-						rVertex.m_oPos.x = fXOffset + float(rChar.m_sXOffset + rChar.m_uWidth);
-						rVertex.m_oPos.y = fYOffset - float(rChar.m_sYOffset + rChar.m_uHeight);
-						rVertex.m_oPos.z = fZOffset + 0.0f;
-						rVertex.m_oUV = Vector3(rChar.m_fX + rChar.m_fWidth, rChar.m_fY + rChar.m_fHeight, float(rChar.m_uPage));
-						rVertex.m_oColor = oWhite;
-						rVertex.m_oPos.x *= fScale;
-						rVertex.m_oPos.y *= fScale;
+						rVertex.m_f3Pos.x = fXOffset + float(rChar.m_sXOffset + rChar.m_uWidth);
+						rVertex.m_f3Pos.y = fYOffset - float(rChar.m_sYOffset + rChar.m_uHeight);
+						rVertex.m_f3Pos.z = fZOffset + 0.0f;
+						rVertex.m_f2UV = Vector3(rChar.m_fX + rChar.m_fWidth, rChar.m_fY + rChar.m_fHeight, fPageID);
+						//rVertex.m_f4Color = m_f4Color;
+						rVertex.m_f3Pos.x *= fScale;
+						rVertex.m_f3Pos.y *= fScale;
 					}
-
-					fXOffset += float(rChar.m_sXAdvance);
-					wcPrevChar = wcChar;
 
 					// link to next char
 					if ((uCharCount - 1) > i)
 					{
+						fXOffset += float(rChar.m_sXAdvance);
+						wcPrevChar = wcChar;
+
 						pVertex[4] = pVertex[3];
 
 						wcChar = m_wstrText[i + 1];
 						const float fKerning = float(m_pFont->GetKerning(wcPrevChar, wcChar));
-						rChar = m_pFont->m_mBlockChars[wcChar];
+						BlockCharRef rNextChar = m_pFont->m_mBlockChars[wcChar];
+						fPageID = float(rNextChar.m_uPage);
 						VertexFontRef rVertex = pVertex[5];
-						rVertex.m_oPos.x = fXOffset + 0.0f + fKerning;
-						rVertex.m_oPos.y = fYOffset + 0.0f;
-						rVertex.m_oPos.z = fZOffset + 0.0f;
-						rVertex.m_oUV = Vector3(rChar.m_fX, rChar.m_fY, float(rChar.m_uPage));
-						rVertex.m_oColor = oWhite;
-						rVertex.m_oPos.x *= fScale;
-						rVertex.m_oPos.y *= fScale;
+						rVertex.m_f3Pos.x = fXOffset + 0.0f + fKerning;
+						rVertex.m_f3Pos.y = fYOffset + 0.0f;
+						rVertex.m_f3Pos.z = fZOffset + 0.0f;
+						rVertex.m_f2UV = Vector3(rNextChar.m_fX, rNextChar.m_fY, fPageID);
+						//rVertex.m_f4Color = m_f4Color;
+						rVertex.m_f3Pos.x *= fScale;
+						rVertex.m_f3Pos.y *= fScale;
 
 						pVertex += (4 + 2);
+					}
+				}
+
+				if (false != m_bRebuildColor)
+				{
+					pVertex = m_pVertex;
+					for (UInt i = 0 ; m_uVertexCount > i ; ++i, ++pVertex)
+					{
+						pVertex->m_f4Color = m_f4Color;
 					}
 				}
 			}
@@ -366,19 +396,21 @@ namespace ElixirEngine
 
 		ElixirEngine::DisplayFontTextPtr DisplayFont::CreateText()
 		{
-			ElixirEngine::DisplayFontTextPtr pResult = new DisplayFontText();
-			if (false == pResult->Create(boost::any(this)))
+			DisplayFontTextPtr pResult = m_rFontLoader.GetTextPool().Alloc();
+			if (NULL != pResult)
 			{
-				ReleaseText(pResult);
-				pResult = NULL;
+				if (false == pResult->Create(boost::any(this)))
+				{
+					ReleaseText(pResult);
+					pResult = NULL;
+				}
 			}
 			return pResult;
 		}
 
 		void DisplayFont::ReleaseText(ElixirEngine::DisplayFontTextPtr _pText)
 		{
-			_pText->Release();
-			delete _pText;
+			m_rFontLoader.GetTextPool().Free(static_cast<TextPool::TPtr>(_pText));
 		}
 
 		DisplayRef DisplayFont::GetDisplay()
@@ -488,6 +520,12 @@ namespace ElixirEngine
 				{
 					UInt uID = 0;
 					_pFile->Read(&uID, sizeof(UInt));
+					bResult = (m_mBlockChars.end() == m_mBlockChars.find(uID));
+					if (false == bResult)
+					{
+						break;
+					}
+
 					BlockCharRef rBlockChar = m_mBlockChars[uID];
 					rBlockChar.m_uID = uID;
 					_pFile->Read(&rBlockChar.m_uX, sizeof(Word));
@@ -592,8 +630,8 @@ namespace ElixirEngine
 
 		DisplayFontLoader::DisplayFontLoader(DisplayFontManagerRef _rFontManager)
 		:	ElixirEngine::DisplayFontLoader(_rFontManager),
-			m_pVertexBuffer(NULL),
-			m_pTextBuffer(NULL),
+			m_pVertexPool(NULL),
+			m_pTextPool(NULL),
 			m_pVertexDecl(NULL)
 		{
 
@@ -606,20 +644,21 @@ namespace ElixirEngine
 
 		bool DisplayFontLoader::Create(const boost::any& _rConfig)
 		{
-			bool bResult = true;
+			CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
+			bool bResult = (NULL != pInfo);
 
 			if (false != bResult)
 			{
-				m_pVertexBuffer = new VertexBuffer();
-				const UInt uCharCount = 5000;
-				bResult = m_pVertexBuffer->Create(boost::any(uCharCount));
+				m_pVertexPool = new VertexPool();
+				const UInt uCharCount = pInfo->m_uVertexCount;
+				bResult = m_pVertexPool->Create(boost::any(uCharCount));
 			}
 
 			if (false != bResult)
 			{
-				m_pTextBuffer = new TextBuffer();
-				const UInt uTextCount = 100;
-				bResult = m_pTextBuffer->Create(boost::any(uTextCount));
+				m_pTextPool = new TextPool();
+				const UInt uTextCount = pInfo->m_uTextCount;
+				bResult = m_pTextPool->Create(boost::any(uTextCount));
 			}
 
 			if (false != bResult)
@@ -650,11 +689,11 @@ namespace ElixirEngine
 				m_pVertexDecl = NULL;
 			}
 
-			if (NULL != m_pVertexBuffer)
+			if (NULL != m_pVertexPool)
 			{
-				m_pVertexBuffer->Release();
-				delete m_pVertexBuffer;
-				m_pVertexBuffer = NULL;
+				m_pVertexPool->Release();
+				delete m_pVertexPool;
+				m_pVertexPool = NULL;
 			}
 		}
 
@@ -676,14 +715,14 @@ namespace ElixirEngine
 			delete _pFont;
 		}
 
-		VertexBufferRef DisplayFontLoader::GetVertexBuffer()
+		VertexPoolRef DisplayFontLoader::GetVertexPool()
 		{
-			return *m_pVertexBuffer;
+			return *m_pVertexPool;
 		}
 
-		TextBufferRef DisplayFontLoader::GetTextBuffer()
+		TextPoolRef DisplayFontLoader::GetTextPool()
 		{
-			return *m_pTextBuffer;
+			return *m_pTextPool;
 		}
 
 		VertexDeclPtr DisplayFontLoader::GetVertexDecl()

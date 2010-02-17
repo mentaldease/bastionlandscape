@@ -575,7 +575,7 @@ namespace ElixirEngine
 		Display::GetInstance()->GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, _uClearColor, 1.0f, 0L);
 		RenderEndPass();
 		RenderEnd();
-         	}
+   	}
 
 	void DisplayRenderTargetChain::SetImmediateWrite(const bool& _bState)
 	{

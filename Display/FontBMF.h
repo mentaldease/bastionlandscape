@@ -131,9 +131,9 @@ namespace ElixirEngine
 
 		struct VertexFont
 		{
-			Vector3	m_oPos;		// xyz
-			Vector4	m_oColor;	// rgba
-			Vector3	m_oUV;		// u, v, texture index
+			Vector3	m_f3Pos;	// xyz
+			Vector4	m_f4Color;	// rgba
+			Vector3	m_f2UV;		// u, v, texture index
 			static VertexElement s_VertexElement[4];
 		};
 		typedef VertexFont* VertexFontPtr;
@@ -191,7 +191,7 @@ namespace ElixirEngine
 				}
 			}
 
-			TPtr Alloc(UIntRef _uSize)
+			TPtr Alloc(const UInt _uSize = 1)
 			{
 				return m_pPool->Alloc(_uSize);
 			}
@@ -229,9 +229,9 @@ namespace ElixirEngine
 		//-----------------------------------------------------------------------------------------------
 		//-----------------------------------------------------------------------------------------------
 
-		typedef FontObjectBuffer<VertexFont> VertexBuffer;
-		typedef VertexBuffer* VertexBufferPtr;
-		typedef VertexBuffer& VertexBufferRef;
+		typedef FontObjectBuffer<VertexFont> VertexPool;
+		typedef VertexPool* VertexPoolPtr;
+		typedef VertexPool& VertexPoolRef;
 
 		//-----------------------------------------------------------------------------------------------
 		//-----------------------------------------------------------------------------------------------
@@ -245,6 +245,8 @@ namespace ElixirEngine
 				DisplayPtr		m_pDisplay;
 				DisplayFontPtr	m_pFont;
 			};
+			typedef CreateInfo* CreateInfoPtr;
+			typedef CreateInfo& CreateInfoRef;
 
 		public:
 			DisplayFontText();
@@ -259,12 +261,14 @@ namespace ElixirEngine
 
 			virtual void SetWorldMatrix(MatrixRef _rWorld);
 			virtual void SetText(const wstring& _wstrText);
+			virtual void SetColor(const Vector4& _f4Color);
 
 		protected:
 			void BuildText();
 
 		protected:
 			wstring							m_wstrText;
+			Vector4							m_f4Color;
 			DisplayFontPtr					m_pFont;
 			VertexFontPtr					m_pVertex;
 			ElixirEngine::VertexBufferPtr	m_pPreviousVertexBuffer;
@@ -275,10 +279,11 @@ namespace ElixirEngine
 			bool							m_bTextChanged;
 			bool							m_bSizeChanged;
 			bool							m_bRebuildText;
+			bool							m_bRebuildColor;
 		};
-		typedef FontObjectBuffer<DisplayFontText> TextBuffer;
-		typedef TextBuffer* TextBufferPtr;
-		typedef TextBuffer& TextBufferRef;
+		typedef FontObjectBuffer<DisplayFontText> TextPool;
+		typedef TextPool* TextPoolPtr;
+		typedef TextPool& TextPoolRef;
 
 		//-----------------------------------------------------------------------------------------------
 		//-----------------------------------------------------------------------------------------------
@@ -330,6 +335,15 @@ namespace ElixirEngine
 		class DisplayFontLoader : public ElixirEngine::DisplayFontLoader
 		{
 		public:
+			struct CreateInfo
+			{
+				UInt	m_uVertexCount;
+				UInt	m_uTextCount;
+			};
+			typedef CreateInfo* CreateInfoPtr;
+			typedef CreateInfo& CreateInfoRef;
+
+		public:
 			DisplayFontLoader(DisplayFontManagerRef _rFontManager);
 			virtual ~DisplayFontLoader();
 
@@ -339,13 +353,13 @@ namespace ElixirEngine
 			virtual ElixirEngine::DisplayFontPtr Load(const string& _strFileName);
 			virtual void Unload(ElixirEngine::DisplayFontPtr _pFont);
 
-			VertexBufferRef GetVertexBuffer();
-			TextBufferRef GetTextBuffer();
+			VertexPoolRef GetVertexPool();
+			TextPoolRef GetTextPool();
 			VertexDeclPtr GetVertexDecl();
 
 		protected:
-			VertexBufferPtr	m_pVertexBuffer;
-			TextBufferPtr	m_pTextBuffer;
+			VertexPoolPtr	m_pVertexPool;
+			TextPoolPtr		m_pTextPool;
 			VertexDeclPtr	m_pVertexDecl;
 		};
 	}

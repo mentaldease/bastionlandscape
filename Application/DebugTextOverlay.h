@@ -14,8 +14,9 @@ namespace BastionGame
 	public:
 		struct CreateInfo
 		{
-			map<Key, string>	m_mFontList;
-			Vector3				m_fScreenOffset;
+			map<Key, string>	m_mFontNameList;
+			map<Key, string>	m_mFontMaterialList;
+			Vector3				m_f3ScreenOffset;
 			Key					m_uRenderPassKey;
 			UInt				m_uMaxText;
 		};
@@ -30,29 +31,31 @@ namespace BastionGame
 		virtual void Update();
 		virtual void Release();
 
-		bool Draw(const float _fX, const float _fY, const Key& _uFontName, const wstring& _wstrText, const Vector4& _oColor);
+		bool DrawRequest(const float _fX, const float _fY, const Key& _uFontName, const wstring& _wstrText, const Vector4& _f4Color);
 
 	protected:
 		struct DrawInfo
 		{
-			float	m_fX;
-			float	m_fY;
-			wstring	m_wstrText;
-			Vector4	m_oColor;
-			Key		m_uFontName;
+			Vector4				m_f4Color;
+			Key					m_uFontName;
+			DisplayFontTextPtr	m_pText;
 		};
 		typedef DrawInfo* DrawInfoPtr;
 		typedef DrawInfo& DrawInfoRef;
 		typedef vector<DrawInfo> DrawInfoVec;
 		typedef vector<DrawInfoPtr> DrawInfoPtrVec;
 
+		typedef map<Key, DisplayFontPtr> FontPtrMap;
+
 	protected:
-		DrawInfoVec		m_vDrawInfoPool;
-		DrawInfoPtrVec	m_vpDrawInfo;
-		Vector3			m_fScreenOffset;
-		Key				m_uRenderPassKey;
-		UInt			m_uMaxText;
-	}
+		DrawInfoVec				m_vDrawInfoPool;
+		FontPtrMap				m_mFonts;
+		DisplayMaterialPtrMap	m_mMaterials;
+		Vector3					m_f3ScreenOffset;
+		Key						m_uRenderPassKey;
+		UInt					m_uMaxText;
+		UInt					m_uDrawCount;
+	};
 }
 
 #endif // __DEBUGTEXTOVERLAY_H__

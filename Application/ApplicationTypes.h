@@ -22,6 +22,10 @@ namespace BastionGame
 	struct WaterData;
 	typedef WaterData* WaterDataPtr;
 	typedef WaterData& WaterDataRef;
+
+	class DebugTextOverlay;
+	typedef DebugTextOverlay* DebugTextOverlayPtr;
+	typedef DebugTextOverlay& DebugTextOverlayRef;
 }
 
 #endif // __APPLICATIONTYPES_H__
