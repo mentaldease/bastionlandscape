@@ -175,7 +175,7 @@ scenetest00 =
 		},
 		{
 			name = "ui",
-			camera = "uicamera00",
+			camera = "uicameraortho00",
 			normalprocesses =
 			{
 				{

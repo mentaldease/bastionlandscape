@@ -15,11 +15,10 @@ namespace ElixirEngine
 		#define SV3	sizeof(Vector3)
 		#define SV4	sizeof(Vector4)
 
-		VertexElement VertexFont::s_VertexElement[4] =
+		VertexElement VertexFont::s_VertexElement[3] =
 		{
 			{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
-			{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,		0 },
-			{ 0,	1 * SV3 + 1 * SV4,		D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
+			{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
 			D3DDECL_END()
 		};
 
@@ -44,8 +43,7 @@ namespace ElixirEngine
 			m_uVertexCount(0),
 			m_bTextChanged(false),
 			m_bSizeChanged(false),
-			m_bRebuildText(false),
-			m_bRebuildColor(false)
+			m_bRebuildText(false)
 		{
 
 		}
@@ -76,12 +74,14 @@ namespace ElixirEngine
 
 		void DisplayFontText::RenderBegin()
 		{
-			//Display::GetInstance()->GetDevicePtr()->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
-			Display::GetInstance()->GetDevicePtr()->GetVertexDeclaration(&m_pPreviousVertexDecl);
+			DisplayPtr pDisplay = Display::GetInstance();
+			//pDisplay->GetDevicePtr()->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
+			pDisplay->GetDevicePtr()->GetVertexDeclaration(&m_pPreviousVertexDecl);
 			if (m_pPreviousVertexDecl != m_pFont->GetLoader().GetVertexDecl())
 			{
-				Display::GetInstance()->GetDevicePtr()->SetVertexDeclaration(m_pFont->GetLoader().GetVertexDecl());
+				pDisplay->GetDevicePtr()->SetVertexDeclaration(m_pFont->GetLoader().GetVertexDecl());
 			}
+			pDisplay->GetMaterialManager()->SetVector4BySemantic(MakeKey(string("BITMAPFONTDIFFUSE")), &m_f4Color);
 		}
 
 		void DisplayFontText::Render()
@@ -89,7 +89,6 @@ namespace ElixirEngine
 			if (false != m_bRebuildText)
 			{
 				BuildText();
-				m_bRebuildColor = false;
 				m_bTextChanged = false;
 				m_bSizeChanged = false;
 				m_bRebuildText = false;
@@ -120,14 +119,11 @@ namespace ElixirEngine
 			m_bSizeChanged = (m_wstrText.length() != _wstrText.length());
 			m_bTextChanged = (m_wstrText != _wstrText) || ((false == _wstrText.empty()) && (NULL == m_pVertex));
 			m_bRebuildText = m_bSizeChanged || m_bTextChanged;
-			m_bRebuildColor = m_bRebuildColor || m_bSizeChanged;
 			m_wstrText = _wstrText;
 		}
 
 		void DisplayFontText::SetColor(const Vector4& _f4Color)
 		{
-			m_bRebuildColor = (m_f4Color != _f4Color);
-			m_bRebuildText = m_bRebuildText || m_bRebuildColor;
 			m_f4Color = _f4Color;
 		}
 
@@ -167,14 +163,14 @@ namespace ElixirEngine
 					BlockCharRef rChar = m_pFont->m_mBlockChars[wcChar];
 					float fPageID = float(rChar.m_uPage);
 
-					{
-						char szBuffer[1024];
-						const char* pBuffer = &szBuffer[0];
-						sprintf(szBuffer, "fheight=%f fwidth=%f fx=%f fy=%f adv=%d offx=%d offy=%d ID=%u\n", rChar.m_fHeight, rChar.m_fWidth, rChar.m_fX, rChar.m_fY, rChar.m_sXAdvance, rChar.m_sXOffset, rChar.m_sYOffset, rChar.m_uID);
-						wchar_t wszBuffer[1024];
-						mbsrtowcs(wszBuffer, &pBuffer, strlen(szBuffer) + 1, NULL);
-						OutputDebugString(wszBuffer);
-					}
+					//{
+					//	char szBuffer[1024];
+					//	const char* pBuffer = &szBuffer[0];
+					//	sprintf(szBuffer, "fheight=%f fwidth=%f fx=%f fy=%f adv=%d offx=%d offy=%d ID=%u\n", rChar.m_fHeight, rChar.m_fWidth, rChar.m_fX, rChar.m_fY, rChar.m_sXAdvance, rChar.m_sXOffset, rChar.m_sYOffset, rChar.m_uID);
+					//	wchar_t wszBuffer[1024];
+					//	mbsrtowcs(wszBuffer, &pBuffer, strlen(szBuffer) + 1, NULL);
+					//	OutputDebugString(wszBuffer);
+					//}
 
 					fXOffset += float(m_pFont->GetKerning(wcPrevChar, wcChar));
 
@@ -185,7 +181,6 @@ namespace ElixirEngine
 						rVertex.m_f3Pos.y = fYOffset + 0.0f;
 						rVertex.m_f3Pos.z = fZOffset + 0.0f;
 						rVertex.m_f2UV = Vector3(rChar.m_fX, rChar.m_fY, fPageID);
-						//rVertex.m_f4Color = m_f4Color;
 						rVertex.m_f3Pos.x *= fScale;
 						rVertex.m_f3Pos.y *= fScale;
 					}
@@ -196,7 +191,6 @@ namespace ElixirEngine
 						rVertex.m_f3Pos.y = fYOffset - float(rChar.m_sYOffset + rChar.m_uHeight);
 						rVertex.m_f3Pos.z = fZOffset + 0.0f;
 						rVertex.m_f2UV = Vector3(rChar.m_fX, rChar.m_fY + rChar.m_fHeight, fPageID);
-						//rVertex.m_f4Color = m_f4Color;
 						rVertex.m_f3Pos.x *= fScale;
 						rVertex.m_f3Pos.y *= fScale;
 					}
@@ -207,7 +201,6 @@ namespace ElixirEngine
 						rVertex.m_f3Pos.y = fYOffset + 0.0f;
 						rVertex.m_f3Pos.z = fZOffset + 0.0f;
 						rVertex.m_f2UV = Vector3(rChar.m_fX + rChar.m_fWidth, rChar.m_fY, fPageID);
-						//rVertex.m_f4Color = m_f4Color;
 						rVertex.m_f3Pos.x *= fScale;
 						rVertex.m_f3Pos.y *= fScale;
 					}
@@ -218,7 +211,6 @@ namespace ElixirEngine
 						rVertex.m_f3Pos.y = fYOffset - float(rChar.m_sYOffset + rChar.m_uHeight);
 						rVertex.m_f3Pos.z = fZOffset + 0.0f;
 						rVertex.m_f2UV = Vector3(rChar.m_fX + rChar.m_fWidth, rChar.m_fY + rChar.m_fHeight, fPageID);
-						//rVertex.m_f4Color = m_f4Color;
 						rVertex.m_f3Pos.x *= fScale;
 						rVertex.m_f3Pos.y *= fScale;
 					}
@@ -240,20 +232,10 @@ namespace ElixirEngine
 						rVertex.m_f3Pos.y = fYOffset + 0.0f;
 						rVertex.m_f3Pos.z = fZOffset + 0.0f;
 						rVertex.m_f2UV = Vector3(rNextChar.m_fX, rNextChar.m_fY, fPageID);
-						//rVertex.m_f4Color = m_f4Color;
 						rVertex.m_f3Pos.x *= fScale;
 						rVertex.m_f3Pos.y *= fScale;
 
 						pVertex += (4 + 2);
-					}
-				}
-
-				if (false != m_bRebuildColor)
-				{
-					pVertex = m_pVertex;
-					for (UInt i = 0 ; m_uVertexCount > i ; ++i, ++pVertex)
-					{
-						pVertex->m_f4Color = m_f4Color;
 					}
 				}
 			}
@@ -671,6 +653,7 @@ namespace ElixirEngine
 			pDisplay->GetMaterialManager()->RegisterParamCreator(MakeKey(string("BITMAPFONTTEX1")), boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1));
 			pDisplay->GetMaterialManager()->RegisterParamCreator(MakeKey(string("BITMAPFONTTEX2")), boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1));
 			pDisplay->GetMaterialManager()->RegisterParamCreator(MakeKey(string("BITMAPFONTTEX3")), boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1));
+			pDisplay->GetMaterialManager()->RegisterParamCreator(MakeKey(string("BITMAPFONTDIFFUSE")), boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1));
 
 			return bResult;
 		}
@@ -682,6 +665,7 @@ namespace ElixirEngine
 			pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("BITMAPFONTTEX1")));
 			pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("BITMAPFONTTEX2")));
 			pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("BITMAPFONTTEX3")));
+			pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("BITMAPFONTDIFFUSE")));
 
 			if (NULL != m_pVertexDecl)
 			{

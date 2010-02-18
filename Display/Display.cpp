@@ -688,10 +688,11 @@ namespace ElixirEngine
 			string strViewportName;
 			DisplayCamera::CreateInfo oDCCInfo;
 			pCamera = new DisplayCamera(*this);
-			Scripting::Lua::Get(_rLuaObject, "depth_near", 0.1f, oDCCInfo.m_fZNear);
-			Scripting::Lua::Get(_rLuaObject, "depth_far", 10000.0f, oDCCInfo.m_fZFar);
-			Scripting::Lua::Get(_rLuaObject, "fovy", 45.0f, oDCCInfo.m_fDegreeFovy);
+			Scripting::Lua::Get(_rLuaObject, "depth_near", oDCCInfo.m_fZNear, oDCCInfo.m_fZNear);
+			Scripting::Lua::Get(_rLuaObject, "depth_far", oDCCInfo.m_fZFar, oDCCInfo.m_fZFar);
+			Scripting::Lua::Get(_rLuaObject, "fovy", oDCCInfo.m_fDegreeFovy, oDCCInfo.m_fDegreeFovy);
 			Scripting::Lua::Get(_rLuaObject, "viewport", string(""), strViewportName);
+			Scripting::Lua::Get(_rLuaObject, "perspective_mode", oDCCInfo.m_bPerspectiveMode, oDCCInfo.m_bPerspectiveMode);
 			if (false == strViewportName.empty())
 			{
 				const Key uViewportKey = MakeKey(strViewportName);

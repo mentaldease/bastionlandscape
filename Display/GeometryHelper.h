@@ -57,6 +57,8 @@ namespace ElixirEngine
 		bool CreateBuffers(CreateInfoRef _rInfo);
 		bool FillVertexBuffer(CreateInfoRef _rInfo);
 		bool FillIndexBuffer(CreateInfoRef _rInfo);
+		bool FillIndexBufferFromOutside(CreateInfoRef _rInfo);
+		bool FillIndexBufferFromInside(CreateInfoRef _rInfo);
 
 	protected:
 		DisplayVertexBufferPtr	m_pVertexBuffer;

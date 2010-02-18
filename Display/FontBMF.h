@@ -132,9 +132,8 @@ namespace ElixirEngine
 		struct VertexFont
 		{
 			Vector3	m_f3Pos;	// xyz
-			Vector4	m_f4Color;	// rgba
 			Vector3	m_f2UV;		// u, v, texture index
-			static VertexElement s_VertexElement[4];
+			static VertexElement s_VertexElement[3];
 		};
 		typedef VertexFont* VertexFontPtr;
 		typedef VertexFont& VertexFontRef;
@@ -279,7 +278,6 @@ namespace ElixirEngine
 			bool							m_bTextChanged;
 			bool							m_bSizeChanged;
 			bool							m_bRebuildText;
-			bool							m_bRebuildColor;
 		};
 		typedef FontObjectBuffer<DisplayFontText> TextPool;
 		typedef TextPool* TextPoolPtr;

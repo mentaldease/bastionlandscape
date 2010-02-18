@@ -104,6 +104,7 @@ technique RenderScene
 {
     pass P0
     {
+		//FillMode = Wireframe;
 		// PointSize = 5.0;
 		// Lighting = FALSE;
 		// CullMode = NONE;
