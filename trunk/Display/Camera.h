@@ -44,6 +44,7 @@ namespace ElixirEngine
 			float		m_fAspectRatio;
 			float		m_fZNear;
 			float		m_fZFar;
+			bool		m_bPerspectiveMode;
 		};
 
 		enum EMatrix
@@ -172,6 +173,8 @@ namespace ElixirEngine
 
 		UInt				m_uClipPlaneCount;
 		PlanePtr			m_pClipPlanes;
+
+		bool				m_bPerspectiveMode;
 
 	private:
 	};

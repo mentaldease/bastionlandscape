@@ -19,7 +19,8 @@ namespace ElixirEngine
 		m_fDegreeFovy(45.0f),
 		m_fAspectRatio(0.0f),
 		m_fZNear(1.0f),
-		m_fZFar(1000.0f)
+		m_fZFar(1000.0f),
+		m_bPerspectiveMode(true)
 	{
 
 	}
@@ -85,14 +86,24 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
+			m_bPerspectiveMode = pInfo->m_bPerspectiveMode;
+
 			m_uCurrentViewportKey = 0;
 			m_pPreviousViewport = &m_oViewport;
 			m_pCurrentViewport = &m_oViewport;
 			m_fNear = pInfo->m_fZNear;
 			m_fFar = pInfo->m_fZFar;
 			m_fFovy = D3DXToRadian(pInfo->m_fDegreeFovy);
-			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : (float)m_oViewport.Width / (float)m_oViewport.Height;
-			D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, pInfo->m_fZNear, pInfo->m_fZFar);
+			m_fAspectRatio = (0.0f != pInfo->m_fAspectRatio) ? pInfo->m_fAspectRatio : float(m_oViewport.Width) / float(m_oViewport.Height);
+
+			if (false != m_bPerspectiveMode)
+			{
+				D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, pInfo->m_fZNear, pInfo->m_fZFar);
+			}
+			else
+			{
+				D3DXMatrixOrthoLH(&m_oMProjection, float(m_oViewport.Width), float(m_oViewport.Height), m_fNear, m_fFar);
+			}
 #if CAMERA_LINEARIZED_DEPTH
 			// the two following instructions lower z-fighting artifacts
 			// also make sure in the shaders to scale z position with w position : Output.Position.z *= Output.Position.w;
@@ -186,6 +197,15 @@ namespace ElixirEngine
 
 	void DisplayCamera::Release()
 	{
+		if (NULL != m_pClipPlanes)
+		{
+			delete[] m_pClipPlanes;
+			m_pClipPlanes = NULL;
+		}
+		m_uClipPlaneCount = 0;
+		m_pPreviousViewport = NULL;
+		m_pCurrentViewport = NULL;
+		m_vListeners.clear();
 	}
 
 	ViewportPtr DisplayCamera::GetCurrentViewport()
@@ -393,7 +413,16 @@ namespace ElixirEngine
 	void DisplayCamera::SetClipPlanes(const UInt _uCount, PlanePtr _pPlanes)
 	{
 		m_uClipPlaneCount = _uCount;
-		m_pClipPlanes = _pPlanes;
+		if (NULL != m_pClipPlanes)
+		{
+			delete[] m_pClipPlanes;
+			m_pClipPlanes = NULL;
+		}
+		if (0 < m_uClipPlaneCount)
+		{
+			m_pClipPlanes = new Plane[m_uClipPlaneCount];
+			memcpy(m_pClipPlanes, _pPlanes, m_uClipPlaneCount * sizeof(Plane));
+		}
 	}
 
 	Vector3Ptr DisplayCamera::GetFrustumCorners()
