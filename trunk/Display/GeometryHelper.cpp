@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "../Display/Display.h"
+#include "../Display/Effect.h"
 #include "../Display/GeometryHelper.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -16,8 +18,7 @@ namespace ElixirEngine
 	{
 		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
 		{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
-		{ 0,	2 * SV3,				D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,		0 },
-		{ 0,	2 * SV3 + SV4,			D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
+		{ 0,	2 * SV3,				D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,	0 },
 		D3DDECL_END()
 	};
 
@@ -34,7 +35,8 @@ namespace ElixirEngine
 		m_pVertexBuffer(NULL),
 		m_pIndexBuffer(NULL),
 		m_uVertexCount(0),
-		m_uIndexCount(0)
+		m_uIndexCount(0),
+		m_f4Color(1.0f, 1.0f, 1.0f, 1.0f)
 	{
 
 	}
@@ -67,6 +69,7 @@ namespace ElixirEngine
 			{
 				MatrixPtr pWorld = GetWorldMatrix();
 				D3DXMatrixTransformation(pWorld, NULL, NULL, NULL, NULL, NULL, &pInfo->m_oPos);
+				m_f4Color = pInfo->m_f4Color;
 			}
 		}
 
@@ -94,12 +97,18 @@ namespace ElixirEngine
 		}
 	}
 
+	void DisplayGeometrySphere::RenderBegin()
+	{
+		static const Key uDiffuseColorKey = MakeKey(string("DIFFUSECOLOR"));
+		DisplayPtr pDisplay = Display::GetInstance();
+		pDisplay->GetMaterialManager()->SetVector4BySemantic(uDiffuseColorKey, &m_f4Color);
+	}
+
 	void DisplayGeometrySphere::Render()
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
 		if ((false != pDisplay->SetCurrentVertexBuffer(m_pVertexBuffer)) && (false != pDisplay->SetCurrentIndexBuffer(m_pIndexBuffer)))
 		{
-			//pDisplay->GetDevicePtr()->DrawIndexedPrimitive(D3DPT_LINESTRIP, 0, 0, m_uVertexCount, 0, m_uIndexCount - 1);
 			pDisplay->GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, 0, 0, m_uVertexCount, 0, m_uIndexCount - 2);
 		}
 	}
@@ -129,10 +138,13 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			const UInt uFanToStripSize = 2 * ((_rInfo.m_uVertSlices + 1) / 3) + _rInfo.m_uVertSlices + 2; // thanks to msimon for the formula
 			const UInt uNormalStripSize = 2 + _rInfo.m_uVertSlices * 2;
 			const UInt uStripLink = 2;
-			m_uIndexCount = uHemisphereCount * uFanToStripSize;
+			//m_uFanToStripSize = 2 * ((_rInfo.m_uVertSlices + 1) / 3) + _rInfo.m_uVertSlices + 2; // thanks to msimon for the formula
+			//m_uFanToStripSize = 3 * ((_rInfo.m_uVertSlices + 1) / 3) + _rInfo.m_uVertSlices + 3; // msimon adapted formula
+			//m_uFanToStripSize = 4 * _rInfo.m_uVertSlices;
+			m_uFanToStripSize = 2 * (_rInfo.m_uVertSlices + 1);
+			m_uIndexCount = uHemisphereCount * m_uFanToStripSize;
 			m_uIndexCount += uHemisphereCount * (uNormalStripSize * (_rInfo.m_uHorizSlices - 1));
 			m_uIndexCount += uHemisphereCount * (uStripLink * (_rInfo.m_uHorizSlices - 1));
 
@@ -160,20 +172,35 @@ namespace ElixirEngine
 			GeometryHelperVertexPtr pVertexData = new GeometryHelperVertex[m_uVertexCount];
 			GeometryHelperVertexPtr pVertex = pVertexData;
 
+			/*
+				phi = Acos(pn.Normal.z)
+				pnt.Tv = (phi / PI)
+
+				u = Acos(Max(Min(pnt.Normal.y / Sin(phi), 1.0), -1.0)) / (2.0 * PI)
+
+				If pnt.Normal.x > 0 Then
+				pnt.Tu = u
+				Else
+				pnt.Tu = 1 - u
+				End If
+			*/
+			/*
+				u=Nx/2 + 0.5
+				v=Ny/2 + 0.5
+			*/
+			
 			if (false != _rInfo.m_bTopHemisphere)
 			{
 				// top hemisphere end
 				pVertex->m_oPosition.x = 0.0f;
 				pVertex->m_oPosition.y = 1.0f;
 				pVertex->m_oPosition.z = 0.0f;
-				pVertex->m_oColor = Vector4(0.0f, 1.0f, 1.0f, 1.0f);
 				++pVertex;
 
 				for (UInt i = 0 ; _rInfo.m_uHorizSlices > i ; ++i)
 				{
 					const float fHeight = cos((i + 1) * fHorizSliceAngle);
 					const float fScale = sin((i + 1) * fHorizSliceAngle);
-					const Vector4 f4Color = Vector4(float(rand() % 256) / 255.0f, float(rand() % 256) / 255.0f, float(rand() % 256) / 255.0f, 1.0f);
 					if (false == _rInfo.m_bViewFromInside)
 					{
 						for (UInt j = 0 ; _rInfo.m_uVertSlices > j ; ++j)
@@ -182,15 +209,7 @@ namespace ElixirEngine
 							pVertex->m_oPosition.x = cos(fAngle) * fScale;
 							pVertex->m_oPosition.y = fHeight;
 							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							pVertex->m_oColor = f4Color;
-							//{
-							//	char szBuffer[1024];
-							//	const char* pBuffer = &szBuffer[0];
-							//	sprintf(szBuffer, "%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
-							//	wchar_t wszBuffer[1024];
-							//	mbsrtowcs(wszBuffer, &pBuffer, strlen(szBuffer) + 1, NULL);
-							//	OutputDebugString(wszBuffer);
-							//}
+							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
 							++pVertex;
 						}
 					}
@@ -202,15 +221,7 @@ namespace ElixirEngine
 							pVertex->m_oPosition.x = cos(fAngle) * fScale;
 							pVertex->m_oPosition.y = fHeight;
 							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							pVertex->m_oColor = f4Color;
-							//{
-							//	char szBuffer[1024];
-							//	const char* pBuffer = &szBuffer[0];
-							//	sprintf(szBuffer, "%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
-							//	wchar_t wszBuffer[1024];
-							//	mbsrtowcs(wszBuffer, &pBuffer, strlen(szBuffer) + 1, NULL);
-							//	OutputDebugString(wszBuffer);
-							//}
+							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
 							++pVertex;
 						}
 					}
@@ -225,7 +236,6 @@ namespace ElixirEngine
 				{
 					const float fHeight = cos(i * fHorizSliceAngle);
 					const float fScale = sin(i * fHorizSliceAngle);
-					const Vector4 f4Color = Vector4(float(rand() % 256) / 255.0f, float(rand() % 256) / 255.0f, float(rand() % 256) / 255.0f, 1.0f);
 					if (false == _rInfo.m_bViewFromInside)
 					{
 						for (UInt j = 0 ; _rInfo.m_uVertSlices > j ; ++j)
@@ -234,15 +244,7 @@ namespace ElixirEngine
 							pVertex->m_oPosition.x = cos(fAngle) * fScale;
 							pVertex->m_oPosition.y = -fHeight;
 							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							pVertex->m_oColor = f4Color;
-							//{
-							//	char szBuffer[1024];
-							//	const char* pBuffer = &szBuffer[0];
-							//	sprintf(szBuffer, "%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
-							//	wchar_t wszBuffer[1024];
-							//	mbsrtowcs(wszBuffer, &pBuffer, strlen(szBuffer) + 1, NULL);
-							//	OutputDebugString(wszBuffer);
-							//}
+							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
 							++pVertex;
 						}
 					}
@@ -254,15 +256,7 @@ namespace ElixirEngine
 							pVertex->m_oPosition.x = cos(fAngle) * fScale;
 							pVertex->m_oPosition.y = -fHeight;
 							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							pVertex->m_oColor = f4Color;
-							//{
-							//	char szBuffer[1024];
-							//	const char* pBuffer = &szBuffer[0];
-							//	sprintf(szBuffer, "%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
-							//	wchar_t wszBuffer[1024];
-							//	mbsrtowcs(wszBuffer, &pBuffer, strlen(szBuffer) + 1, NULL);
-							//	OutputDebugString(wszBuffer);
-							//}
+							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
 							++pVertex;
 						}
 					}
@@ -272,7 +266,6 @@ namespace ElixirEngine
 				pVertex->m_oPosition.x = 0.0f;
 				pVertex->m_oPosition.y = -1.0f;
 				pVertex->m_oPosition.z = 0.0f;
-				pVertex->m_oColor = Vector4(0.0f, 1.0f, 1.0f, 1.0f);
 			}
 
 			pVertex = pVertexData;
@@ -294,12 +287,6 @@ namespace ElixirEngine
 
 	bool DisplayGeometrySphere::FillIndexBuffer(CreateInfoRef _rInfo)
 	{
-		//return (false != _rInfo.m_bViewFromInside) ? FillIndexBufferFromOutside(_rInfo) : FillIndexBufferFromInside(_rInfo);
-		return FillIndexBufferFromOutside(_rInfo);
-	}
-
-	bool DisplayGeometrySphere::FillIndexBufferFromOutside(CreateInfoRef _rInfo)
-	{
 		bool bResult = (NULL != m_pIndexBuffer);
 
 		if (false != bResult)
@@ -314,32 +301,21 @@ namespace ElixirEngine
 
 				memset(pIndexData, 0, m_uIndexCount * sizeof(Word));
 
-				const UInt uFanToStripSize = 2 * ((_rInfo.m_uVertSlices + 1) / 3) + _rInfo.m_uVertSlices + 2; // thanks to msimon for the formula
 				const UInt uHSVertexCount = _rInfo.m_uVertSlices;
 
 				Word uCurrentVertexIndex = 0;
 
 				if (false != _rInfo.m_bTopHemisphere)
 				{
-					// 0x8000 : if present => absolute index = (0x7fff & value)
-					Word aFanToStripIndexPattern[5] = { 0x8000 + 0, 1, 1, 0, 1 };
-					for (UInt i = 0 ; (uFanToStripSize - 1) > i ; ++i)
+					for (Word i = 0 ; _rInfo.m_uVertSlices > i ; ++i, pIndex += 2)
 					{
-						Word uOffset = aFanToStripIndexPattern[i % 5];
-						if (0x8000 == (0x8000 & uOffset))
-						{
-							*pIndex = (0x7fff & uOffset);
-						}
-						else
-						{
-							uCurrentVertexIndex += uOffset;
-							*pIndex = uCurrentVertexIndex;
-						}
-						++pIndex;
+						pIndex[0] = 0;
+						pIndex[1] = i + 1;
 					}
+					pIndex[0] = 0;
+					pIndex[1] = 1;
+					pIndex += 2;
 					uCurrentVertexIndex = 1;
-					*pIndex = uCurrentVertexIndex;
-					++pIndex;
 				}
 
 				const UInt uHemisphereCount = (_rInfo.m_bBottomHemisphere ? 1 : 0) + (_rInfo.m_bTopHemisphere ? 1 : 0);
@@ -371,133 +347,14 @@ namespace ElixirEngine
 
 				if (false != _rInfo.m_bBottomHemisphere)
 				{
-					// 0x8000 : if present => absolute index = (0x7fff & value)
-					const Word uAbsEnd = 0x8000 + m_uVertexCount - 1;
-					Word aFanToStripIndexPattern[4] = { 0, uAbsEnd, 1, 1 };
 					const UInt uStartVertexIndex = uCurrentVertexIndex;
-					for (UInt i = 0 ; (uFanToStripSize - 1) > i ; ++i)
+					for (Word i = 0 ; _rInfo.m_uVertSlices > i ; ++i, pIndex += 2)
 					{
-						Word uOffset = aFanToStripIndexPattern[i % 4];
-						if (0x8000 == (0x8000 & uOffset))
-						{
-							*pIndex = (0x7fff & uOffset);
-						}
-						else
-						{
-							uCurrentVertexIndex += uOffset;
-							*pIndex = uCurrentVertexIndex;
-						}
-						++pIndex;
+						pIndex[0] = uCurrentVertexIndex + i;
+						pIndex[1] = m_uVertexCount - 1;
 					}
-					uCurrentVertexIndex = uStartVertexIndex;
-					*pIndex = uCurrentVertexIndex;
-				}
-
-				m_pIndexBuffer->Set(pIndexData);
-				delete[] pIndexData;
-			}
-			else
-			{
-
-			}
-		}
-
-		return bResult;
-	}
-
-	bool DisplayGeometrySphere::FillIndexBufferFromInside(CreateInfoRef _rInfo)
-	{
-		bool bResult = (NULL != m_pIndexBuffer);
-
-		if (false != bResult)
-		{
-			const bool b16Bits = (m_uIndexCount <= 0xffff);
-
-			// temp
-			if (false != b16Bits)
-			{
-				WordPtr pIndexData = new Word[m_uIndexCount];
-				WordPtr pIndex = pIndexData;
-
-				memset(pIndexData, 0, m_uIndexCount * sizeof(Word));
-
-				const UInt uFanToStripSize = 2 * ((_rInfo.m_uVertSlices + 1) / 3) + _rInfo.m_uVertSlices + 2; // thanks to msimon for the formula
-				const UInt uHSVertexCount = _rInfo.m_uVertSlices;
-
-				Word uCurrentVertexIndex = 0;
-
-				if (false != _rInfo.m_bTopHemisphere)
-				{
-					// 0x8000 : if present => absolute index = (0x7fff & value)
-					Word aFanToStripIndexPattern[5] = { 0x8000 + 0, 1, 1, 0, 1 };
-					for (UInt i = 0 ; (uFanToStripSize - 1) > i ; ++i)
-					{
-						Word uOffset = aFanToStripIndexPattern[i % 5];
-						if (0x8000 == (0x8000 & uOffset))
-						{
-							*pIndex = (0x7fff & uOffset);
-						}
-						else
-						{
-							uCurrentVertexIndex += uOffset;
-							*pIndex = uCurrentVertexIndex;
-						}
-						++pIndex;
-					}
-					uCurrentVertexIndex = 1;
-					*pIndex = uCurrentVertexIndex;
-					++pIndex;
-				}
-
-				const UInt uHemisphereCount = (_rInfo.m_bBottomHemisphere ? 1 : 0) + (_rInfo.m_bTopHemisphere ? 1 : 0);
-				const UInt uHorizSlicesWOTops = uHemisphereCount * (_rInfo.m_uHorizSlices - 1); // WOTops = WithOut tops
-				for (UInt i = 0 ; uHorizSlicesWOTops > i ; ++i)
-				{
-					const UInt uStartVertexIndex = uCurrentVertexIndex;
-					for (UInt j = 0 ; _rInfo.m_uVertSlices > j ; ++j, pIndex += 2, ++uCurrentVertexIndex)
-					{
-						pIndex[0] = uCurrentVertexIndex;
-						pIndex[1] = uCurrentVertexIndex + uHSVertexCount;
-					}
-
-					// end of horizontal slice strip (back to starting vertex index)
-					uCurrentVertexIndex = uStartVertexIndex;
-					pIndex[0] = uCurrentVertexIndex;
-					uCurrentVertexIndex += uHSVertexCount;
-					pIndex[1] = uCurrentVertexIndex;
-					pIndex += 2;
-
-					// link to next strip
-					if (((uHorizSlicesWOTops - 1) > i) || (false != _rInfo.m_bBottomHemisphere))
-					{
-						pIndex[0] = uCurrentVertexIndex;
-						pIndex[1] = uCurrentVertexIndex;
-						pIndex += 2;
-					}
-				}
-
-				if (false != _rInfo.m_bBottomHemisphere)
-				{
-					// 0x8000 : if present => absolute index = (0x7fff & value)
-					const Word uAbsEnd = 0x8000 + m_uVertexCount - 1;
-					Word aFanToStripIndexPattern[4] = { 0, uAbsEnd, 1, 1 };
-					const UInt uStartVertexIndex = uCurrentVertexIndex;
-					for (UInt i = 0 ; (uFanToStripSize - 1) > i ; ++i)
-					{
-						Word uOffset = aFanToStripIndexPattern[i % 4];
-						if (0x8000 == (0x8000 & uOffset))
-						{
-							*pIndex = (0x7fff & uOffset);
-						}
-						else
-						{
-							uCurrentVertexIndex += uOffset;
-							*pIndex = uCurrentVertexIndex;
-						}
-						++pIndex;
-					}
-					uCurrentVertexIndex = uStartVertexIndex;
-					*pIndex = uCurrentVertexIndex;
+					pIndex[0] = uStartVertexIndex;
+					pIndex[1] = m_uVertexCount - 1;
 				}
 
 				m_pIndexBuffer->Set(pIndexData);

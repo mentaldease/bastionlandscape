@@ -434,6 +434,8 @@ namespace ElixirEngine
 		m_mParamCreators[MakeKey(string("USERMATRIX05"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("USERMATRIX06"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
 		m_mParamCreators[MakeKey(string("USERMATRIX07"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
+		// misc
+		m_mParamCreators[MakeKey(string("DIFFUSECOLOR"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 
 		return bResult;
 	}

@@ -9,6 +9,7 @@ namespace ElixirEngine
 
 	string strtoupper(const string& _strInput);
 	string strtolower(const string& _strInput);
+	void vsoutput(const char* pFormat, ...);
 }
 
 #endif // __UTIL_H__

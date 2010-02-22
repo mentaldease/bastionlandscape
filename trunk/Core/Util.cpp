@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <stdarg.h>
 #include "../Core/Util.h"
 
 namespace ElixirEngine
@@ -47,5 +48,25 @@ namespace ElixirEngine
 		transform(_strInput.begin(), _strInput.end(), strOutput.begin(), ToLowerFunction());
 
 		return strOutput;
+	}
+	
+	void vsoutput(const char* pFormat, ...)
+	{
+#if _UNICODE
+		const size_t uBufferSize = 1024;
+		char szbuffer[uBufferSize];
+		va_list vaArgs;
+		const char* pbuffer = &szbuffer[0];
+
+		va_start(vaArgs, pFormat);
+		vsnprintf_s(szbuffer, uBufferSize, _TRUNCATE, pFormat, vaArgs);
+		va_end(vaArgs);
+
+		wchar_t wszbuffer[uBufferSize];
+		mbsrtowcs(wszbuffer, &pbuffer, strlen(szbuffer) + 1, NULL);
+
+		OutputDebugString(wszbuffer);
+#else // _UNICODE
+#endif // _UNICODE
 	}
 }
