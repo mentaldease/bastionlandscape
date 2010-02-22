@@ -13,6 +13,7 @@ float4 g_vLightDir				: LIGHTDIR;
 float4x4 g_mView				: VIEW;
 float4x4 g_mWorld				: WORLD;
 float4x4 g_mViewInv				: VIEWINV;
+float4 g_f4Diffuse				: DIFFUSECOLOR;
 
 //--------------------------------------------------------------------------------------
 // Vertex shader input/output structures
@@ -21,14 +22,14 @@ struct VS_INPUT
 {
 	float4 Position	: POSITION;
 	float3 Normal	: NORMAL;
-	float4 Diffuse	: COLOR0;
+	//float4 Diffuse	: COLOR0;
 	float2 UV		: TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
 	float4 Position		: POSITION;   // vertex position
-	float4 Diffuse		: COLOR0;     // vertex diffuse color (note that COLOR0 is clamped from 0..1)
+	//float4 Diffuse		: COLOR0;     // vertex diffuse color (note that COLOR0 is clamped from 0..1)
 	float2 UV			: TEXCOORD0;
 	float3 Light		: TEXCOORD1;
 	float3 Normal		: TEXCOORD2;  // vertex normal
@@ -45,7 +46,7 @@ VS_OUTPUT RenderSceneVS(VS_INPUT vsInput)
 	VS_OUTPUT Output = (VS_OUTPUT)0;
 
 	Output.Position = mul(vsInput.Position, g_mWorldViewProjection);
-	Output.Diffuse = vsInput.Diffuse;
+	//Output.Diffuse = vsInput.Diffuse;
 	Output.UV = vsInput.UV;
 	Output.Light = normalize(g_vLightDir);
 	Output.Normal = normalize(mul(vsInput.Normal, g_mWorldInvTransp));
@@ -83,8 +84,8 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT psInput )
 	PS_OUTPUT Output = (PS_OUTPUT)0;
 
 	//float4 vTexColor = tex2D(DiffuseSampler0, psInput.UV);
-	//Output.vColor = psInput.Diffuse * vTexColor;
-	Output.vColor = psInput.Diffuse;
+	//Output.vColor = g_f4Diffuse * vTexColor;
+	Output.vColor = g_f4Diffuse;
 
 	float3 vNormal = (psInput.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;
 	Output.vNormal = float4(vNormal, 1.0f);

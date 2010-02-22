@@ -90,15 +90,17 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			m_pSphere = new DisplayGeometrySphere();
+			const float fSize = 2000.f;
 			DisplayGeometrySphere::CreateInfo oGSCInfo;
 			oGSCInfo.m_bBottomHemisphere = true;
 			oGSCInfo.m_bTopHemisphere = true;
 			oGSCInfo.m_bViewFromInside = true;
-			oGSCInfo.m_oPos = Vector3(0.0f, 500.0f, 0.0f);
+			oGSCInfo.m_oPos = Vector3(0.0f, 0.0f, 0.0f);
 			oGSCInfo.m_oRot = Vector3(0.0f, 0.0f, 0.0f);
-			oGSCInfo.m_oRadius = Vector3(100.0f, 100.0f, 100.0f);
+			oGSCInfo.m_oRadius = Vector3(fSize, fSize, fSize);
 			oGSCInfo.m_uHorizSlices = 10;
 			oGSCInfo.m_uVertSlices = 10;
+			oGSCInfo.m_f4Color = Vector4(26.0f / 255.0f, 103.0f / 255.0f, 149.0f / 255.0f, 1.0f);
 			bResult = m_pSphere->Create(boost::any(&oGSCInfo));
 			if (false != bResult)
 			{
