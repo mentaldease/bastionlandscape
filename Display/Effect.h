@@ -10,6 +10,35 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class DisplayEffectInclude : public CoreObject, public ID3DXInclude
+	{
+	public:
+		DisplayEffectInclude();
+		virtual ~DisplayEffectInclude();
+
+		virtual bool Create(const boost::any& _rConfig);
+		virtual void Release();
+
+		HRESULT __stdcall Open(
+			D3DXINCLUDE_TYPE IncludeType,
+			LPCSTR pFileName,
+			LPCVOID pParentData,
+			LPCVOID *ppData,
+			UINT * pBytes
+			);
+
+		HRESULT __stdcall Close(
+			LPCVOID pData
+			);
+
+	protected:
+		CharPtrVec	m_vBuffers;
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class DisplayEffect : public CoreObject
 	{
 	public:
@@ -97,6 +126,54 @@ namespace ElixirEngine
 	class DisplayMaterialManager : public CoreObject
 	{
 	public:
+		// this enum enables the application to redefine effect parameters semantics
+		// that are internally used by various display classes.
+		enum ECommonParamSemantic
+		{
+			// common
+			ECommonParamSemantic_WORLDVIEWPROJ,
+			ECommonParamSemantic_WORLD,
+			ECommonParamSemantic_VIEW,
+			ECommonParamSemantic_VIEWINV,
+			ECommonParamSemantic_VIEWPROJ,
+			ECommonParamSemantic_PROJ,
+			ECommonParamSemantic_WORLDINVTRANSPOSE,
+			ECommonParamSemantic_ENVIRONMENTTEX,
+			ECommonParamSemantic_NORMALTEX,
+			ECommonParamSemantic_DIFFUSETEX,
+			ECommonParamSemantic_CAMERAPOS,
+			ECommonParamSemantic_FRUSTUMCORNERS,
+			ECommonParamSemantic_DIFFUSECOLOR,
+			// render target texture
+			ECommonParamSemantic_RT2D00,
+			ECommonParamSemantic_RT2D01,
+			ECommonParamSemantic_RT2D02,
+			ECommonParamSemantic_RT2D03,
+			ECommonParamSemantic_RT2D04,
+			ECommonParamSemantic_RT2D05,
+			ECommonParamSemantic_RT2D06,
+			ECommonParamSemantic_RT2D07,
+			// original render target texture (rendered during normal process mode)
+			ECommonParamSemantic_ORT2D00,
+			ECommonParamSemantic_ORT2D01,
+			ECommonParamSemantic_ORT2D02,
+			ECommonParamSemantic_ORT2D03,
+			ECommonParamSemantic_ORT2D04,
+			ECommonParamSemantic_ORT2D05,
+			ECommonParamSemantic_ORT2D06,
+			ECommonParamSemantic_ORT2D07,
+			// standard texture
+			ECommonParamSemantic_TEX2D00,
+			ECommonParamSemantic_TEX2D01,
+			ECommonParamSemantic_TEX2D02,
+			ECommonParamSemantic_TEX2D03,
+			ECommonParamSemantic_TEX2D04,
+			ECommonParamSemantic_TEX2D05,
+			ECommonParamSemantic_TEX2D06,
+			ECommonParamSemantic_TEX2D07,
+			ECommonParamSemantic_COUNT // always last enum member
+		};
+	public:
 		DisplayMaterialManager(DisplayRef _rDisplay);
 		virtual ~DisplayMaterialManager();
 
@@ -114,8 +191,8 @@ namespace ElixirEngine
 		void UnloadEffect(const string& _strName);
 		DisplayEffectPtr GetEffect(const string& _strName);
 
-		void RegisterParamCreator(const Key& _uSemanticNameKey, CreateParamFunc _Func);
-		void UnregisterParamCreator(const Key& _uSemanticNameKey);
+		bool RegisterParamCreator(const Key& _uSemanticNameKey, CreateParamFunc _Func);
+		bool UnregisterParamCreator(const Key& _uSemanticNameKey);
 		DisplayEffectParamPtr CreateParam(const string& _strSemanticName, const boost::any& _rConfig);
 		DisplayEffectParamPtr CreateParam(const Key& _uSemanticNameKey, const boost::any& _rConfig);
 		void ReleaseParam(DisplayEffectParamPtr _pParam);
@@ -136,6 +213,13 @@ namespace ElixirEngine
 		MatrixPtr GetMatrixBySemantic(const Key& _uSemanticKey);
 		void SetStructBySemantic(const Key& _uSemanticKey, VoidPtr _pData, const UInt _uSize);
 		VoidPtr GetStructBySemantic(const Key& _uSemanticKey, UIntRef _uSize);
+
+		bool OverrideCommonParamSemantic(const ECommonParamSemantic _uCommonParam, const Key _uNewParamKey);
+		bool ResetCommonParamSemantic(const ECommonParamSemantic _uCommonParam);
+
+		void SetIncludeBasePath(const string& _strPath);
+		const string& GetIncludeBasePath();
+		DisplayEffectIncludePtr GetIncludeInterface();
 
 	protected:
 		struct StructData
@@ -158,7 +242,11 @@ namespace ElixirEngine
 		Vector4PtrMap			m_mVector4Info;
 		MatrixPtrMap			m_mMatrixInfo;
 		StructDataMap			m_mStructInfo;
+		KeyVec					m_vCurrentParamKeys;
+		KeyVec					m_vDefaultParamKeys;
 		DisplayRef				m_rDisplay;
+		DisplayEffectIncludePtr	m_pIncludeInterface;
+		string					m_strIncludeBasePath;
 
 	private:
 	};

@@ -11,6 +11,12 @@ namespace BastionGame
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	CreateClassFuncMap Scene::s_mClasses;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	Scene::Scene(ApplicationRef _rApplication)
 	:	CoreObject(),
 		m_rApplication(_rApplication),
@@ -39,6 +45,32 @@ namespace BastionGame
 	Scene::~Scene()
 	{
 
+	}
+
+	bool Scene::RegisterClass(const Key& _uClassNameKey, CreateClassFunc _Func)
+	{
+		CreateClassFuncMap::iterator iPair = s_mClasses.find(_uClassNameKey);
+		bool bResult (s_mClasses.end() == iPair);
+
+		if (false != bResult)
+		{
+			s_mClasses[_uClassNameKey] = _Func;
+		}
+
+		return bResult;
+	}
+
+	bool Scene::UnregisterClass(const Key& _uClassNameKey)
+	{
+		CreateClassFuncMap::iterator iPair = s_mClasses.find(_uClassNameKey);
+		bool bResult (s_mClasses.end() != iPair);
+
+		if (false != bResult)
+		{
+			s_mClasses.erase(iPair);
+		}
+
+		return bResult;
 	}
 
 	bool Scene::Create(const boost::any& _rConfig)
@@ -599,5 +631,70 @@ namespace BastionGame
 		}
 
 		return bResult;
+	}
+
+	CoreObjectPtr Scene::CreateClassLandscape(LuaObjectRef _rTable, KeyRef _uObjectNameKey)
+	{
+		DisplayPtr pDisplay = Display::GetInstance();
+		LandscapePtr pLandscape = new Landscape(*pDisplay);
+		Landscape::OpenInfo oLOInfo;
+
+		oLOInfo.m_strName = _rTable["name"].GetString();
+		oLOInfo.m_uGridSize = _rTable["grid_size"].GetInteger();
+		oLOInfo.m_uQuadSize = _rTable["grid_chunk_size"].GetInteger();
+		oLOInfo.m_fPixelErrorMax = _rTable["pixel_error_max"].GetFloat();
+		oLOInfo.m_fFloorScale = _rTable["floor_scale"].GetFloat();
+		oLOInfo.m_fHeightScale = _rTable["height_scale"].GetFloat();
+
+		_uObjectNameKey = MakeKey(oLOInfo.m_strName);
+
+		bool bResult = (false != pLandscape->Create(boost::any(0)));
+
+		if (false != bResult)
+		{
+			string strFormat = _rTable["vertex_format"].GetString();
+			oLOInfo.m_eFormat = Landscape::StringToVertexFormat(strFormat);
+			bResult = (ELandscapeVertexFormat_UNKNOWN != oLOInfo.m_eFormat);
+		}
+		if (false != bResult)
+		{
+			oLOInfo.m_strHeightmap.clear();
+			oLOInfo.m_strHeightmap = _rTable["heightmap"].GetString();
+			oLOInfo.m_strLayersConfig.clear();
+			oLOInfo.m_strLayersConfig = _rTable["layers_config"].GetString();
+			bResult = pLandscape->Open(oLOInfo);
+		}
+		if (false != bResult)
+		{
+			string strMaterialName = _rTable["material"].GetString();
+			Key uKey = MakeKey(strMaterialName);
+			DisplayMaterialPtr pMaterial = pDisplay->GetMaterialManager()->GetMaterial(uKey);
+			bResult = (NULL != pMaterial);
+			pLandscape->SetMaterial(pMaterial);
+		}
+
+		if (false != bResult)
+		{
+			Vector3 oPos;
+			oPos.x = _rTable["position"][1].GetFloat();
+			oPos.y = _rTable["position"][2].GetFloat();
+			oPos.z = _rTable["position"][3].GetFloat();
+			D3DXMatrixTranslation(pLandscape->GetWorldMatrix(), oPos.x, oPos.y, oPos.z);
+		}
+		else
+		{
+			pLandscape->Release();
+			delete pLandscape;
+			pLandscape = NULL;
+			_uObjectNameKey = 0;
+		}
+
+		return pLandscape;
+	}
+
+	CoreObjectPtr Scene::CreateClassShpere(LuaObjectRef _rTable, KeyRef _uObjectNameKey)
+	{
+		_uObjectNameKey = 0;
+		return NULL;
 	}
 }

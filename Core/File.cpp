@@ -200,4 +200,33 @@ namespace ElixirEngine
 		const string::size_type uEDS = (false != bKeepEndingDirSeparator) ? 1 : 0;
 		_strDstPath = (string::npos != uPos) ? _strSrcPath.substr(0, uPos + uEDS) : _strSrcPath;
 	}
+
+	void FS::ComposePath(string& _strDstPath, const string& _strSrcPath1, const string& _strSrcPath2)
+	{
+		_strDstPath = _strSrcPath1;
+
+		{
+			const string::size_type uWPos = _strSrcPath1.find_last_of(s_WDirSeparator);
+			const string::size_type uUPos = _strSrcPath1.find_last_of(s_UDirSeparator);
+			string::size_type uPos = (string::npos == uWPos) ? uUPos : ((string::npos == uUPos) ? uWPos : ((uUPos > uWPos) ? uUPos : uWPos));
+			if ((_strSrcPath1.length() - 1) != uPos)
+			{
+				_strDstPath += "/";
+			}
+		}
+		{
+			const string::size_type uWPos = _strSrcPath2.find_last_of(s_WDirSeparator);
+			const string::size_type uUPos = _strSrcPath2.find_last_of(s_UDirSeparator);
+			string::size_type uPos = (string::npos == uWPos) ? uUPos : ((string::npos == uUPos) ? uWPos : ((uUPos > uWPos) ? uUPos : uWPos));
+			if (string::npos == uPos)
+			{
+				_strDstPath += _strSrcPath2;
+			}
+			else
+			{
+				_strDstPath += _strSrcPath2.substr(uPos + 1);
+			}
+		}
+	}
+
 }

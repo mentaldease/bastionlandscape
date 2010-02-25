@@ -156,4 +156,9 @@ materiallib00 =
 		effect = "data/effects/Geometryhelper.fx",
 		technique = "RenderScene",
 	},
+	{
+		name = "sky",
+		effect = "data/effects/Sky.fx",
+		technique = "SkyDomeScatteringPerPixel",
+	},
 }

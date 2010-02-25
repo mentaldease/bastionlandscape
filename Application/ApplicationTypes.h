@@ -26,6 +26,9 @@ namespace BastionGame
 	class DebugTextOverlay;
 	typedef DebugTextOverlay* DebugTextOverlayPtr;
 	typedef DebugTextOverlay& DebugTextOverlayRef;
+
+	typedef boost::function<CoreObjectPtr (LuaObjectRef _rLuaObject, KeyRef _uObjectNameKey)> CreateClassFunc;
+	typedef map<Key, CreateClassFunc> CreateClassFuncMap;
 }
 
 #endif // __APPLICATIONTYPES_H__

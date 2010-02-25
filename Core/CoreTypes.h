@@ -8,6 +8,8 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	typedef std::size_t Key;
+	typedef Key* KeyPtr;
+	typedef Key& KeyRef;
 	typedef vector<Key> KeyVec;
 
 	template<typename T>
@@ -52,6 +54,7 @@ namespace ElixirEngine
 
 	typedef char*				CharPtr;
 	typedef char&				CharRef;
+	typedef vector<CharPtr>		CharPtrVec;
 
 	typedef unsigned short		Word;
 	typedef Word*				WordPtr;
