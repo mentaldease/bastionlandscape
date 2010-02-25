@@ -24,6 +24,9 @@ namespace BastionGame
 		Scene(ApplicationRef _rApplication);
 		virtual ~Scene();
 
+		static bool RegisterClass(const Key& _uClassNameKey, CreateClassFunc _Func);
+		static bool UnregisterClass(const Key& _uClassNameKey);
+
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
@@ -44,6 +47,12 @@ namespace BastionGame
 		bool CreateLoadRenderPass(LuaObjectRef _rLuaObject);
 
 	protected:
+		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable, KeyRef _uObjectNameKey);
+		static CoreObjectPtr CreateClassShpere(LuaObjectRef _rTable, KeyRef _uObjectNameKey);
+
+	protected:
+		static CreateClassFuncMap	s_mClasses;
+
 		ApplicationRef				m_rApplication;
 		CoreObjectPtrMap			m_mAllObjects;
 		LandscapePtrMap				m_mLandscapes;

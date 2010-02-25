@@ -140,6 +140,10 @@ namespace ElixirEngine
 	typedef boost::function<DisplayEffectParamPtr (const boost::any& _rConfig)> CreateParamFunc;
 	typedef map<Key, CreateParamFunc> CreateParamFuncMap;
 
+	class DisplayEffectInclude;
+	typedef DisplayEffectInclude* DisplayEffectIncludePtr;
+	typedef DisplayEffectInclude& DisplayEffectIncludeRef;
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

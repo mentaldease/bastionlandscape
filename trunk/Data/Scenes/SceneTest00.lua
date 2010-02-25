@@ -49,6 +49,36 @@ scenetest00 =
 		"data/scenes/CameraLib00.lua",
 	},
 	water_config = "data/scenes/WaterSceneTest00.lua",
+	hierarchy =
+	{
+		{
+			class = "landscape",
+			name = "ground",
+			vertex_format = "default",
+			material = "terrain04",
+			grid_size = 16,
+			grid_chunk_size = 16,
+			position = { 0.0, 0.0, 0.0, },
+			pixel_error_max = 2.5,
+			floor_scale = 10.0,
+			height_scale = 1.0,
+			heightmap = "data/landscapes/land02.tga",
+			layers_config = "data/landscapes/layers00.lua",
+		},
+		{
+			class = "sphere",
+			name = "sky",
+			material = "sky",
+			size = { 2000.0, 2000.0, 2000.0 },
+			bottom_hemisphere = true,
+			top_hemisphere = true,
+			position = { 0.0, 0.0, 0.0, },
+			rotation = { 0.0, 0.0, 0.0, },
+			horiz_slices = 10,
+			vert_slices = 10,
+			color = { 26.0 / 255.0, 103.0 / 255.0, 149.0 / 255.0, 1.0 },
+		},
+	},
 	landscapes =
 	{
 		--[[

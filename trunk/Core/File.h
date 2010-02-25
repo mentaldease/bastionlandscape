@@ -78,6 +78,7 @@ namespace ElixirEngine
 		static void GetFileNameWithoutExt(const string& _strSrcPath, string& _strDstPath);
 		static void GetFileExt(const string& _strSrcPath, string& _strDstExt);
 		static void GetPathWithoutFileName(const string& _strSrcPath, string& _strDstPath, const bool bKeepEndingDirSeparator);
+		static void ComposePath(string& _strDstPath, const string& _strSrcPath1, const string& _strSrcPath2);
 
 		const static char s_FSMarkerInPath = '@';
 		const static char s_WDirSeparator = '\\';

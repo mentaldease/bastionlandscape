@@ -187,6 +187,29 @@ namespace BastionGame
 		{
 			m_eStateMode = EStateMode_INITIALING_SHADERS;
 			DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
+
+			pMaterialManager->SetIncludeBasePath("Data/Effects");
+			//pMaterialManager->OverrideCommonParamSemantic(DisplayMaterialManager::ECommonParamSemantic_WORLDVIEWPROJ, MakeKey(string("WVP")));
+
+			//
+			pMaterialManager->RegisterParamCreator(MakeKey(string("TIME")), boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("LIGHTDIR")), boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1));
+			// landscape
+			pMaterialManager->RegisterParamCreator(MakeKey(string("NOISETEX")), boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("MORPHFACTOR")), boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("ATLASDIFFUSETEX")), boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("ATLASLUTTEX")), boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("ATLASDIFFUSEINFO")), boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1));
+			// misc
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX00")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX01")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX02")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX03")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX04")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX05")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX06")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX07")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+
 			pMaterialManager->SetFloatBySemantic(MakeKey(string("TIME")), &m_fRelativeTime);
 		}
 
@@ -216,6 +239,9 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
+			Scene::RegisterClass(MakeKey(string("landscape")), boost::bind(&Scene::CreateClassLandscape, _1, _2));
+			Scene::RegisterClass(MakeKey(string("sphere")), boost::bind(&Scene::CreateClassShpere, _1, _2));
+
 			m_pKeyboard = m_pInput->GetDevice(MakeKey(string("DIKEYBOARD")));
 			m_pMouse = m_pInput->GetDevice(MakeKey(string("DIMOUSE")));
 			bResult = (NULL != m_pKeyboard) && (NULL != m_pMouse);
@@ -288,6 +314,27 @@ namespace BastionGame
 			delete m_pLandscapeLayerManager;
 			m_pLandscapeLayerManager = NULL;
 			LandscapeLayerManager::SetInstance(NULL);
+		}
+		DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
+		if (NULL != pMaterialManager)
+		{
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("TIME")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("LIGHTDIR")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("NOISETEX")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("MORPHFACTOR")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("ATLASDIFFUSETEX")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("ATLASLUTTEX")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("ATLASDIFFUSEINFO")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX00")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX01")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX02")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX03")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX04")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX05")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX06")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("USERMATRIX07")));
+
+			//pMaterialManager->ResetCommonParamSemantic(DisplayMaterialManager::ECommonParamSemantic_WORLDVIEWPROJ);
 		}
 		if (NULL != m_pDisplay)
 		{

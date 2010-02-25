@@ -21,6 +21,82 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	DisplayEffectInclude::DisplayEffectInclude()
+	:	CoreObject(),
+		ID3DXInclude(),
+		m_vBuffers()
+	{
+
+	}
+
+	DisplayEffectInclude::~DisplayEffectInclude()
+	{
+
+	}
+
+	bool DisplayEffectInclude::Create(const boost::any& _rConfig)
+	{
+		return true;
+	}
+
+	void DisplayEffectInclude::Release()
+	{
+
+	}
+
+	HRESULT DisplayEffectInclude::Open(
+		D3DXINCLUDE_TYPE IncludeType,
+		LPCSTR pFileName,
+		LPCVOID pParentData,
+		LPCVOID *ppData,
+		UINT * pBytes
+		)
+	{
+		string strFileName;
+		FS::ComposePath(strFileName, Display::GetInstance()->GetMaterialManager()->GetIncludeBasePath(), string(pFileName));
+		FilePtr pFile = NULL;
+
+		HRESULT hResult = (false == strFileName.empty()) ? S_OK : E_FAIL;
+		if (SUCCEEDED(hResult))
+		{
+			pFile = FS::GetRoot()->OpenFile(strFileName, FS::EOpenMode_READTEXT);
+			hResult = (NULL != pFile) ? S_OK : E_FAIL;
+		}
+		if (SUCCEEDED(hResult))
+		{
+			int sSize = pFile->Size();
+			char* pSourceCode = new char[sSize];
+			sSize = pFile->Read(pSourceCode, sSize);
+			FS::GetRoot()->CloseFile(pFile);
+			m_vBuffers.push_back(pSourceCode);
+			*ppData = pSourceCode;
+			*pBytes = sSize;
+		}
+
+		return hResult;
+	}
+
+	HRESULT DisplayEffectInclude::Close(
+		LPCVOID pData
+		)
+	{
+		CharPtr pSourceCode = (CharPtr)pData;
+		CharPtrVec::iterator iSourceCode = find(m_vBuffers.begin(), m_vBuffers.end(), pSourceCode);
+
+		HRESULT hResult = (m_vBuffers.end() != iSourceCode) ? S_OK : E_FAIL;
+		if (SUCCEEDED(hResult))
+		{
+			delete[] pSourceCode;
+			m_vBuffers.erase(iSourceCode);
+		}
+
+		return hResult;
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	DisplayEffect::DisplayEffect(DisplayRef _rDisplay)
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
@@ -60,7 +136,7 @@ namespace ElixirEngine
 				pSourceCode,
 				sSize,
 				NULL, // D3DXMACRO Defines,
-				NULL, // LPD3DXINCLUDE Includes,
+				m_rDisplay.GetMaterialManager()->GetIncludeInterface(), // LPD3DXINCLUDE Includes,
 				/*D3DXSHADER_SKIPOPTIMIZATION | */D3DXSHADER_DEBUG | D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY,
 				NULL, // LPD3DXEFFECTPOOL Pool,
 				&m_pEffect,
@@ -363,7 +439,8 @@ namespace ElixirEngine
 		m_mVector3Info(),
 		m_mVector4Info(),
 		m_mMatrixInfo(),
-		m_rDisplay(_rDisplay)
+		m_rDisplay(_rDisplay),
+		m_pIncludeInterface(NULL)
 	{
 
 	}
@@ -379,63 +456,67 @@ namespace ElixirEngine
 
 		Release();
 
-		m_mParamCreators[MakeKey(string("WORLDVIEWPROJ"))] = boost::bind(&DisplayEffectParamWORLDVIEWPROJ::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("WORLD"))] = boost::bind(&DisplayEffectParamWORLD::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("VIEW"))] = boost::bind(&DisplayEffectParamVIEW::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("VIEWINV"))] = boost::bind(&DisplayEffectParamVIEWINV::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("VIEWPROJ"))] = boost::bind(&DisplayEffectParamVIEWPROJ::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("PROJ"))] = boost::bind(&DisplayEffectParamPROJ::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("WORLDINVTRANSPOSE"))] = boost::bind(&DisplayEffectParamWORLDINVTRANSPOSE::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TIME"))] = boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ENVIRONMENTTEX"))] = boost::bind(&DisplayEffectParamENVIRONMENTTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("NORMALTEX"))] = boost::bind(&DisplayEffectParamNORMALTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("MORPHFACTOR"))] = boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("LIGHTDIR"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("DIFFUSETEX"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ATLASDIFFUSETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ATLASLUTTEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ATLASDIFFUSEINFO"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("NOISETEX"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("CAMERAPOS"))] = boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("FRUSTUMCORNERS"))] = boost::bind(&DisplayEffectParamFRUSTUMCORNERS::CreateParam, _1);
+		m_vDefaultParamKeys.resize(ECommonParamSemantic_COUNT);
+		int a[] = { 0, 1, 2, 3 };
+		std::string aDefaultNames[] =
+		{
+			"WORLDVIEWPROJ", "WORLD", "VIEW", "VIEWINV", "VIEWPROJ", "PROJ", "WORLDINVTRANSPOSE",
+			"ENVIRONMENTTEX", "NORMALTEX", "DIFFUSETEX", "CAMERAPOS", "FRUSTUMCORNERS", "DIFFUSECOLOR",
+			"RT2D00", "RT2D01", "RT2D02", "RT2D03", "RT2D04", "RT2D05", "RT2D06", "RT2D07",
+			"ORT2D00", "ORT2D01", "ORT2D02", "ORT2D03", "ORT2D04", "ORT2D05", "ORT2D06", "ORT2D07",
+			"TEX2D00", "TEX2D01", "TEX2D02", "TEX2D03", "TEX2D04", "TEX2D05", "TEX2D06", "TEX2D07"
+		};
+
+		for (UInt i = 0 ; ECommonParamSemantic_COUNT > i ; ++i)
+		{
+			m_vDefaultParamKeys[i] = MakeKey(aDefaultNames[i]);
+		}
+
+		m_vCurrentParamKeys = m_vDefaultParamKeys;
+
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_WORLDVIEWPROJ]] = boost::bind(&DisplayEffectParamWORLDVIEWPROJ::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_WORLD]] = boost::bind(&DisplayEffectParamWORLD::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_VIEW]] = boost::bind(&DisplayEffectParamVIEW::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_VIEWINV]] = boost::bind(&DisplayEffectParamVIEWINV::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_VIEWPROJ]] = boost::bind(&DisplayEffectParamVIEWPROJ::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_PROJ]] = boost::bind(&DisplayEffectParamPROJ::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_WORLDINVTRANSPOSE]] = boost::bind(&DisplayEffectParamWORLDINVTRANSPOSE::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ENVIRONMENTTEX]] = boost::bind(&DisplayEffectParamENVIRONMENTTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_NORMALTEX]] = boost::bind(&DisplayEffectParamNORMALTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_DIFFUSETEX]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_CAMERAPOS]] = boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_FRUSTUMCORNERS]] = boost::bind(&DisplayEffectParamFRUSTUMCORNERS::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_DIFFUSECOLOR]] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
 		// render target texture
-		m_mParamCreators[MakeKey(string("RT2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("RT2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("RT2D02"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("RT2D03"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("RT2D04"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("RT2D05"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("RT2D06"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("RT2D07"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D00]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D01]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D02]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D03]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D04]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D05]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D06]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_RT2D07]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		// original render target texture (rendered during normal process mode)
-		m_mParamCreators[MakeKey(string("ORT2D00"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ORT2D01"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ORT2D02"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ORT2D03"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ORT2D04"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ORT2D05"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ORT2D06"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("ORT2D07"))] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D00]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D01]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D02]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D03]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D04]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D05]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D06]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_ORT2D07]] = boost::bind(&DisplayEffectParamSEMANTICTEX::CreateParam, _1);
 		// standard texture
-		m_mParamCreators[MakeKey(string("TEX2D00"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D01"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D02"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D03"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D04"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D05"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D06"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("TEX2D07"))] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
-		// user defined matrix
-		m_mParamCreators[MakeKey(string("USERMATRIX00"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("USERMATRIX01"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("USERMATRIX02"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("USERMATRIX03"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("USERMATRIX04"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("USERMATRIX05"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("USERMATRIX06"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		m_mParamCreators[MakeKey(string("USERMATRIX07"))] = boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1);
-		// misc
-		m_mParamCreators[MakeKey(string("DIFFUSECOLOR"))] = boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D00]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D01]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D02]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D03]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D04]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D05]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D06]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_TEX2D07]] = boost::bind(&DisplayEffectParamDIFFUSETEX::CreateParam, _1);
+
+		m_pIncludeInterface = new DisplayEffectInclude;
+		bResult = m_pIncludeInterface->Create(boost::any(0));
 
 		return bResult;
 	}
@@ -448,7 +529,16 @@ namespace ElixirEngine
 	void DisplayMaterialManager::Release()
 	{
 		UnloadAll();
+
+		if (NULL != m_pIncludeInterface)
+		{
+			delete m_pIncludeInterface;
+			m_pIncludeInterface = NULL;
+		}
+
 		m_mParamCreators.clear();
+		m_vCurrentParamKeys.clear();
+		m_vDefaultParamKeys.clear();
 	}
 
 	bool DisplayMaterialManager::CreateMaterial(const Key& _uNameKey, LuaObjectRef _rLuaObject)
@@ -579,18 +669,30 @@ namespace ElixirEngine
 		return CreateParam(uKey, _rConfig);
 	}
 
-	void DisplayMaterialManager::RegisterParamCreator(const Key& _uSemanticNameKey, CreateParamFunc _Func)
-	{
-		m_mParamCreators[_uSemanticNameKey] = _Func;
-	}
-
-	void DisplayMaterialManager::UnregisterParamCreator(const Key& _uSemanticNameKey)
+	bool DisplayMaterialManager::RegisterParamCreator(const Key& _uSemanticNameKey, CreateParamFunc _Func)
 	{
 		CreateParamFuncMap::iterator iPair = m_mParamCreators.find(_uSemanticNameKey);
-		if (m_mParamCreators.end() != iPair)
+		bool bResult (m_mParamCreators.end() == iPair);
+
+		if (false != bResult)
+		{
+			m_mParamCreators[_uSemanticNameKey] = _Func;
+		}
+
+		return bResult;
+	}
+
+	bool DisplayMaterialManager::UnregisterParamCreator(const Key& _uSemanticNameKey)
+	{
+		CreateParamFuncMap::iterator iPair = m_mParamCreators.find(_uSemanticNameKey);
+		bool bResult (m_mParamCreators.end() != iPair);
+
+		if (false != bResult)
 		{
 			m_mParamCreators.erase(iPair);
 		}
+
+		return bResult;
 	}
 
 	DisplayEffectParamPtr DisplayMaterialManager::CreateParam(const Key& _uSemanticNameKey, const boost::any& _rConfig)
@@ -705,5 +807,49 @@ namespace ElixirEngine
 		StructDataRef rInfo = m_mStructInfo[_uSemanticKey];
 		_uSize = rInfo.m_uSize;
 		return rInfo.m_pData;
+	}
+
+	bool DisplayMaterialManager::OverrideCommonParamSemantic(const ECommonParamSemantic _uCommonParam, const Key _uNewParamKey)
+	{
+		bool bResult = (UInt(ECommonParamSemantic_COUNT) > UInt(_uCommonParam)) && (m_mParamCreators.end() == m_mParamCreators.find(_uNewParamKey));
+		if (false != bResult)
+		{
+			const Key uCurrentParamKey = m_vCurrentParamKeys[_uCommonParam];
+			m_mParamCreators[_uNewParamKey] = m_mParamCreators[uCurrentParamKey];
+			m_vCurrentParamKeys[_uCommonParam] = _uNewParamKey;
+			m_mParamCreators.erase(m_mParamCreators.find(uCurrentParamKey));
+		}
+		return bResult;
+	}
+
+	bool DisplayMaterialManager::ResetCommonParamSemantic(const ECommonParamSemantic _uCommonParam)
+	{
+		Key uNewParamKey = 0;
+		bool bResult = (UInt(ECommonParamSemantic_COUNT) > UInt(_uCommonParam))
+			&& (uNewParamKey = m_vDefaultParamKeys[_uCommonParam])
+			&& (m_mParamCreators.end() == m_mParamCreators.find(uNewParamKey));
+		if (false != bResult)
+		{
+			const Key uCurrentParamKey = m_vCurrentParamKeys[_uCommonParam];
+			m_mParamCreators[uNewParamKey] = m_mParamCreators[uCurrentParamKey];
+			m_vCurrentParamKeys[_uCommonParam] = uNewParamKey;
+			m_mParamCreators.erase(m_mParamCreators.find(uCurrentParamKey));
+		}
+		return bResult;
+	}
+
+	void DisplayMaterialManager::SetIncludeBasePath(const string& _strPath)
+	{
+		m_strIncludeBasePath = _strPath;
+	}
+
+	const string& DisplayMaterialManager::GetIncludeBasePath()
+	{
+		return m_strIncludeBasePath;
+	}
+
+	DisplayEffectIncludePtr DisplayMaterialManager::GetIncludeInterface()
+	{
+		return m_pIncludeInterface;
 	}
 }
