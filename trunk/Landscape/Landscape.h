@@ -100,6 +100,7 @@ namespace ElixirEngine
 			float					m_fPixelErrorMax;
 			float					m_fFloorScale;
 			float					m_fHeightScale;
+			Key						m_uRenderPassKey;
 		};
 
 		struct LODInfo
@@ -193,6 +194,7 @@ namespace ElixirEngine
 		DisplayIndexBufferPtr				m_pIndexBuffer;
 		UIntPtr								m_pIndexes;
 		LandscapeLayeringPtr				m_pLayering;
+		Key									m_uRenderPassKey;
 
 	private:
 	};

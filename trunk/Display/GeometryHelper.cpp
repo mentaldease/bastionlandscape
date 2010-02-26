@@ -78,7 +78,7 @@ namespace ElixirEngine
 
 	void DisplayGeometrySphere::Update()
 	{
-
+		Display::GetInstance()->RenderRequest(m_uRenderPass, this);
 	}
 
 	void DisplayGeometrySphere::Release()

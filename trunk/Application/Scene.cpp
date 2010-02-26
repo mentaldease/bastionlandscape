@@ -20,7 +20,7 @@ namespace BastionGame
 	Scene::Scene(ApplicationRef _rApplication)
 	:	CoreObject(),
 		m_rApplication(_rApplication),
-		m_mAllObjects(),
+		m_mHierarchy(),
 		m_mLandscapes(),
 		m_mMaterials(),
 		m_mAdditionalRTs(),
@@ -36,8 +36,7 @@ namespace BastionGame
 		m_uWaterDataKey(MakeKey(string("WATERDATA"))),
 		m_pUITextOverlay(NULL),
 		m_uUIMainFontLabel(0),
-		m_uUIRenderPass(0),
-		m_pSphere(NULL)
+		m_uUIRenderPass(0)
 	{
 
 	}
@@ -119,55 +118,29 @@ namespace BastionGame
 			m_rApplication.GetDisplay()->AddRenderPasses(m_vRenderPasses);
 		}
 
-		if (false != bResult)
-		{
-			m_pSphere = new DisplayGeometrySphere();
-			const float fSize = 2000.f;
-			DisplayGeometrySphere::CreateInfo oGSCInfo;
-			oGSCInfo.m_bBottomHemisphere = true;
-			oGSCInfo.m_bTopHemisphere = true;
-			oGSCInfo.m_bViewFromInside = true;
-			oGSCInfo.m_oPos = Vector3(0.0f, 0.0f, 0.0f);
-			oGSCInfo.m_oRot = Vector3(0.0f, 0.0f, 0.0f);
-			oGSCInfo.m_oRadius = Vector3(fSize, fSize, fSize);
-			oGSCInfo.m_uHorizSlices = 10;
-			oGSCInfo.m_uVertSlices = 10;
-			oGSCInfo.m_f4Color = Vector4(26.0f / 255.0f, 103.0f / 255.0f, 149.0f / 255.0f, 1.0f);
-			bResult = m_pSphere->Create(boost::any(&oGSCInfo));
-			if (false != bResult)
-			{
-				DisplayPtr pDisplay = Display::GetInstance();
-				const Key uNameKey = MakeKey(string("geomhelper"));
-				DisplayMaterialPtr pMaterial = pDisplay->GetMaterialManager()->GetMaterial(uNameKey);
-				if (NULL != pMaterial)
-				{
-					m_pSphere->SetMaterial(pMaterial);
-				}
-				else
-				{
-					m_pSphere->Release();
-					delete m_pSphere;
-					m_pSphere = NULL;
-				}
-			}
-		}
 
 		return bResult;
 	}
 
 	void Scene::Update()
 	{
-		LandscapePtrMap::iterator iPair = m_mLandscapes.begin();
-		LandscapePtrMap::iterator iEnd = m_mLandscapes.end();
-		while (iEnd != iPair)
 		{
-			iPair->second->Update();
-			++iPair;
+			LandscapePtrMap::iterator iPair = m_mLandscapes.begin();
+			LandscapePtrMap::iterator iEnd = m_mLandscapes.end();
+			while (iEnd != iPair)
+			{
+				iPair->second->Update();
+				++iPair;
+			}
 		}
-
 		{
-			const static Key uPassNameKey = MakeKey(string("scene"));
-			m_rApplication.GetDisplay()->RenderRequest(uPassNameKey, m_pSphere);
+			CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
+			CoreObjectPtrMap::iterator iEnd = m_mHierarchy.end();
+			while (iEnd != iPair)
+			{
+				iPair->second->Update();
+				++iPair;
+			}
 		}
 
 		{
@@ -193,14 +166,6 @@ namespace BastionGame
 
 		m_rApplication.GetDisplay()->RemoveRenderPasses(m_vRenderPasses);
 
-		// sphere
-		if (NULL != m_pSphere)
-		{
-			m_pSphere->Release();
-			delete m_pSphere;
-			m_pSphere = NULL;
-		}
-
 		// camera
 		while (m_mCameras.end() != m_mCameras.begin())
 		{
@@ -222,6 +187,14 @@ namespace BastionGame
 			delete[] m_pWaterData;
 			m_pWaterData = NULL;
 			m_uWaterDataCount = 0;
+		}
+		// hierarchy
+		while (m_mHierarchy.end() != m_mHierarchy.begin())
+		{
+			CoreObjectPtr pObject = m_mHierarchy.begin()->second;
+			pObject->Release();
+			delete pObject;
+			m_mHierarchy.erase(m_mHierarchy.begin());
 		}
 
 		// landscapes
@@ -290,7 +263,7 @@ namespace BastionGame
 			m_strName = oRoot["name"].GetString();
 			bResult = CreateLoadRenderTargets(oRoot)
 				&& CreateLoadMaterials(oRoot)
-				&& CreateLoadLandscapes(oRoot)
+				&& CreateLoadHierarchy(oRoot)
 				&& CreateLoadWaterDataList(oRoot)
 				&& CreateLoadCameras(oRoot)
 				&& CreateLoadRenderPasses(oRoot);
@@ -392,89 +365,6 @@ namespace BastionGame
 			{
 				break;
 			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadLandscapes(LuaObjectRef _rLuaObject)
-	{
-		LuaObject oLandscapes = _rLuaObject["landscapes"];
-		bool bResult = true;
-
-		if (false == oLandscapes.IsNil())
-		{
-			const int sCount = oLandscapes.GetCount();
-			for (int i = 0 ; sCount > i ; ++i)
-			{
-				bResult = CreateLoadLandscape(oLandscapes[i + 1]);
-				if (false == bResult)
-				{
-					break;
-				}
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadLandscape(LuaObjectRef _rLuaObject)
-	{
-		LandscapePtr pLandscape = new Landscape(*m_rApplication.GetDisplay());
-		Landscape::OpenInfo oLOInfo;
-
-		oLOInfo.m_strName = _rLuaObject["name"].GetString();
-		oLOInfo.m_uGridSize = _rLuaObject["grid_size"].GetInteger();
-		oLOInfo.m_uQuadSize = _rLuaObject["grid_chunk_size"].GetInteger();
-		oLOInfo.m_fPixelErrorMax = _rLuaObject["pixel_error_max"].GetFloat();
-		oLOInfo.m_fFloorScale = _rLuaObject["floor_scale"].GetFloat();
-		oLOInfo.m_fHeightScale = _rLuaObject["height_scale"].GetFloat();
-
-		const Key uNameKey = MakeKey(oLOInfo.m_strName);
-
-		bool bResult = (false != pLandscape->Create(boost::any(0)))
-			&& (m_mLandscapes.end() == m_mLandscapes.find(uNameKey)); // <== check that there is NOT another landscape with the same name
-
-		if (false != bResult)
-		{
-			string strFormat = _rLuaObject["vertex_format"].GetString();
-			oLOInfo.m_eFormat = Landscape::StringToVertexFormat(strFormat);
-			bResult = (ELandscapeVertexFormat_UNKNOWN != oLOInfo.m_eFormat);
-		}
-		if (false != bResult)
-		{
-			oLOInfo.m_strHeightmap.clear();
-			oLOInfo.m_strHeightmap = _rLuaObject["heightmap"].GetString();
-			oLOInfo.m_strLayersConfig.clear();
-			oLOInfo.m_strLayersConfig = _rLuaObject["layers_config"].GetString();
-			bResult = pLandscape->Open(oLOInfo);
-		}
-		if (false != bResult)
-		{
-			string strMaterialName = _rLuaObject["material"].GetString();
-			Key uKey = MakeKey(strMaterialName);
-			DisplayMaterialPtr pMaterial = m_mMaterials[uKey];
-			if (NULL == pMaterial)
-			{
-				pMaterial = m_rApplication.GetDisplay()->GetMaterialManager()->GetMaterial(strMaterialName);
-			}
-			bResult = (NULL != pMaterial);
-			pLandscape->SetMaterial(pMaterial);
-		}
-
-		if (false != bResult)
-		{
-			Vector3 oPos;
-			oPos.x = _rLuaObject["position"][1].GetFloat();
-			oPos.y = _rLuaObject["position"][2].GetFloat();
-			oPos.z = _rLuaObject["position"][3].GetFloat();
-			D3DXMatrixTranslation(pLandscape->GetWorldMatrix(), oPos.x, oPos.y, oPos.z);
-			m_mLandscapes[uNameKey] = pLandscape;
-		}
-		else
-		{
-			pLandscape->Release();
-			delete pLandscape;
 		}
 
 		return bResult;
@@ -633,11 +523,84 @@ namespace BastionGame
 		return bResult;
 	}
 
-	CoreObjectPtr Scene::CreateClassLandscape(LuaObjectRef _rTable, KeyRef _uObjectNameKey)
+	bool Scene::CreateLoadHierarchy(LuaObjectRef _rLuaObject)
+	{
+		LuaObject oHierarchy = _rLuaObject["hierarchy"];
+		bool bResult = true;
+
+		if (false == oHierarchy.IsNil())
+		{
+			const int sCount = oHierarchy.GetCount();
+			for (int i = 0 ; sCount > i ; ++i)
+			{
+				LuaObject oObject = oHierarchy[i + 1];
+				string strClass;
+				bResult = Scripting::Lua::Get(oObject, "class", strClass, strClass);
+				if (false == bResult)
+				{
+					break;
+				}
+
+				const Key uClassKey = MakeKey(strClass);
+				CreateClassFuncMap::iterator iPair = s_mClasses.find(uClassKey);
+				bResult = (s_mClasses.end() != iPair);
+				if (false == bResult)
+				{
+					break;
+				}
+
+				string strName;
+				bResult = Scripting::Lua::Get(oObject, "name", strName, strName);
+				if (false == bResult)
+				{
+					break;
+				}
+
+				const Key uObjectNameKey = MakeKey(strName);
+				bResult = (m_mHierarchy.end() == m_mHierarchy.find(uObjectNameKey));
+				if (false == bResult)
+				{
+					break;
+				}
+
+				CreateClassFunc& pCreateClass = iPair->second;
+				CoreObjectPtr pObject = pCreateClass(oObject);
+				bResult = (NULL != pObject);
+				if (false == bResult)
+				{
+					break;
+				}
+
+				m_mHierarchy[uObjectNameKey] = pObject;
+			}
+		}
+
+		return bResult;
+	}
+
+	bool Scene::RegisterClasses()
+	{
+		bool bResult = true;
+
+		#define CHECK_RETURN(ReturnValue, Expression) if (false != ReturnValue) { ReturnValue = Expression; }
+		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("landscape")), boost::bind(&Scene::CreateClassLandscape, _1)));
+		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("sphere")), boost::bind(&Scene::CreateClassShpere, _1)));
+		#undef CHECK_RETURN
+
+		return bResult;
+	}
+
+	void Scene::UnregisterClasses()
+	{
+		s_mClasses.clear();
+	}
+
+	CoreObjectPtr Scene::CreateClassLandscape(LuaObjectRef _rTable)
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
 		LandscapePtr pLandscape = new Landscape(*pDisplay);
 		Landscape::OpenInfo oLOInfo;
+		string strTargetPass;
 
 		oLOInfo.m_strName = _rTable["name"].GetString();
 		oLOInfo.m_uGridSize = _rTable["grid_size"].GetInteger();
@@ -645,8 +608,8 @@ namespace BastionGame
 		oLOInfo.m_fPixelErrorMax = _rTable["pixel_error_max"].GetFloat();
 		oLOInfo.m_fFloorScale = _rTable["floor_scale"].GetFloat();
 		oLOInfo.m_fHeightScale = _rTable["height_scale"].GetFloat();
-
-		_uObjectNameKey = MakeKey(oLOInfo.m_strName);
+		Scripting::Lua::Get(_rTable, "target_pass", strTargetPass, strTargetPass);
+		oLOInfo.m_uRenderPassKey = MakeKey(strTargetPass);
 
 		bool bResult = (false != pLandscape->Create(boost::any(0)));
 
@@ -686,15 +649,57 @@ namespace BastionGame
 			pLandscape->Release();
 			delete pLandscape;
 			pLandscape = NULL;
-			_uObjectNameKey = 0;
 		}
 
 		return pLandscape;
 	}
 
-	CoreObjectPtr Scene::CreateClassShpere(LuaObjectRef _rTable, KeyRef _uObjectNameKey)
+	CoreObjectPtr Scene::CreateClassShpere(LuaObjectRef _rTable)
 	{
-		_uObjectNameKey = 0;
-		return NULL;
+		DisplayGeometrySpherePtr pSphere = new DisplayGeometrySphere();
+		const float fSize = 100.f;
+		DisplayGeometrySphere::CreateInfo oGSCInfo;
+		Scripting::Lua::Get(_rTable, "bottom_hemisphere", true, oGSCInfo.m_bBottomHemisphere);
+		Scripting::Lua::Get(_rTable, "top_hemisphere", true, oGSCInfo.m_bTopHemisphere);
+		Scripting::Lua::Get(_rTable, "view_from_inside", false, oGSCInfo.m_bViewFromInside);
+		Scripting::Lua::Get(_rTable, "position", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oPos);
+		Scripting::Lua::Get(_rTable, "rotation", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oRot);
+		Scripting::Lua::Get(_rTable, "size", Vector3(fSize, fSize, fSize), oGSCInfo.m_oRadius);
+		Scripting::Lua::Get(_rTable, "horiz_slices", UInt(10), oGSCInfo.m_uHorizSlices);
+		Scripting::Lua::Get(_rTable, "vert_slices", UInt(10), oGSCInfo.m_uVertSlices);
+		Scripting::Lua::Get(_rTable, "color", Vector4(26.0f / 255.0f, 103.0f / 255.0f, 149.0f / 255.0f, 1.0f), oGSCInfo.m_f4Color);
+
+		bool bResult = pSphere->Create(boost::any(&oGSCInfo));
+		while (false != bResult)
+		{
+			DisplayPtr pDisplay = Display::GetInstance();
+			const Key uMaterialKey = MakeKey(string("geomhelper"));
+			DisplayMaterialPtr pMaterial = pDisplay->GetMaterialManager()->GetMaterial(uMaterialKey);
+			bResult = (NULL != pMaterial);
+			if (false == bResult)
+			{
+				break;
+			}
+
+			string strRenderPass;
+			bResult = Scripting::Lua::Get(_rTable, "target_pass", strRenderPass, strRenderPass);
+			if (false == bResult)
+			{
+				break;
+			}
+
+			pSphere->SetMaterial(pMaterial);
+			pSphere->SetRenderPass(MakeKey(strRenderPass));
+			break;
+		}
+
+		if (false == bResult)
+		{
+			pSphere->Release();
+			delete pSphere;
+			pSphere = NULL;
+		}
+
+		return pSphere;
 	}
 }
