@@ -239,8 +239,7 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			Scene::RegisterClass(MakeKey(string("landscape")), boost::bind(&Scene::CreateClassLandscape, _1, _2));
-			Scene::RegisterClass(MakeKey(string("sphere")), boost::bind(&Scene::CreateClassShpere, _1, _2));
+			Scene::RegisterClasses();
 
 			m_pKeyboard = m_pInput->GetDevice(MakeKey(string("DIKEYBOARD")));
 			m_pMouse = m_pInput->GetDevice(MakeKey(string("DIMOUSE")));
@@ -293,12 +292,14 @@ namespace BastionGame
 			delete m_pCameraListener;
 			m_pCameraListener = NULL;
 		}
+
 		if (NULL != m_pScene)
 		{
 			m_pScene->Release();
 			delete m_pScene;
 			m_pScene = NULL;
 		}
+
 		if (NULL != m_pInput)
 		{
 			Input::SetRoot(NULL);
@@ -308,6 +309,9 @@ namespace BastionGame
 			m_pKeyboard = NULL;
 			m_pMouse = NULL;
 		}
+
+		Scene::UnregisterClasses();
+
 		if (NULL != m_pLandscapeLayerManager)
 		{
 			m_pLandscapeLayerManager->Release();
@@ -315,6 +319,7 @@ namespace BastionGame
 			m_pLandscapeLayerManager = NULL;
 			LandscapeLayerManager::SetInstance(NULL);
 		}
+
 		DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
 		if (NULL != pMaterialManager)
 		{
@@ -336,12 +341,14 @@ namespace BastionGame
 
 			//pMaterialManager->ResetCommonParamSemantic(DisplayMaterialManager::ECommonParamSemantic_WORLDVIEWPROJ);
 		}
+
 		if (NULL != m_pDisplay)
 		{
 			m_pDisplay->Release();
 			delete m_pDisplay;
 			m_pDisplay = NULL;
 		}
+
 		if ((NULL != m_pFSRoot) && (NULL != m_pFSNative))
 		{
 			m_pFSRoot->RemoveFS("NATIVE", m_pFSNative);
@@ -349,17 +356,20 @@ namespace BastionGame
 			delete m_pFSNative;
 			m_pFSNative = NULL;
 		}
+
 		if (NULL != m_pLuaState)
 		{
 			Scripting::Lua::ReleaseState(m_pLuaState);
 			m_pLuaState = NULL;
 		}
+
 		if (NULL != m_pFSRoot)
 		{
 			m_pFSRoot->Release();
 			delete m_pFSRoot;
 			m_pFSRoot = NULL;
 		}
+
 		if (NULL != m_pTime)
 		{
 			Time::SetRoot(NULL);
@@ -367,6 +377,7 @@ namespace BastionGame
 			delete m_pTime;
 			m_pTime = NULL;
 		}
+
 		m_eStateMode = EStateMode_UNINITIALIZED;
 	}
 

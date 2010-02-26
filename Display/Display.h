@@ -100,6 +100,8 @@ namespace ElixirEngine
 		virtual MatrixPtr GetWorldMatrix();
 		virtual void SetMaterial(DisplayMaterialPtr _pMaterial);
 		virtual DisplayMaterialPtr GetMaterial();
+		virtual void SetRenderPass(const Key& _uRenderPass);
+		virtual const Key& SetRenderPass() const;
 
 		virtual void RenderBegin() {};
 		virtual void Render() = 0;
@@ -108,6 +110,7 @@ namespace ElixirEngine
 	protected:
 		Matrix				m_oWorld;
 		DisplayMaterialPtr	m_pMaterial;
+		Key					m_uRenderPass;
 	};
 
 	//-----------------------------------------------------------------------------------------------

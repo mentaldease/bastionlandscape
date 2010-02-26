@@ -64,6 +64,7 @@ scenetest00 =
 			height_scale = 1.0,
 			heightmap = "data/landscapes/land02.tga",
 			layers_config = "data/landscapes/layers00.lua",
+			target_pass = "scene",
 		},
 		{
 			class = "sphere",
@@ -72,57 +73,14 @@ scenetest00 =
 			size = { 2000.0, 2000.0, 2000.0 },
 			bottom_hemisphere = true,
 			top_hemisphere = true,
+			view_from_inside = true,
 			position = { 0.0, 0.0, 0.0, },
 			rotation = { 0.0, 0.0, 0.0, },
 			horiz_slices = 10,
 			vert_slices = 10,
 			color = { 26.0 / 255.0, 103.0 / 255.0, 149.0 / 255.0, 1.0 },
+			target_pass = "scene",
 		},
-	},
-	landscapes =
-	{
-		--[[
-		{
-			object_type = "landscape",
-			name = "water",
-			vertex_format = "liquid",
-			material = "water00",
-			grid_size = 16,			// must be power of 2
-			grid_chunk_size = 16,	// must be power of 2
-			position_x = { 0.0, 75.0, 0.0, },
-			pixel_error_max = 2.5,
-			floor_scale = 10.0,
-			height_scale = 1.0,
-		},
-		]]
-		{
-			object_type = "landscape",
-			name = "ground",
-			vertex_format = "default",
-			material = "terrain04",
-			grid_size = 16,
-			grid_chunk_size = 16,
-			position = { 0.0, 0.0, 0.0, },
-			pixel_error_max = 2.5,
-			floor_scale = 10.0,
-			height_scale = 1.0,
-			heightmap = "data/landscapes/land02.tga",
-			layers_config = "data/landscapes/layers00.lua",
-		}
-		--[[
-		{
-			object_type = "landscape",
-			name = "ground2",
-			vertex_format = "default",
-			material = "terrain00",
-			grid_size = 32,
-			grid_chunk_size = 8,
-			position = { 0.0, -5.0, 0.0, },
-			pixel_error_max = 2.5,
-			floor_scale = 10.0,
-			height_scale = 1.0,
-		}
-		]]
 	},
 	renderpasses =
 	{

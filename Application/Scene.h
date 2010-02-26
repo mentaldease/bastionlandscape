@@ -24,6 +24,8 @@ namespace BastionGame
 		Scene(ApplicationRef _rApplication);
 		virtual ~Scene();
 
+		static bool RegisterClasses();
+		static void UnregisterClasses();
 		static bool RegisterClass(const Key& _uClassNameKey, CreateClassFunc _Func);
 		static bool UnregisterClass(const Key& _uClassNameKey);
 
@@ -38,23 +40,22 @@ namespace BastionGame
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
 		bool CreateLoadRenderTargets(LuaObjectRef _rLuaObject);
 		bool CreateLoadMaterials(LuaObjectRef _rLuaObject);
-		bool CreateLoadLandscapes(LuaObjectRef _rLuaObject);
-		bool CreateLoadLandscape(LuaObjectRef _rLuaObject);
 		bool CreateLoadWaterDataList(LuaObjectRef _rLuaObject);
 		bool CreateLoadWaterData(LuaObjectRef _rLuaObject, WaterDataRef _rWaterData);
 		bool CreateLoadCameras(LuaObjectRef _rLuaObject);
 		bool CreateLoadRenderPasses(LuaObjectRef _rLuaObject);
 		bool CreateLoadRenderPass(LuaObjectRef _rLuaObject);
+		bool CreateLoadHierarchy(LuaObjectRef _rLuaObject);
 
 	protected:
-		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable, KeyRef _uObjectNameKey);
-		static CoreObjectPtr CreateClassShpere(LuaObjectRef _rTable, KeyRef _uObjectNameKey);
+		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable);
+		static CoreObjectPtr CreateClassShpere(LuaObjectRef _rTable);
 
 	protected:
 		static CreateClassFuncMap	s_mClasses;
 
 		ApplicationRef				m_rApplication;
-		CoreObjectPtrMap			m_mAllObjects;
+		CoreObjectPtrMap			m_mHierarchy;
 		LandscapePtrMap				m_mLandscapes;
 		DisplayMaterialPtrMap		m_mMaterials;
 		DisplayTexturePtrMap		m_mAdditionalRTs;
@@ -72,10 +73,6 @@ namespace BastionGame
 		DebugTextOverlayPtr			m_pUITextOverlay;
 		Key							m_uUIMainFontLabel;
 		Key							m_uUIRenderPass;
-
-		DisplayGeometrySpherePtr	m_pSphere;
-
-	private:
 	};
 }
 

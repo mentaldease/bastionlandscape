@@ -207,7 +207,8 @@ namespace ElixirEngine
 	DisplayObject::DisplayObject()
 	:	CoreObject(),
 		m_oWorld(),
-		m_pMaterial(NULL)
+		m_pMaterial(NULL),
+		m_uRenderPass(0)
 	{
 		D3DXMatrixIdentity(&m_oWorld);
 	}
@@ -230,6 +231,16 @@ namespace ElixirEngine
 	DisplayMaterialPtr DisplayObject::GetMaterial()
 	{
 		return m_pMaterial;
+	}
+
+	void DisplayObject::SetRenderPass(const Key& _uRenderPass)
+	{
+		m_uRenderPass = _uRenderPass;
+	}
+
+	const Key& DisplayObject::SetRenderPass() const
+	{
+		return m_uRenderPass;
 	}
 
 	//-----------------------------------------------------------------------------------------------
