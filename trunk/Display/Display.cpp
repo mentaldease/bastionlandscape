@@ -386,9 +386,31 @@ namespace ElixirEngine
 			m_uWidth = _rWindowData.m_oClientRect.right;
 			m_uHeight = _rWindowData.m_oClientRect.bottom;
 
+
+			UINT AdapterToUse=D3DADAPTER_DEFAULT;
+			D3DDEVTYPE DeviceType=D3DDEVTYPE_HAL;
+#if SHIPPING_VERSION
+			// When building a shipping version, disable PerfHUD (opt-out)
+#else // SHIPPING_VERSION
+			// Look for 'NVIDIA PerfHUD' adapter
+			// If it is present, override default settings
+			for (UINT Adapter=0;Adapter<m_pDirect3D->GetAdapterCount();Adapter++)
+			{
+				D3DADAPTER_IDENTIFIER9 Identifier;
+				HRESULT Res;
+				Res = m_pDirect3D->GetAdapterIdentifier(Adapter,0,&Identifier);
+				if (strstr(Identifier.Description,"PerfHUD") != 0)
+				{
+					AdapterToUse=Adapter;
+					DeviceType=D3DDEVTYPE_REF;
+					break;
+				}
+			}
+#endif // SHIPPING_VERSION
+
 			hResult = m_pDirect3D->CreateDevice(
-				D3DADAPTER_DEFAULT,
-				D3DDEVTYPE_HAL,
+				AdapterToUse,
+				DeviceType,
 				_rWindowData.m_hWnd,
 				D3DCREATE_HARDWARE_VERTEXPROCESSING,
 				&oD3DPP,
