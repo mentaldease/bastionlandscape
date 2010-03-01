@@ -47,6 +47,15 @@ namespace BastionGame
 		bool CreateLoadRenderPass(LuaObjectRef _rLuaObject);
 		bool CreateLoadHierarchy(LuaObjectRef _rLuaObject);
 
+		bool InitSkyParameters();
+		void UpdateSkyParameters();
+		Vector4 Interpolate(Vector4 src, Vector4 dst, float factor);
+		Vector3 Interpolate(Vector3 src, Vector3 dst, float factor);
+		Vector4 GetSunColorWithIntensity(float zenithAngle);
+		Vector4 GetSunColor(float zenithAngle);
+		Vector4 ComputeSunAttenuation(float fTheta, int nTurbidity/* = 2*/);
+		float GetSunIntensity();
+
 	protected:
 		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable);
 		static CoreObjectPtr CreateClassShpere(LuaObjectRef _rTable);
@@ -56,7 +65,6 @@ namespace BastionGame
 
 		ApplicationRef				m_rApplication;
 		CoreObjectPtrMap			m_mHierarchy;
-		LandscapePtrMap				m_mLandscapes;
 		DisplayMaterialPtrMap		m_mMaterials;
 		DisplayTexturePtrMap		m_mAdditionalRTs;
 		DisplayCameraPtrMap			m_mCameras;
@@ -73,6 +81,9 @@ namespace BastionGame
 		DebugTextOverlayPtr			m_pUITextOverlay;
 		Key							m_uUIMainFontLabel;
 		Key							m_uUIRenderPass;
+
+		float						m_fDayTime;
+		float						m_fVerticalOffset;
 	};
 }
 

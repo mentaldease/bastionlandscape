@@ -256,6 +256,61 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class DisplayEffectParamWORLDVIEW : public DisplayEffectParam
+	{
+	public:
+		DisplayEffectParamWORLDVIEW(DisplayMaterialRef _rDisplayMaterial)
+		:	DisplayEffectParam(_rDisplayMaterial),
+			m_m4WorldView(),
+			m_pView(NULL),
+			m_pWorld(NULL)
+		{
+
+		}
+
+		virtual ~DisplayEffectParamWORLDVIEW()
+		{
+
+		}
+
+		virtual bool Use()
+		{
+			m_pView = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
+			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldMatrix();
+			if ((NULL != m_pWorld) && (NULL != m_pView))
+			{
+				D3DXMatrixMultiply(&m_m4WorldView, m_pWorld, m_pView);
+				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, &m_m4WorldView);
+				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
+		{
+			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
+			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDVIEW(*(pDEPCInfo->m_pDisplayMaterial));
+			if (false == pParam->Create(_rConfig))
+			{
+				pParam->Release();
+				delete pParam;
+				pParam = NULL;
+			}
+			return pParam;
+		}
+
+	protected:
+		Matrix		m_m4WorldView;
+		MatrixPtr	m_pView;
+		MatrixPtr	m_pWorld;
+
+	private:
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class DisplayEffectParamVIEWINV : public DisplayEffectParam
 	{
 	public:

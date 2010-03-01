@@ -5,7 +5,7 @@ float3 oneOverRayleighMie	: SKY_ONEOVERRAYLEIGHMIE;	// 1 / (betaRayleigh + betaM
 float3 betaDashRayleigh		: SKY_BETADASHRAYLEIGH;		// 3/16PI * betaRayleigh
 float3 betaDashMie			: SKY_BETADASHMIE;			// 1/4PI * betaMie
 float3 hgData				: SKY_HGDATA;				// optimisation for Henyey-Greenstein phase function (Mie scattering)
-float3 skyDistance			: SKY_DISTANCE;				// TODO : sky distance (for terrain blending with sky)
+//float3 skyDistance			: SKY_DISTANCE;				// TODO : sky distance (for terrain blending with sky)
 float3 eyePos				: CAMERAPOS;				// camera position (world coordinates)
 float4x4 matWorld			: WORLD;					// World matrix
 float4x4 matWorldView		: WORLDVIEW;				// World * View matrix
@@ -52,8 +52,8 @@ SCATTERING_OUTPUT ScatteringVS( float3 vPos : POSITION, float3 Norm : NORMAL, fl
     float3 extinction = exp(-(betaRayleigh+betaMie)* s);  // * log2 e ???
 
 
-    // float3 betaReyleighTheta = betaDashRayleigh * (1.0 + cosTheta * cosTheta); // this is correct but not nice
-    float3 betaReyleighTheta = betaDashRayleigh * (2.0 + 0.5 * cosTheta * cosTheta); // adjusted to avoid dark band effect
+    float3 betaReyleighTheta = betaDashRayleigh * (1.0 + cosTheta * cosTheta); // this is correct but not nice
+    //float3 betaReyleighTheta = betaDashRayleigh * (2.0 + 0.5 * cosTheta * cosTheta); // adjusted to avoid dark band effect
     // here we use + to correct sign between hgData.y and hgData.z
     float3 betaMieTheta = betaDashMie * (hgData.x / pow( (hgData.y + hgData.z * cosTheta), 1.5));
     
@@ -78,24 +78,23 @@ SCATTERING_OUTPUT2 ScatteringVS2( float3 vPos : POSITION, float3 Norm : NORMAL, 
 {
     SCATTERING_OUTPUT2 Output;
     
-    Output.Position = mul(float4(vPos, 1.0), matWorldViewProj); 
-	Output.Position.z = Output.Position.w-0.5;
+    Output.Position = mul(float4(vPos, 1.0f), matWorldViewProj); 
+	Output.Position.z = Output.Position.w - 0.5f;
 
-    float s = mul(float4(vPos, 1.0), matWorldView).z/10.0;
+    float s = mul(float4(vPos, 1.0f), matWorldView).z / 5.0f;
     
     // computing extinction = absorption + out scattering
     float3 extinction = exp(-(betaRayleigh+betaMie)* s);  // * log2 e ???
     
     // computing in scattering
-    float3 worldPos = mul(float4(vPos, 1.0), matWorld);
+    float3 worldPos = mul(float4(vPos, 1.0f), matWorld);
     float3 viewDir = eyePos - worldPos;
     
     
-    float3 inScattering = (1.0 - extinction);
+    float3 inScattering = (1.0f - extinction);
     inScattering *= oneOverRayleighMie;
-    
-    
-    inScattering *= 0.3;                    // in scattering multiplier
+
+    inScattering *= 0.3f;                   // in scattering multiplier
     inScattering *= sunColorIntensity.xyz;  // color
     inScattering *= sunColorIntensity.w ;   // intensity
     

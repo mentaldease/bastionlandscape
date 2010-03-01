@@ -1,9 +1,9 @@
-float4x4 matWorldViewProj : WORLDVIEWPROJ;    // World * View * Projection matrix
+float4x4 matWorldViewProj 	: WORLDVIEWPROJ;    // World * View * Projection matrix
 float dayTime;
-float3 sunPosition;
-float HazeIntensity = 1.0f;
-float HazeHeight = 1.0f;
-float3 HazeColor = float3(0.96f, 0.27f, 0.0f);
+float3 sunPosition			: SKY_SUNPOSITION;
+float HazeIntensity			: SKY_HAZEINTENSITY;
+float HazeHeight			: SKY_HAZEHEIGHT;
+float3 HazeColor			: SKY_HAZECOLOR;
 
 #include "scattering.fxh"
 
@@ -123,20 +123,18 @@ float4 SkyDomeScatteringPS2(SCATTERING_OUTPUT2 psIn) : COLOR
     // not be sufficient for flight simulators)  
     
     float cosTheta = dot(normalize(psIn.ViewDir), sunPosition);   
-    //float3 betaReyleighTheta = betaDashRayleigh * (2.0 + 0.5 * cosTheta * cosTheta); // adjusted to avoid dark band effect
-    float3 betaReyleighTheta = betaDashRayleigh * (1.0 + cosTheta * cosTheta); 
-    float3 betaMieTheta = betaDashMie * (hgData.x / pow( (hgData.y + hgData.z * cosTheta), 1.5));
+    //float3 betaReyleighTheta = betaDashRayleigh * (2.0f + 0.5f * cosTheta * cosTheta); // adjusted to avoid dark band effect
+    float3 betaReyleighTheta = betaDashRayleigh * (1.0f + cosTheta * cosTheta); 
+    float3 betaMieTheta = betaDashMie * (hgData.x / pow( (hgData.y + hgData.z * cosTheta), 1.5f));
     float3 finalInScattering = (betaReyleighTheta + betaMieTheta) * psIn.InScattering;
     
     
     // gradient on horizon
-    
-	float hazeDot = dot(float3(0,1,0), normalize(psIn.ViewDir-float3(0,1000,0)));
+	float hazeDot = dot(float3(0.0f, 1.0f, 0.0f), normalize(psIn.ViewDir-float3(0.0f, 1000.0f, 0.0f)));
 	float hazeFactor = abs(hazeDot*HazeHeight);
 	float3 hazeFinalColor = HazeColor * (exp(-hazeFactor*10));	
-	
     
-    return float4(saturate(finalInScattering+hazeFinalColor*HazeIntensity), 1.0);
+    return float4(saturate(finalInScattering+hazeFinalColor*HazeIntensity), 1.0f);
 }
     
     
@@ -237,11 +235,10 @@ technique SkyDomeScattering
 technique SkyDomeScatteringPerPixel
 {
     pass P0
-    {          
+    {
+		//FillMode = Wireframe;
         VertexShader = compile vs_3_0 ScatteringVS2();
         PixelShader  = compile ps_3_0 SkyDomeScatteringPS2();
-		
-		
     }
 
 }
