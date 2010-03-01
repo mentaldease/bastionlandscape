@@ -77,7 +77,7 @@ scenetest00 =
 			position = { 0.0, 0.0, 0.0, },
 			rotation = { 0.0, 0.0, 0.0, },
 			horiz_slices = 10,
-			vert_slices = 10,
+			vert_slices = 100,
 			color = { 26.0 / 255.0, 103.0 / 255.0, 149.0 / 255.0, 1.0 },
 			target_pass = "scene",
 		},

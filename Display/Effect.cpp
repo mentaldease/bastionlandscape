@@ -151,6 +151,7 @@ namespace ElixirEngine
 			}
 			else
 			{
+				m_mSemantics[0] = string("");
 				GetParameters();
 			}
 
@@ -175,6 +176,8 @@ namespace ElixirEngine
 			m_pEffect->Release();
 			m_pEffect = NULL;
 		}
+		m_mSemantics.clear();
+		m_mHandles.clear();
 	}
 
 	void DisplayEffect::RenderRequest(DisplayMaterialPtr _pDisplayMaterial)
@@ -216,6 +219,16 @@ namespace ElixirEngine
 		return m_mHandles;
 	}
 
+	const string& DisplayEffect::GetNameBySemanticKey(const Key& _uKey)
+	{
+		map<Key, string>::const_iterator iPair = m_mSemantics.find(_uKey);
+		if (m_mSemantics.end() != iPair)
+		{
+			return iPair->second;
+		}
+		return m_mSemantics[0];
+	}
+
 	bool DisplayEffect::GetParameters()
 	{
 		EffectDesc oEffectDesc;
@@ -249,6 +262,7 @@ namespace ElixirEngine
 					break;
 				}
 				m_mHandles[uSemanticKey] = hParam;
+				m_mSemantics[uSemanticKey] = string(oParamDesc.Semantic);
 			}
 		}
 
@@ -404,6 +418,7 @@ namespace ElixirEngine
 				DisplayEffectParamPtr pParam = m_rMaterialManager.CreateParam(uSemanticKey, boost::any(&oDEPCInfo));
 				if (NULL == pParam)
 				{
+					const string& rstrName = m_pEffect->GetNameBySemanticKey(uSemanticKey);
 					bResult = false;
 					break;
 				}
@@ -457,10 +472,9 @@ namespace ElixirEngine
 		Release();
 
 		m_vDefaultParamKeys.resize(ECommonParamSemantic_COUNT);
-		int a[] = { 0, 1, 2, 3 };
-		std::string aDefaultNames[] =
+		std::string aDefaultNames[ECommonParamSemantic_COUNT] =
 		{
-			"WORLDVIEWPROJ", "WORLD", "VIEW", "VIEWINV", "VIEWPROJ", "PROJ", "WORLDINVTRANSPOSE",
+			"WORLDVIEWPROJ", "WORLD", "VIEW", "WORLDVIEW", "VIEWINV", "VIEWPROJ", "PROJ", "WORLDINVTRANSPOSE",
 			"ENVIRONMENTTEX", "NORMALTEX", "DIFFUSETEX", "CAMERAPOS", "FRUSTUMCORNERS", "DIFFUSECOLOR",
 			"RT2D00", "RT2D01", "RT2D02", "RT2D03", "RT2D04", "RT2D05", "RT2D06", "RT2D07",
 			"ORT2D00", "ORT2D01", "ORT2D02", "ORT2D03", "ORT2D04", "ORT2D05", "ORT2D06", "ORT2D07",
@@ -477,6 +491,7 @@ namespace ElixirEngine
 		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_WORLDVIEWPROJ]] = boost::bind(&DisplayEffectParamWORLDVIEWPROJ::CreateParam, _1);
 		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_WORLD]] = boost::bind(&DisplayEffectParamWORLD::CreateParam, _1);
 		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_VIEW]] = boost::bind(&DisplayEffectParamVIEW::CreateParam, _1);
+		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_WORLDVIEW]] = boost::bind(&DisplayEffectParamWORLDVIEW::CreateParam, _1);
 		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_VIEWINV]] = boost::bind(&DisplayEffectParamVIEWINV::CreateParam, _1);
 		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_VIEWPROJ]] = boost::bind(&DisplayEffectParamVIEWPROJ::CreateParam, _1);
 		m_mParamCreators[m_vDefaultParamKeys[ECommonParamSemantic_PROJ]] = boost::bind(&DisplayEffectParamPROJ::CreateParam, _1);

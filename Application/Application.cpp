@@ -209,6 +209,18 @@ namespace BastionGame
 			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX05")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
 			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX06")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
 			pMaterialManager->RegisterParamCreator(MakeKey(string("USERMATRIX07")), boost::bind(&DisplayEffectParamMATRIX::CreateParam, _1));
+			// sky
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_BETARAYLEIGH")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_BETAMIE")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_SUNCOLORINTENSITY")), boost::bind(&DisplayEffectParamVECTOR4::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_ONEOVERRAYLEIGHMIE")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_BETADASHRAYLEIGH")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_BETADASHMIE")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_HGDATA")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_SUNPOSITION")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_HAZEINTENSITY")), boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_HAZEHEIGHT")), boost::bind(&DisplayEffectParamFLOAT::CreateParam, _1));
+			pMaterialManager->RegisterParamCreator(MakeKey(string("SKY_HAZECOLOR")), boost::bind(&DisplayEffectParamVECTOR3::CreateParam, _1));
 
 			pMaterialManager->SetFloatBySemantic(MakeKey(string("TIME")), &m_fRelativeTime);
 		}
@@ -323,6 +335,18 @@ namespace BastionGame
 		DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
 		if (NULL != pMaterialManager)
 		{
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_BETARAYLEIGH")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_BETAMIE")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_SUNCOLORINTENSITY")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_ONEOVERRAYLEIGHMIE")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_BETADASHRAYLEIGH")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_BETADASHMIE")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_HGDATA")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_SUNPOSITION")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_HAZEINTENSITY")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_HAZEHEIGHT")));
+			pMaterialManager->UnregisterParamCreator(MakeKey(string("SKY_HAZECOLOR")));
+
 			pMaterialManager->UnregisterParamCreator(MakeKey(string("TIME")));
 			pMaterialManager->UnregisterParamCreator(MakeKey(string("LIGHTDIR")));
 			pMaterialManager->UnregisterParamCreator(MakeKey(string("NOISETEX")));
@@ -396,6 +420,11 @@ namespace BastionGame
 		return m_pDisplay;
 	}
 
+	const float& Application::GetDeltaTime() const
+	{
+		return m_fElapsedTime;
+	}
+
 	void Application::LoadScene()
 	{
 		if (NULL == m_pScene)
@@ -425,13 +454,12 @@ namespace BastionGame
 
 	void Application::RenderScene()
 	{
-		float fElapsedTime;
-		if (m_pTime->ResetTimer(m_uRLTimerID, fElapsedTime))
+		if (m_pTime->ResetTimer(m_uRLTimerID, m_fElapsedTime))
 		{
-			fElapsedTime /= 1000.0f;
-			m_fRelativeTime += fElapsedTime;
+			m_fElapsedTime /= 1000.0f;
+			m_fRelativeTime += m_fElapsedTime;
 			m_pInput->Update();
-			UpdateSpectatorCamera(fElapsedTime);
+			UpdateSpectatorCamera(m_fElapsedTime);
 			m_pDisplay->UpdateRequest(m_pScene);
 			m_pDisplay->Update();
 		}

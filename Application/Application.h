@@ -44,6 +44,7 @@ namespace BastionGame
 		const WindowData& GetWindowData() const;
 
 		DisplayPtr GetDisplay();
+		const float& GetDeltaTime() const;
 
 	protected:
 		typedef boost::function<void()> UpdateFunction;
@@ -71,6 +72,7 @@ namespace BastionGame
 		TimePtr						m_pTime;
 		unsigned int				m_uRLTimerID;
 		float						m_fRelativeTime;
+		float						m_fElapsedTime;
 		float						m_fCameraMoveSpeed;
 		unsigned char				m_aKeysInfo[256];
 		unsigned char				m_aKeysInfoOld[256];

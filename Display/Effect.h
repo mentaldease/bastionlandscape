@@ -63,11 +63,13 @@ namespace ElixirEngine
 
 		Handle GetHandleBySemanticKey(const Key& _uKey);
 		HandleMapRef GetHandles();
+		const string& GetNameBySemanticKey(const Key& _uKey);
 
 	protected:
 		bool GetParameters();
 
 	protected:
+		map<Key, string>		m_mSemantics;
 		DisplayRef				m_rDisplay;
 		EffectPtr				m_pEffect;
 		DisplayMaterialPtrVec	m_vRenderList;
@@ -134,6 +136,7 @@ namespace ElixirEngine
 			ECommonParamSemantic_WORLDVIEWPROJ,
 			ECommonParamSemantic_WORLD,
 			ECommonParamSemantic_VIEW,
+			ECommonParamSemantic_WORLDVIEW,
 			ECommonParamSemantic_VIEWINV,
 			ECommonParamSemantic_VIEWPROJ,
 			ECommonParamSemantic_PROJ,

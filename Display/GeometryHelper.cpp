@@ -269,14 +269,17 @@ namespace ElixirEngine
 			}
 
 			pVertex = pVertexData;
+			const float fNormalDir = (false == _rInfo.m_bViewFromInside) ? 1.0f : -1.0f;
 			for (UInt i = 0 ; m_uVertexCount > i ; ++i)
 			{
 				D3DXVec3Normalize(&pVertex->m_oNormal, &pVertex->m_oPosition);
+				pVertex->m_oNormal *= fNormalDir;
 				pVertex->m_oPosition.x *= _rInfo.m_oRadius.x;
 				pVertex->m_oPosition.y *= _rInfo.m_oRadius.y;
 				pVertex->m_oPosition.z *= _rInfo.m_oRadius.z;
 				++pVertex;
 			}
+
 
 			m_pVertexBuffer->Set(pVertexData);
 			delete[] pVertexData;
