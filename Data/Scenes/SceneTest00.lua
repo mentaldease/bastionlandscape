@@ -53,7 +53,7 @@ scenetest00 =
 	{
 		{
 			class = "landscape",
-			name = "ground",
+			name = "ground00",
 			vertex_format = "default",
 			material = "terrain04",
 			grid_size = 16,
@@ -67,8 +67,8 @@ scenetest00 =
 			target_pass = "scene",
 		},
 		{
-			class = "sphere",
-			name = "sky",
+			class = "sky",
+			name = "sky00",
 			material = "sky",
 			size = { 2000.0, 2000.0, 2000.0 },
 			bottom_hemisphere = true,

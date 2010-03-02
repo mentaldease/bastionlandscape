@@ -36,6 +36,9 @@ namespace BastionGame
 		void PreUpdate();
 		void DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _f4Color);
 
+		ApplicationRef GetApplication();
+		Vector4 GetLightDir();
+
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
 		bool CreateLoadRenderTargets(LuaObjectRef _rLuaObject);
@@ -47,18 +50,10 @@ namespace BastionGame
 		bool CreateLoadRenderPass(LuaObjectRef _rLuaObject);
 		bool CreateLoadHierarchy(LuaObjectRef _rLuaObject);
 
-		bool InitSkyParameters();
-		void UpdateSkyParameters();
-		Vector4 Interpolate(Vector4 src, Vector4 dst, float factor);
-		Vector3 Interpolate(Vector3 src, Vector3 dst, float factor);
-		Vector4 GetSunColorWithIntensity(float zenithAngle);
-		Vector4 GetSunColor(float zenithAngle);
-		Vector4 ComputeSunAttenuation(float fTheta, int nTurbidity/* = 2*/);
-		float GetSunIntensity();
-
 	protected:
-		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable);
-		static CoreObjectPtr CreateClassShpere(LuaObjectRef _rTable);
+		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable, ScenePtr _pScene);
+		static CoreObjectPtr CreateClassShpere(LuaObjectRef _rTable, ScenePtr _pScene);
+		static CoreObjectPtr CreateClassSky(LuaObjectRef _rTable, ScenePtr _pScene);
 
 	protected:
 		static CreateClassFuncMap	s_mClasses;
@@ -70,7 +65,7 @@ namespace BastionGame
 		DisplayCameraPtrMap			m_mCameras;
 		DisplayRenderPassPtrMap		m_mRenderPasses;
 		DisplayRenderPassPtrVec		m_vRenderPasses;
-		Vector4						m_oLightDir;
+		Vector4						m_f4LightDir;
 		WaterDataPtr				m_pWaterData;
 		UInt						m_uWaterDataCount;
 		string						m_strName;
