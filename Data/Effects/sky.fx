@@ -130,6 +130,7 @@ float4 SkyDomeScatteringPS2(SCATTERING_OUTPUT2 psIn) : COLOR
     
     
     // gradient on horizon
+	//float3 HazeColorTest = float3(1.0f, 1.0f, 1.0);
 	float hazeDot = dot(float3(0.0f, 1.0f, 0.0f), normalize(psIn.ViewDir-float3(0.0f, 1000.0f, 0.0f)));
 	float hazeFactor = abs(hazeDot*HazeHeight);
 	float3 hazeFinalColor = HazeColor * (exp(-hazeFactor*10));	

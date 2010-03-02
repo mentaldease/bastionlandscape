@@ -37,7 +37,7 @@ namespace BastionGame
 		m_pUITextOverlay(NULL),
 		m_uUIMainFontLabel(0),
 		m_uUIRenderPass(0),
-		m_fDayTime(12.0f * 60.0f),
+		m_fDayTime(0.0f),
 		m_fVerticalOffset(0.0f)
 	{
 
@@ -567,6 +567,9 @@ namespace BastionGame
 				}
 
 				m_mHierarchy[uObjectNameKey] = pObject;
+
+				// hack....
+				Scripting::Lua::Get(oObject, "daytime", m_fDayTime, m_fDayTime);
 			}
 		}
 

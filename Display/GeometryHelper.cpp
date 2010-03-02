@@ -140,9 +140,6 @@ namespace ElixirEngine
 		{
 			const UInt uNormalStripSize = 2 + _rInfo.m_uVertSlices * 2;
 			const UInt uStripLink = 2;
-			//m_uFanToStripSize = 2 * ((_rInfo.m_uVertSlices + 1) / 3) + _rInfo.m_uVertSlices + 2; // thanks to msimon for the formula
-			//m_uFanToStripSize = 3 * ((_rInfo.m_uVertSlices + 1) / 3) + _rInfo.m_uVertSlices + 3; // msimon adapted formula
-			//m_uFanToStripSize = 4 * _rInfo.m_uVertSlices;
 			m_uFanToStripSize = 2 * (_rInfo.m_uVertSlices + 1);
 			m_uIndexCount = uHemisphereCount * m_uFanToStripSize;
 			m_uIndexCount += uHemisphereCount * (uNormalStripSize * (_rInfo.m_uHorizSlices - 1));
