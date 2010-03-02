@@ -15,6 +15,10 @@ namespace BastionGame
 	typedef Scene* ScenePtr;
 	typedef Scene& SceneRef;
 
+	class Sky;
+	typedef Sky* SkyPtr;
+	typedef Sky& SkyRef;
+
 	class CameraListener;
 	typedef CameraListener* CameraListenerPtr;
 	typedef CameraListener& CameraListenerRef;
@@ -27,7 +31,7 @@ namespace BastionGame
 	typedef DebugTextOverlay* DebugTextOverlayPtr;
 	typedef DebugTextOverlay& DebugTextOverlayRef;
 
-	typedef boost::function<CoreObjectPtr (LuaObjectRef _rLuaObject)> CreateClassFunc;
+	typedef boost::function<CoreObjectPtr (LuaObjectRef _rLuaObject, ScenePtr _pScene)> CreateClassFunc;
 	typedef map<Key, CreateClassFunc> CreateClassFuncMap;
 }
 

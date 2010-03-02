@@ -98,6 +98,15 @@ Gameplay :
 		- achievements multijoueurs :
 			+ gagner 1, 50, 100, 500, 1000 parties multijoueurs.
 			+ gagner 5, 10, 20, (30, 50) parties multijoueurs d'affilé.
+	* Gestion des renforts :
+		- Les renforts arrivent à un T temps fixe.
+		- à intervalle régulier chaque joueur gagne 1 point de renfort.
+		- Un bâtiment nécessite une certaine quantité de points de renfort pour arriver en jeu.
+		- Avant que T arrive à son terme, le joueur peut assigner les points de renforts à sa disposition pour choisir quels bâtiments
+		entreront en jeu. Les assignations ne sont pas définitives, il est possible de changer d'avis tant que T n'est pas arrivé à son terme.
+		- A noter que certains talents permettent de réduire T (logistique) et donc d'obtenir des renforts pour souvent
+		ou d'augmenter la quantité que points de disponibles entre chaque intervalle T.
+		(réfléchir sur la possibilité de trouver un item spécial qui permette d'avoir l'un ou les deux effets pendant un temps limité).
 
 Network/communications :
 	* les interactions des joueurs(ordinateurs/humains) passent par un système de messages/événements.
@@ -110,6 +119,7 @@ Network/communications :
 
 UI :
 	* Création et interaction via scripts lua.
+	* Mise à jour de l'interface via un système d'événements.
 	* 2 modes d'exécution :
 		- safe : interfaces d'origine.
-		- unsafe : interfaces tiers.
+		- unsafe : interfaces tiers avec possibilité de générer des événements personnalisés.

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Application/Application.h"
 #include "../Application/Scene.h"
+#include "../Application/Sky.h"
 #include "../Application/DebugTextOverlay.h"
 #include "../Core/Scripting.h"
 #include "../Core/Util.h"
@@ -26,7 +27,7 @@ namespace BastionGame
 		m_mCameras(),
 		m_mRenderPasses(),
 		m_vRenderPasses(),
-		m_oLightDir(0.0f, 0.0f, 0.0f, 0.0f),
+		m_f4LightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
 		m_uWaterDataCount(0),
 		m_strName(),
@@ -91,9 +92,9 @@ namespace BastionGame
 		{
 			pMaterialManager->SetFloatBySemantic(m_uWaterLevelKey, &m_fWaterLevel);
 			pMaterialManager->SetStructBySemantic(m_uWaterDataKey, m_pWaterData, WATER_COUNT * sizeof(WaterData));
-			m_oLightDir = Vector4(0.0f, -1.0f, 0.0f, 0.0f);
-			D3DXVec4Normalize(&m_oLightDir, &m_oLightDir);
-			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_oLightDir);
+			m_f4LightDir = Vector4(0.0f, -1.0f, 0.0f, 0.0f);
+			D3DXVec4Normalize(&m_f4LightDir, &m_f4LightDir);
+			pMaterialManager->SetVector4BySemantic(MakeKey(string("LIGHTDIR")), &m_f4LightDir);
 		}
 
 		if (false != bResult)
@@ -117,7 +118,6 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			m_rApplication.GetDisplay()->AddRenderPasses(m_vRenderPasses);
-			InitSkyParameters();
 		}
 
 
@@ -126,8 +126,6 @@ namespace BastionGame
 
 	void Scene::Update()
 	{
-		UpdateSkyParameters();
-
 		{
 			CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
 			CoreObjectPtrMap::iterator iEnd = m_mHierarchy.end();
@@ -231,6 +229,16 @@ namespace BastionGame
 				m_pUITextOverlay->DrawRequest(_fX, _fY, uFontLabelKey, _wstrText, _f4Color);
 			}
 		}
+	}
+
+	ApplicationRef Scene::GetApplication()
+	{
+		return m_rApplication;
+	}
+
+	Vector4 Scene::GetLightDir()
+	{
+		return m_f4LightDir;
 	}
 
 	bool Scene::CreateFromLuaConfig(Scene::CreateInfoPtr _pInfo)
@@ -551,7 +559,7 @@ namespace BastionGame
 				}
 
 				CreateClassFunc& pCreateClass = iPair->second;
-				CoreObjectPtr pObject = pCreateClass(oObject);
+				CoreObjectPtr pObject = pCreateClass(oObject, this);
 				bResult = (NULL != pObject);
 				if (false == bResult)
 				{
@@ -565,334 +573,14 @@ namespace BastionGame
 		return bResult;
 	}
 
-	bool Scene::InitSkyParameters()
-	{
-		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-		bool bResult = true;
-
-		// wavelenghts
-		double lambdaRed = 650e-9;
-		double lambdaGreen = 570e-9;
-		double lambdaBlue = 475e-9;
-
-
-		// multipliers
-		float rayleighMultiplier = 0.4f;
-		float mieMultiplier = 0.00009999f;
-
-
-		//// Rayleigh total factor ////
-
-		// refractive index of air
-		double n = 1.003;
-		// molecular density of air
-		double N = 2.545e25;
-		// depolarization factor
-		double pn = 0.035;
-
-
-
-		Vector3 betaRayleigh;
-		betaRayleigh.x = (float)(1.0 / (3.0 * N * lambdaRed * lambdaRed * lambdaRed * lambdaRed));
-		betaRayleigh.y = (float)(1.0 / (3.0 * N * lambdaGreen * lambdaGreen * lambdaGreen * lambdaGreen));
-		betaRayleigh.z = (float)(1.0 / (3.0 * N * lambdaBlue * lambdaBlue * lambdaBlue * lambdaBlue));
-
-		betaRayleigh *= (float)(8.0 * D3DX_PI * D3DX_PI * D3DX_PI * (n * n - 1.0) * (n * n - 1.0));
-		betaRayleigh *= (float)((6 + 3 * pn) / (6 - 7 * pn));
-		// test
-		//betaRayleigh = new Vector3(6.95f * 10e-6f, 1.18f * 10e-5f, 2.44f * 10e-5f);
-
-		static Vector3 f3SkyBetaRayleigh = betaRayleigh * rayleighMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETARAYLEIGH")), &f3SkyBetaRayleigh);
-
-		static Vector3 betaDashRayleigh = (3.0f * betaRayleigh / (float)(16.0 * D3DX_PI));
-		static Vector3 fSkyBetaDashRayleigh = betaDashRayleigh * rayleighMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETADASHRAYLEIGH")), &fSkyBetaDashRayleigh);
-
-
-		//// Mie total factor ////
-
-		// turbidity of air
-		double T = 2.0;
-		// concentration factor (dependent on tubidity)
-		double c = (6.544 * T - 6.51) * 1e-17;
-		//double c = (0.6544 * T - 0.6510) * 10e-16;
-		// K factor (varies with lambda)
-		double kRed = 0.685;
-		double kGreen = 0.679;
-		double kBlue = 0.67;
-
-		Vector3 betaMie;
-		betaMie.x = (float)((1.0 / (lambdaRed * lambdaRed)) * kRed);
-		betaMie.y = (float)((1.0 / (lambdaGreen * lambdaGreen)) * kGreen);
-		betaMie.z = (float)((1.0 / (lambdaBlue * lambdaBlue)) * kBlue);
-
-		betaMie *= (float)(0.434 * c * D3DX_PI * ((4 * D3DX_PI * D3DX_PI)));
-
-		// test
-		//betaMie = new Vector3(8f * 10e-5f, 10e-4f, 1.2f * 10e-4f);
-
-		static Vector3 f3SkyBetaMie = betaMie * mieMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETAMIE")), &f3SkyBetaMie);
-
-		//Vector3 betaDashMie = ((float)(1.0 / (4.0 * D3DX_PI)) * betaMie);
-		Vector3 betaDashMie = ((float)(1.0 / (4.0 * D3DX_PI)) * betaMie);
-		betaDashMie.x = (float)(1.0 / (lambdaRed * lambdaRed));
-		betaDashMie.y = (float)(1.0 / (lambdaGreen * lambdaGreen));
-		betaDashMie.z = (float)(1.0 / (lambdaBlue * lambdaBlue));
-		betaDashMie *= (float)(0.434 * c * (4 * D3DX_PI * D3DX_PI) * 0.5f);
-
-		static Vector3 f3SkyBetaDashMie = betaDashMie * mieMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETADASHMIE")), &f3SkyBetaDashMie);
-
-
-		Vector3 oneOverRayleighMie;
-		oneOverRayleighMie.x = (1.0f / (betaRayleigh.x * rayleighMultiplier + betaMie.x * mieMultiplier));
-		oneOverRayleighMie.y = (1.0f / (betaRayleigh.y * rayleighMultiplier + betaMie.y * mieMultiplier));
-		oneOverRayleighMie.z = (1.0f / (betaRayleigh.z * rayleighMultiplier + betaMie.z * mieMultiplier));
-
-		static Vector3 f3SkyOneOverRayleighMie = oneOverRayleighMie;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_ONEOVERRAYLEIGHMIE")), &f3SkyOneOverRayleighMie);
-
-
-		// optimisation for Henyey-Greenstein phase function (Mie scattering)
-		float g = 0.95f;
-		Vector3 hgData = Vector3((1.0f - g * g), (1.0f + g * g), (2.0f * g));
-
-		static Vector3 f3SkyHgData = hgData;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_HGDATA")), &f3SkyHgData);
-
-		// Sun color * intensity
-		static Vector4 f4SkySunColorIntensity = Vector4(1.0f ,1.0f, 1.0f, 1.0f);
-		pMaterialManager->SetVector4BySemantic(MakeKey(string("SKY_SUNCOLORINTENSITY")), &f4SkySunColorIntensity);
-
-		return bResult;
-	}
-
-	void Scene::UpdateSkyParameters()
-	{
-		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-		DisplayCameraPtr pCamera = m_rApplication.GetDisplay()->GetCurrentCamera();
-
-		m_fDayTime += m_rApplication.GetDeltaTime();// * 60.0f;
-		const float fMaxDayTime = 24.0f * 60.0f;
-		while (m_fDayTime > fMaxDayTime)
-		{
-			m_fDayTime -= fMaxDayTime;
-		}
-
-		static Vector3 f3Pos;
-		static float fPosY;
-
-		f3Pos = pCamera->GetPosition();
-		fPosY += m_fVerticalOffset;
-
-		// sun position (starts at 0 h)
-		static Vector3 f3SunPosition;
-		f3SunPosition = Vector3(0.0f, -1.0f, 0.0f);
-		f3SunPosition = Vector3(m_oLightDir.x, m_oLightDir.y, m_oLightDir.z);
-
-		float sunAngle = (float)(2 * D3DX_PI / 1440.0f * m_fDayTime);
-
-		Matrix m3Temp;
-		Vector4 f4Temp;
-		D3DXVec3Transform(&f4Temp, &f3SunPosition, D3DXMatrixRotationZ(&m3Temp, sunAngle));
-		f3SunPosition = Vector3(f4Temp.x, f4Temp.y, f4Temp.z);
-
-		//shader.SetVariable("dayTime", m_fDayTime / 1440.0f); // optim
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_SUNPOSITION")), &f3SunPosition);
-
-		// when sun visible we scale to fit between PI/2 and 3PI/4 (1.57 and 2.35)
-		// in order to obtain a nice sunset/sunrise
-		float bestAngleEast = 2.0f;
-		float bestAngleWest = 1.7f;
-
-		float zenithAngle = (float)D3DX_PI - sunAngle;
-		if (zenithAngle > 0)
-		{
-			if ((float)fabs(zenithAngle) > bestAngleEast)
-			{
-				// sun hidden -> avoid white color (PI/2 is black)
-				zenithAngle = (float)D3DX_PI / 2.0f;
-			}
-			else
-			{
-				// sun visible : scale to fit
-				zenithAngle = zenithAngle * ((float)D3DX_PI / 2.0f) / bestAngleEast;
-			}
-		}
-		else
-		{
-			if ((float)fabs(zenithAngle) > bestAngleWest)
-			{
-				// sun hidden -> avoid white color (PI/2 is black)
-				zenithAngle = (float)D3DX_PI / 2.0f;
-			}
-			else
-			{
-				// sun visible : scale to fit
-				zenithAngle = zenithAngle * ((float)D3DX_PI / 2.0f) / bestAngleWest;
-			}
-		}
-		static Vector4 f4SunColorIntensity;
-		f4SunColorIntensity = GetSunColorWithIntensity(zenithAngle);
-		pMaterialManager->SetVector4BySemantic(MakeKey(string("SKY_SUNCOLORINTENSITY")), &f4SunColorIntensity);
-
-		// haze color
-		static Vector3 f3HazeColor;
-		static float HazeHeight;
-		static float HazeIntensity;
-
-		HazeHeight = 1.0f;
-		HazeIntensity = 1.0f;
-
-		Vector4 f4HazeColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-
- 		if (m_fDayTime >= 17.0f * 60.0f && m_fDayTime <= 19.0f * 60.0f)
- 		{
- 			//Vector4 SunSetColor = Vector4(0.96f, 0.27f, 0, 1);
- 			Vector4 SunSetColor = Vector4(0.99f, 0.619f, 0.176f, 1);
- 
- 			if (m_fDayTime <= 18.0f * 60.0f)
- 			{
- 				float factor = m_fDayTime * 0.016666666f - 17.0f;
- 				f4HazeColor = Interpolate(f4HazeColor, SunSetColor, factor);
- 				HazeHeight = 1.0f - factor*0.9f;
- 			}
- 			else
- 			{
- 
- 				float factor = m_fDayTime * 0.016666666f - 18.0f;
- 				f4HazeColor = Interpolate(SunSetColor, f4HazeColor, factor);
- 				HazeHeight = 0.1f + factor * 0.9f;
- 			}
- 
- 		}
-		f3HazeColor = Vector3(f4HazeColor.x, f4HazeColor.y, f4HazeColor.z);
-
-		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEHEIGHT")), &HazeHeight);
-		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEINTENSITY")), &HazeIntensity);
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_HAZECOLOR")), &f3HazeColor);
-
-// 		if (OverrideBrumeLightning)
-// 		{
-// 			if (brume.DirectionalLight == null)
-// 				brume.DirectionalLight = new BrumeDirectionalLight("SkyDomeLight", BrumeVector.XAXIS, BrumeVector.YAXIS, Color.White);
-// 
-// 			brume.DirectionalLight.Dir = sunPosition;
-// 
-// 			int ambientIntensity = 0;
-// 			if (m_fDayTime >= 17.0f * 60.0f && m_fDayTime <= 19.0f * 60.0f)
-// 			{
-// 				float factor = (m_fDayTime * 0.016666666f - 17.0f)*0.5f;
-// 				ambientIntensity = (int)(128 * (1.0f - factor));
-// 			}
-// 			else if (m_fDayTime >= 6.0f * 60.0f && m_fDayTime <= 8.0f * 60.0f)
-// 			{
-// 				float factor = (m_fDayTime * 0.016666666f - 6.0f) * 0.5f;
-// 				ambientIntensity = (int)(128 * factor);
-// 			}
-// 			else if (m_fDayTime > 8.0f * 60.0f && m_fDayTime < 17.0f * 60.0f)
-// 			{
-// 				// day
-// 				ambientIntensity = 128;
-// 			}
-// 			else
-// 			{
-// 				// night
-// 				ambientIntensity = 0;
-// 			}
-// 
-// 			brume.GlobalAmbientLight = Color.FromArgb(255, ambientIntensity, ambientIntensity, ambientIntensity);
-// 
-// 			brume.DirectionalLight.Diffuse = Color.FromArgb((int)(f4HazeColor.W * (127.0f + ambientIntensity)), (int)(f4HazeColor.X * (127.0f + ambientIntensity)), (int)(f4HazeColor.Y * (127.0f + ambientIntensity)), (int)(f4HazeColor.Z * (127.0f + ambientIntensity)));
-// 
-// 		}
-	}
-
-	Vector4 Scene::Interpolate(Vector4 src, Vector4 dst, float factor)
-	{
-		Vector4 res;
-		res.x = src.x * (1.0f - factor) + dst.x * factor;
-		res.y = src.y * (1.0f - factor) + dst.y * factor;
-		res.z = src.z * (1.0f - factor) + dst.z * factor;
-		res.w = src.w * (1.0f - factor) + dst.w * factor;
-		return res;
-	}
-
-	Vector3 Scene::Interpolate(Vector3 src, Vector3 dst, float factor)
-	{
-		Vector3 res;
-		res.x = src.x * (1.0f - factor) + dst.x * factor;
-		res.y = src.y * (1.0f - factor) + dst.y * factor;
-		res.z = src.z * (1.0f - factor) + dst.z * factor;
-		return res;
-	}
-
-	Vector4 Scene::GetSunColorWithIntensity(float zenithAngle)
-	{
-		Vector4 color = GetSunColor(zenithAngle);
-		color.w = GetSunIntensity(); 
-		return color;
-	}
-
-	Vector4 Scene::GetSunColor(float zenithAngle)
-	{
-		// Note: Sun color changes with the sun position.
-		return ComputeSunAttenuation(zenithAngle, 2);
-	}
-
-	Vector4 Scene::ComputeSunAttenuation(float fTheta, int nTurbidity/* = 2*/)
-		// fTheta is in radians.
-		// nTurbidity >= 2
-	{
-		float fBeta = 0.04608365822050f * nTurbidity - 0.04586025928522f;
-		float fTauR, fTauA;
-		float fTau[3];
-		float m = 1.0f / (float)(cos(fTheta) + 0.15f * pow(93.885f - fTheta / D3DX_PI * 180.0f, -1.253f));  // Relative Optical Mass
-
-		int i;
-		float fLambda[3];
-		fLambda[0] = 0.65f;	// red (in um.)
-		fLambda[1] = 0.57f;	// green (in um.)
-		fLambda[2] = 0.475f;	// blue (in um.)
-
-		for (i = 0; i < 3; i++)
-		{
-			// Rayleigh Scattering
-			// Results agree with the graph (pg 115, MI) */
-			// lambda in um.
-			fTauR = (float)exp(-m * 0.008735f * pow(fLambda[i], -4.08f));
-
-			// Aerosal (water + dust) attenuation
-			// beta - amount of aerosols present 
-			// alpha - ratio of small to large particle sizes. (0:4,usually 1.3)
-			// Results agree with the graph (pg 121, MI) 
-			const float fAlpha = 1.3f;
-			fTauA = (float)exp(-m * fBeta * pow(fLambda[i], -fAlpha));  // lambda should be in um
-
-
-			fTau[i] = fTauR * fTauA;
-
-		}
-
-		Vector4 vAttenuation = Vector4(fTau[0], fTau[1], fTau[2], 1);
-		return vAttenuation;
-	}
-
-	float Scene::GetSunIntensity()
-	{
-		static float intensity = 100.0f;
-		return intensity;
-	}
-
 	bool Scene::RegisterClasses()
 	{
 		bool bResult = true;
 
 		#define CHECK_RETURN(ReturnValue, Expression) if (false != ReturnValue) { ReturnValue = Expression; }
-		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("landscape")), boost::bind(&Scene::CreateClassLandscape, _1)));
-		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("sphere")), boost::bind(&Scene::CreateClassShpere, _1)));
+		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("landscape")), boost::bind(&Scene::CreateClassLandscape, _1, _2)));
+		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("sphere")), boost::bind(&Scene::CreateClassShpere, _1, _2)));
+		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("sky")), boost::bind(&Scene::CreateClassSky, _1, _2)));
 		#undef CHECK_RETURN
 
 		return bResult;
@@ -903,7 +591,7 @@ namespace BastionGame
 		s_mClasses.clear();
 	}
 
-	CoreObjectPtr Scene::CreateClassLandscape(LuaObjectRef _rTable)
+	CoreObjectPtr Scene::CreateClassLandscape(LuaObjectRef _rTable, ScenePtr _pScene)
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
 		LandscapePtr pLandscape = new Landscape(*pDisplay);
@@ -961,7 +649,7 @@ namespace BastionGame
 		return pLandscape;
 	}
 
-	CoreObjectPtr Scene::CreateClassShpere(LuaObjectRef _rTable)
+	CoreObjectPtr Scene::CreateClassShpere(LuaObjectRef _rTable, ScenePtr _pScene)
 	{
 		DisplayGeometrySpherePtr pSphere = new DisplayGeometrySphere();
 		const float fSize = 100.f;
@@ -1010,5 +698,20 @@ namespace BastionGame
 		}
 
 		return pSphere;
+	}
+
+	CoreObjectPtr Scene::CreateClassSky(LuaObjectRef _rTable, ScenePtr _pScene)
+	{
+		SkyPtr pResult = new Sky(*_pScene);
+		bool bResult = pResult->Create(boost::any(_rTable));
+
+		if (false == bResult)
+		{
+			pResult->Release();
+			delete pResult;
+			pResult = NULL;
+		}
+
+		return pResult;
 	}
 }

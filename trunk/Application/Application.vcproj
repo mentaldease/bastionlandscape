@@ -161,6 +161,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Sky.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -204,6 +208,10 @@
 			</File>
 			<File
 				RelativePath=".\Scene.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Sky.h"
 				>
 			</File>
 			<File
