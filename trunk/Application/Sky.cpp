@@ -14,8 +14,21 @@ namespace BastionGame
 	:	CoreObject(),
 		m_rScene(_rScene),
 		m_pSphere(NULL),
+		m_f4SkySunColorIntensity(0.0f, 0.0f, 0.0f, 0.0f),
+		m_f3SkyBetaRayleigh(0.0f, 0.0f, 0.0f),
+		m_f3BetaDashRayleigh(0.0f, 0.0f, 0.0f),
+		m_f3SkyBetaDashRayleigh(0.0f, 0.0f, 0.0f),
+		m_f3SkyBetaMie(0.0f, 0.0f, 0.0f),
+		m_f3SkyBetaDashMie(0.0f, 0.0f, 0.0f),
+		m_f3SkyOneOverRayleighMie(0.0f, 0.0f, 0.0f),
+		m_f3SkyHgData(0.0f, 0.0f, 0.0f),
+		m_f3HazeColor(0.0f, 0.0f, 0.0f),
+		m_f3SunPosition(0.0f, 0.0f, 0.0f),
+		m_fHazeHeight(0.0f),
+		m_fHazeIntensity(0.0f),
 		m_fDayTime(12.0f * 60.0f),
-		m_fVerticalOffset(0.0f)
+		m_fVerticalOffset(0.0f),
+		m_fIntensity(100.0f)
 	{
 
 	}
@@ -129,12 +142,12 @@ namespace BastionGame
 		// test
 		//betaRayleigh = new Vector3(6.95f * 10e-6f, 1.18f * 10e-5f, 2.44f * 10e-5f);
 
-		static Vector3 f3SkyBetaRayleigh = betaRayleigh * rayleighMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETARAYLEIGH")), &f3SkyBetaRayleigh);
+		m_f3SkyBetaRayleigh = betaRayleigh * rayleighMultiplier;
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETARAYLEIGH")), &m_f3SkyBetaRayleigh);
 
-		static Vector3 betaDashRayleigh = (3.0f * betaRayleigh / (float)(16.0 * D3DX_PI));
-		static Vector3 fSkyBetaDashRayleigh = betaDashRayleigh * rayleighMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETADASHRAYLEIGH")), &fSkyBetaDashRayleigh);
+		m_f3BetaDashRayleigh = (3.0f * betaRayleigh / (float)(16.0 * D3DX_PI));
+		m_f3SkyBetaDashRayleigh = m_f3BetaDashRayleigh * rayleighMultiplier;
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETADASHRAYLEIGH")), &m_f3SkyBetaDashRayleigh);
 
 
 		//// Mie total factor ////
@@ -159,8 +172,8 @@ namespace BastionGame
 		// test
 		//betaMie = new Vector3(8f * 10e-5f, 10e-4f, 1.2f * 10e-4f);
 
-		static Vector3 f3SkyBetaMie = betaMie * mieMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETAMIE")), &f3SkyBetaMie);
+		m_f3SkyBetaMie = betaMie * mieMultiplier;
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETAMIE")), &m_f3SkyBetaMie);
 
 		//Vector3 betaDashMie = ((float)(1.0 / (4.0 * D3DX_PI)) * betaMie);
 		Vector3 betaDashMie = ((float)(1.0 / (4.0 * D3DX_PI)) * betaMie);
@@ -169,8 +182,8 @@ namespace BastionGame
 		betaDashMie.z = (float)(1.0 / (lambdaBlue * lambdaBlue));
 		betaDashMie *= (float)(0.434 * c * (4 * D3DX_PI * D3DX_PI) * 0.5f);
 
-		static Vector3 f3SkyBetaDashMie = betaDashMie * mieMultiplier;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETADASHMIE")), &f3SkyBetaDashMie);
+		m_f3SkyBetaDashMie = betaDashMie * mieMultiplier;
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_BETADASHMIE")), &m_f3SkyBetaDashMie);
 
 
 		Vector3 oneOverRayleighMie;
@@ -178,20 +191,20 @@ namespace BastionGame
 		oneOverRayleighMie.y = (1.0f / (betaRayleigh.y * rayleighMultiplier + betaMie.y * mieMultiplier));
 		oneOverRayleighMie.z = (1.0f / (betaRayleigh.z * rayleighMultiplier + betaMie.z * mieMultiplier));
 
-		static Vector3 f3SkyOneOverRayleighMie = oneOverRayleighMie;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_ONEOVERRAYLEIGHMIE")), &f3SkyOneOverRayleighMie);
+		m_f3SkyOneOverRayleighMie = oneOverRayleighMie;
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_ONEOVERRAYLEIGHMIE")), &m_f3SkyOneOverRayleighMie);
 
 
 		// optimisation for Henyey-Greenstein phase function (Mie scattering)
 		float g = 0.95f;
 		Vector3 hgData = Vector3((1.0f - g * g), (1.0f + g * g), (2.0f * g));
 
-		static Vector3 f3SkyHgData = hgData;
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_HGDATA")), &f3SkyHgData);
+		m_f3SkyHgData = hgData;
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_HGDATA")), &m_f3SkyHgData);
 
 		// Sun color * intensity
-		static Vector4 f4SkySunColorIntensity = Vector4(1.0f ,1.0f, 1.0f, 1.0f);
-		pMaterialManager->SetVector4BySemantic(MakeKey(string("SKY_SUNCOLORINTENSITY")), &f4SkySunColorIntensity);
+		m_f4SkySunColorIntensity = Vector4(1.0f ,1.0f, 1.0f, 1.0f);
+		pMaterialManager->SetVector4BySemantic(MakeKey(string("SKY_SUNCOLORINTENSITY")), &m_f4SkySunColorIntensity);
 
 		return bResult;
 	}
@@ -209,27 +222,25 @@ namespace BastionGame
 			m_fDayTime -= fMaxDayTime;
 		}
 
-		static Vector3 f3Pos;
-		static float fPosY;
-
-		f3Pos = pCamera->GetPosition();
-		fPosY += m_fVerticalOffset;
+		//static Vector3 f3Pos;
+		//static float fPosY;
+		//f3Pos = pCamera->GetPosition();
+		//fPosY += m_fVerticalOffset;
 
 		// sun position (starts at 0 h)
 		const Vector4 f4LightDir = m_rScene.GetLightDir();
-		static Vector3 f3SunPosition;
-		f3SunPosition = Vector3(0.0f, -1.0f, 0.0f);
-		f3SunPosition = Vector3(f4LightDir.x, f4LightDir.y, f4LightDir.z);
+		m_f3SunPosition = Vector3(0.0f, -1.0f, 0.0f);
+		m_f3SunPosition = Vector3(f4LightDir.x, f4LightDir.y, f4LightDir.z);
 
 		float sunAngle = (float)(2 * D3DX_PI / 1440.0f * m_fDayTime);
 
 		Matrix m3Temp;
 		Vector4 f4Temp;
-		D3DXVec3Transform(&f4Temp, &f3SunPosition, D3DXMatrixRotationZ(&m3Temp, sunAngle));
-		f3SunPosition = Vector3(f4Temp.x, f4Temp.y, f4Temp.z);
+		D3DXVec3Transform(&f4Temp, &m_f3SunPosition, D3DXMatrixRotationZ(&m3Temp, sunAngle));
+		m_f3SunPosition = Vector3(f4Temp.x, f4Temp.y, f4Temp.z);
 
 		//shader.SetVariable("dayTime", m_fDayTime / 1440.0f); // optim
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_SUNPOSITION")), &f3SunPosition);
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_SUNPOSITION")), &m_f3SunPosition);
 
 		// when sun visible we scale to fit between PI/2 and 3PI/4 (1.57 and 2.35)
 		// in order to obtain a nice sunset/sunrise
@@ -263,17 +274,12 @@ namespace BastionGame
 				zenithAngle = zenithAngle * ((float)D3DX_PI / 2.0f) / bestAngleWest;
 			}
 		}
-		static Vector4 f4SunColorIntensity;
-		f4SunColorIntensity = GetSunColorWithIntensity(zenithAngle);
-		pMaterialManager->SetVector4BySemantic(MakeKey(string("SKY_SUNCOLORINTENSITY")), &f4SunColorIntensity);
+		m_f4SkySunColorIntensity = GetSunColorWithIntensity(zenithAngle);
+		pMaterialManager->SetVector4BySemantic(MakeKey(string("SKY_SUNCOLORINTENSITY")), &m_f4SkySunColorIntensity);
 
 		// haze color
-		static Vector3 f3HazeColor;
-		static float HazeHeight;
-		static float HazeIntensity;
-
-		HazeHeight = 1.0f;
-		HazeIntensity = 1.0f;
+		m_fHazeHeight = 1.0f;
+		m_fHazeIntensity = 1.0f;
 
 		Vector4 f4HazeColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -286,22 +292,22 @@ namespace BastionGame
 			{
 				float factor = m_fDayTime * 0.016666666f - 17.0f;
 				f4HazeColor = Interpolate(f4HazeColor, SunSetColor, factor);
-				HazeHeight = 1.0f - factor*0.9f;
+				m_fHazeHeight = 1.0f - factor*0.9f;
 			}
 			else
 			{
 
 				float factor = m_fDayTime * 0.016666666f - 18.0f;
 				f4HazeColor = Interpolate(SunSetColor, f4HazeColor, factor);
-				HazeHeight = 0.1f + factor * 0.9f;
+				m_fHazeHeight = 0.1f + factor * 0.9f;
 			}
 
 		}
-		f3HazeColor = Vector3(f4HazeColor.x, f4HazeColor.y, f4HazeColor.z);
+		m_f3HazeColor = Vector3(f4HazeColor.x, f4HazeColor.y, f4HazeColor.z);
 
-		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEHEIGHT")), &HazeHeight);
-		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEINTENSITY")), &HazeIntensity);
-		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_HAZECOLOR")), &f3HazeColor);
+		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEHEIGHT")), &m_fHazeHeight);
+		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEINTENSITY")), &m_fHazeIntensity);
+		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_HAZECOLOR")), &m_f3HazeColor);
 
 		// 		if (OverrideBrumeLightning)
 		// 		{

@@ -33,6 +33,18 @@ namespace BastionGame
 	protected:
 		SceneRef					m_rScene;
 		DisplayGeometrySpherePtr	m_pSphere;
+		Vector4						m_f4SkySunColorIntensity;
+		Vector3						m_f3SkyBetaRayleigh;
+		Vector3						m_f3BetaDashRayleigh;
+		Vector3						m_f3SkyBetaDashRayleigh;
+		Vector3						m_f3SkyBetaMie;
+		Vector3						m_f3SkyBetaDashMie;
+		Vector3						m_f3SkyOneOverRayleighMie;
+		Vector3						m_f3SkyHgData;
+		Vector3						m_f3HazeColor;
+		Vector3						m_f3SunPosition;
+		float						m_fHazeHeight;
+		float						m_fHazeIntensity;
 		float						m_fDayTime;
 		float						m_fVerticalOffset;
 		float						m_fIntensity;

@@ -148,12 +148,12 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			Release();
-			m_uBufferSize = pInfo->m_uBufferSize * (m_b16Bits ? sizeof(unsigned short) : sizeof(unsigned int));
 			m_b16Bits = pInfo->m_b16Bits;
+			m_uBufferSize = pInfo->m_uBufferSize * ((false != m_b16Bits) ? sizeof(Word) : sizeof(UInt));
 			HRESULT hResult =  m_rDisplay.GetDevicePtr()->CreateIndexBuffer(
 				m_uBufferSize,
 				D3DUSAGE_WRITEONLY,
-				m_b16Bits ? D3DFMT_INDEX16 : D3DFMT_INDEX32,
+				(false != m_b16Bits) ? D3DFMT_INDEX16 : D3DFMT_INDEX32,
 				D3DPOOL_DEFAULT,
 				&m_pIndexBuffer,
 				NULL);
