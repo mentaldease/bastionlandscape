@@ -46,8 +46,8 @@ namespace BastionGame
 		bool CreateLoadWaterDataList(LuaObjectRef _rLuaObject);
 		bool CreateLoadWaterData(LuaObjectRef _rLuaObject, WaterDataRef _rWaterData);
 		bool CreateLoadCameras(LuaObjectRef _rLuaObject);
-		bool CreateLoadRenderPasses(LuaObjectRef _rLuaObject);
-		bool CreateLoadRenderPass(LuaObjectRef _rLuaObject);
+		bool CreateLoadRenderStages(LuaObjectRef _rLuaObject);
+		bool CreateLoadRenderStage(LuaObjectRef _rLuaObject);
 		bool CreateLoadHierarchy(LuaObjectRef _rLuaObject);
 
 	protected:
@@ -63,8 +63,8 @@ namespace BastionGame
 		DisplayMaterialPtrMap		m_mMaterials;
 		DisplayTexturePtrMap		m_mAdditionalRTs;
 		DisplayCameraPtrMap			m_mCameras;
-		DisplayRenderPassPtrMap		m_mRenderPasses;
-		DisplayRenderPassPtrVec		m_vRenderPasses;
+		DisplayRenderStagePtrMap	m_mRenderStages;
+		DisplayRenderStagePtrVec	m_vRenderStages;
 		Vector4						m_f4LightDir;
 		WaterDataPtr				m_pWaterData;
 		UInt						m_uWaterDataCount;

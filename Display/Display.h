@@ -98,10 +98,12 @@ namespace ElixirEngine
 		virtual ~DisplayObject();
 
 		virtual MatrixPtr GetWorldMatrix();
+
 		virtual void SetMaterial(DisplayMaterialPtr _pMaterial);
 		virtual DisplayMaterialPtr GetMaterial();
-		virtual void SetRenderPass(const Key& _uRenderPass);
-		virtual const Key& SetRenderPass() const;
+
+		virtual void SetRenderStage(const Key& _uRenderPass);
+		virtual const Key& GetRenderStage() const;
 
 		virtual void RenderBegin() {};
 		virtual void Render() = 0;
@@ -170,9 +172,9 @@ namespace ElixirEngine
 		bool AddViewport(const Key& _uNameKey, ViewportRef _rViewPort);
 		ViewportPtr GetViewport(const Key& _uNameKey);
 
-		void AddRenderPasses(DisplayRenderPassPtrVec _vRenderPasses);
-		void RemoveRenderPasses(DisplayRenderPassPtrVec _vRenderPasses);
-		DisplayRenderPassPtr GetCurrentRenderPass();
+		void AddRenderStages(DisplayRenderStagePtrVec _vRenderPasses);
+		void RemoveRenderStages(DisplayRenderStagePtrVec _vRenderPasses);
+		DisplayRenderStagePtr GetCurrentRenderStage();
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
@@ -185,8 +187,8 @@ namespace ElixirEngine
 		static void InitDisplayFormatMap();
 
 		void RenderUpdate();
-		void RenderPass(DisplayRenderPassPtr _pRP);
-		void Render(DisplayRenderPassPtr _pRP);
+		void RenderPass(DisplayRenderStagePtr _pRP);
+		void Render(DisplayRenderStagePtr _pRP);
 
 		Direct3DPtr						m_pDirect3D;
 		DevicePtr						m_pDevice;
@@ -194,8 +196,8 @@ namespace ElixirEngine
 		CoreObjectPtrVec				m_vUpdateList;
 		ViewportMap						m_mViewports;
 		DisplayCameraPtrMap				m_mCameras;
-		DisplayRenderPassPtrVec			m_vRenderPasses;
-		DisplayRenderPassPtrMap			m_mRenderPasses;
+		DisplayRenderStagePtrVec		m_vRenderStages;
+		DisplayRenderStagePtrMap		m_mRenderStages;
 		DisplayRenderRequestListMap		m_mRenderRequests;
 		DisplayCameraPtr				m_pCurrentCamera;
 		DisplayMaterialManagerPtr		m_pMaterialManager;
@@ -212,7 +214,7 @@ namespace ElixirEngine
 		DisplayNormalProcessPtr			m_pCurrentNormalProcess;
 		DisplayVertexBufferPtr			m_pCurrentVertexBuffer;
 		DisplayIndexBufferPtr			m_pCurrentIndexBuffer;
-		DisplayRenderPassPtr			m_pCurrentRenderPass;
+		DisplayRenderStagePtr			m_pCurrentRenderStage;
 		Matrix							m_oWorldInvTransposeMatrix;
 		unsigned int					m_uWidth;
 		unsigned int					m_uHeight;

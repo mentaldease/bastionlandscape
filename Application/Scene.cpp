@@ -25,8 +25,8 @@ namespace BastionGame
 		m_mMaterials(),
 		m_mAdditionalRTs(),
 		m_mCameras(),
-		m_mRenderPasses(),
-		m_vRenderPasses(),
+		m_mRenderStages(),
+		m_vRenderStages(),
 		m_f4LightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
 		m_uWaterDataCount(0),
@@ -117,7 +117,7 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			m_rApplication.GetDisplay()->AddRenderPasses(m_vRenderPasses);
+			m_rApplication.GetDisplay()->AddRenderStages(m_vRenderStages);
 		}
 
 
@@ -157,7 +157,7 @@ namespace BastionGame
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 
-		m_rApplication.GetDisplay()->RemoveRenderPasses(m_vRenderPasses);
+		m_rApplication.GetDisplay()->RemoveRenderStages(m_vRenderStages);
 
 		// camera
 		while (m_mCameras.end() != m_mCameras.begin())
@@ -221,7 +221,7 @@ namespace BastionGame
 	void Scene::DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _f4Color)
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
-		if (m_uUIRenderPass == pDisplay->GetCurrentRenderPass()->GetNameKey())
+		if (m_uUIRenderPass == pDisplay->GetCurrentRenderStage()->GetNameKey())
 		{
 			if (NULL != m_pUITextOverlay)
 			{
@@ -260,319 +260,8 @@ namespace BastionGame
 				&& CreateLoadHierarchy(oRoot)
 				&& CreateLoadWaterDataList(oRoot)
 				&& CreateLoadCameras(oRoot)
-				&& CreateLoadRenderPasses(oRoot);
+				&& CreateLoadRenderStages(oRoot);
 		}
-		return bResult;
-	}
-
-	bool Scene::CreateLoadRenderTargets(LuaObjectRef _rLuaObject)
-	{
-		bool bResult = true;
-		LuaObject oRenderTargets = _rLuaObject["render_targets"];
-
-		LuaObject oAdditionals = oRenderTargets["additionals"];
-		if (false == oAdditionals.IsNil())
-		{
-			const WindowData& rWindowData = m_rApplication.GetWindowData();
-			DisplayTextureManagerPtr pTextureManager = m_rApplication.GetDisplay()->GetTextureManager();
-			const int uCount = oAdditionals.GetCount();
-			for (int i = 0 ; uCount > i ; ++i)
-			{
-				LuaObject oAdditional = oAdditionals[i + 1];
-
-				const string strName = oAdditional["name"].GetString();
-				const Key uNameKey = MakeKey(strName);
-				DisplayTexturePtr pTexture = pTextureManager->Get(uNameKey);
-				bResult = (NULL == pTexture);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				const string strFormat = oAdditional["format"].GetString();
-				D3DFORMAT uFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(rWindowData.m_uDXColorFormat));
-				bResult = pTextureManager->New(strName,
-					rWindowData.m_oClientRect.right,
-					rWindowData.m_oClientRect.bottom,
-					uFormat,
-					false,
-					DisplayTexture::EType_2D,
-					DisplayTexture::EUsage_RENDERTARGET);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				pTexture = pTextureManager->Get(uNameKey);
-				bResult = (NULL != pTexture);
-				if (false == bResult)
-				{
-					break;
-				}
-				m_mAdditionalRTs[uNameKey] = pTexture;
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadMaterials(LuaObjectRef _rLuaObject)
-	{
-		string strMaterialName;
-		bool bResult = true;
-
-		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
-		LuaObject oMaterialLibs = _rLuaObject["materials"];
-		const int uCount = oMaterialLibs.GetCount();
-		for (int i = 0 ; uCount > i ; ++i)
-		{
-			string strFileName = oMaterialLibs[i + 1].GetString();
-			bool bResult = Scripting::Lua::Loadfile(strFileName);
-			if (false == bResult)
-			{
-				break;
-			}
-			string strMaterialLibrary;
-			FS::GetFileNameWithoutExt(strFileName, strMaterialLibrary);
-			strMaterialLibrary = strtolower(strMaterialLibrary);
-			LuaObject oMaterialLibrary = _rLuaObject.GetState()->GetGlobal(strMaterialLibrary.c_str());
-			bResult = (false == oMaterialLibrary.IsNil());
-			if (false == bResult)
-			{
-				bResult = false;
-				break;
-			}
-			const int uMaterialCount = oMaterialLibrary.GetCount();
-			for (int j = 0 ; uMaterialCount > j ; ++j)
-			{
-				LuaObject oMaterial = oMaterialLibrary[j + 1];
-				strMaterialName = oMaterial["name"].GetString();
-				Key uMaterialNameKey = MakeKey(strMaterialName);
-				bResult = (NULL == pMaterialManager->GetMaterial(uMaterialNameKey))
-					&& (false != pMaterialManager->CreateMaterial(uMaterialNameKey, oMaterial));
-				if (false == bResult)
-				{
-					break;
-				}
-				m_mMaterials[uMaterialNameKey] = pMaterialManager->GetMaterial(strMaterialName);
-			}
-			if (false == bResult)
-			{
-				break;
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadWaterDataList(LuaObjectRef _rLuaObject)
-	{
-		string strWaterConfig;
-		Scripting::Lua::Get(_rLuaObject, "water_config", string(""), strWaterConfig);
-		bool bResult = (false == strWaterConfig.empty()) && (false != Scripting::Lua::Loadfile(strWaterConfig));
-
-		if (false != bResult)
-		{
-			string strGlobalName;
-			FS::GetFileNameWithoutExt(strWaterConfig, strGlobalName);
-			strGlobalName = strtolower(strGlobalName);
-			LuaObject oGlobals = Scripting::Lua::GetStateInstance()->GetGlobals();
-			LuaObject oWater = oGlobals[strGlobalName.c_str()];
-
-			if ((false == oWater.IsNil()) && (m_uWaterDataCount = oWater.GetCount()))
-			{
-				m_uWaterDataCount = (WATER_COUNT < m_uWaterDataCount) ? WATER_COUNT : m_uWaterDataCount;
-				m_pWaterData = new WaterData[m_uWaterDataCount];
-				for (UInt i = 0 ; m_uWaterDataCount > i ; ++i)
-				{
-					bResult = CreateLoadWaterData(oWater[i + 1], m_pWaterData[i]);
-					if (false == bResult)
-					{
-						break;
-					}
-				}
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadWaterData(LuaObjectRef _rLuaObject, WaterDataRef _rWaterData)
-	{
-		bool bResult = true;
-
-		memset(&_rWaterData, 0, sizeof(WaterData));
-		Scripting::Lua::Get(_rLuaObject, "WaterLevel", 0.0f, _rWaterData.m_fWaterLevel);
-		Scripting::Lua::Get(_rLuaObject, "FadeSpeed", 0.15f, _rWaterData.m_fFadeSpeed);
-		Scripting::Lua::Get(_rLuaObject, "NormalScale", 1.0f, _rWaterData.m_fNormalScale);
-		Scripting::Lua::Get(_rLuaObject, "R0", 0.5f, _rWaterData.m_fR0);
-		Scripting::Lua::Get(_rLuaObject, "MaxAmplitude", 1.0f, _rWaterData.m_fMaxAmplitude);
-		Scripting::Lua::Get(_rLuaObject, "SunColor", Vector3(1.0f, 1.0f, 1.0f), _rWaterData.m_vSunColor);
-		Scripting::Lua::Get(_rLuaObject, "ShoreHardness", 1.0f, _rWaterData.m_fShoreHardness);
-		Scripting::Lua::Get(_rLuaObject, "RefractionStrength", 0.0f, _rWaterData.m_fRefractionStrength);
-		Scripting::Lua::Get(_rLuaObject, "NormalModifier", Vector4(1.0f, 2.0f, 4.0f, 8.0f), _rWaterData.m_vNormalModifier);
-		Scripting::Lua::Get(_rLuaObject, "Displace", 1.7f, _rWaterData.m_fDisplace);
-		Scripting::Lua::Get(_rLuaObject, "FoamExistence", Vector3(0.65f, 1.35f, 0.5f), _rWaterData.m_vFoamExistence);
-		Scripting::Lua::Get(_rLuaObject, "SunScale", 3.0f, _rWaterData.m_fSunScale);
-		Scripting::Lua::Get(_rLuaObject, "Shininess", 0.7f, _rWaterData.m_fShininess);
-		Scripting::Lua::Get(_rLuaObject, "SpecularIntensity", 0.32f, _rWaterData.m_fSpecularIntensity);
-		Scripting::Lua::Get(_rLuaObject, "DepthColour", Vector3(0.0078f, 0.5176f, 0.7f), _rWaterData.m_vDepthColour);
-		Scripting::Lua::Get(_rLuaObject, "BigDepthColour", Vector3(0.0039f, 0.00196f, 0.145f), _rWaterData.m_vBigDepthColour);
-		Scripting::Lua::Get(_rLuaObject, "Extinction", Vector3(7.0f, 30.0f, 40.0f), _rWaterData.m_vExtinction);
-		Scripting::Lua::Get(_rLuaObject, "Visibility", 4.0f, _rWaterData.m_fVisibility);
-		Scripting::Lua::Get(_rLuaObject, "Scale", 0.005f, _rWaterData.m_fScale);
-		Scripting::Lua::Get(_rLuaObject, "RefractionScale", 0.005f, _rWaterData.m_fRefractionScale);
-		Scripting::Lua::Get(_rLuaObject, "Wind", Vector2(-0.3f, 0.7f), _rWaterData.m_vWind);
-		Scripting::Lua::Get(_rLuaObject, "Forward", Vector3(0.0f, 0.0f, 0.0f), _rWaterData.m_vForward);
-		Scripting::Lua::Get(_rLuaObject, "AtlasInfo", Vector4(0.0f, 0.0f, 0.0f, 0.0f), _rWaterData.m_vAtlasInfo);
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadCameras(LuaObjectRef _rLuaObject)
-	{
-		DisplayPtr pDisplay = m_rApplication.GetDisplay();
-		string strCameraName;
-		bool bResult = true;
-
-		LuaObject oCameraLibs = _rLuaObject["cameras"];
-		const int uCount = oCameraLibs.GetCount();
-		for (int i = 0 ; uCount > i ; ++i)
-		{
-			string strFileName = oCameraLibs[i + 1].GetString();
-			bool bResult = Scripting::Lua::Loadfile(strFileName);
-			if (false == bResult)
-			{
-				break;
-			}
-			string strCameraLibrary;
-			FS::GetFileNameWithoutExt(strFileName, strCameraLibrary);
-			strCameraLibrary = strtolower(strCameraLibrary);
-			LuaObject oCameraLibrary = _rLuaObject.GetState()->GetGlobal(strCameraLibrary.c_str());
-			bResult = (false == oCameraLibrary.IsNil());
-			if (false == bResult)
-			{
-				break;
-			}
-			const int uCameraCount = oCameraLibrary.GetCount();
-			for (int j = 0 ; uCameraCount > j ; ++j)
-			{
-				LuaObject oCamera = oCameraLibrary[j + 1];
-				strCameraName = oCamera["name"].GetString();
-				Key uCameraNameKey = MakeKey(strCameraName);
-				bResult = (NULL == pDisplay->GetCamera(uCameraNameKey))
-					&& (false != pDisplay->CreateCamera(uCameraNameKey, oCamera));
-				if (false == bResult)
-				{
-					break;
-				}
-				m_mCameras[uCameraNameKey] = pDisplay->GetCamera(uCameraNameKey);
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadRenderPasses(LuaObjectRef _rLuaObject)
-	{
-		LuaObject oRenderPasses = _rLuaObject["renderpasses"];
-		bool bResult = true;
-
-		if (false == oRenderPasses.IsNil())
-		{
-			const int sCount = oRenderPasses.GetCount();
-			for (int i = 0 ; sCount > i ; ++i)
-			{
-				bResult = CreateLoadRenderPass(oRenderPasses[i + 1]);
-				if (false == bResult)
-				{
-					break;
-				}
-			}
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadRenderPass(LuaObjectRef _rLuaObject)
-	{
-		DisplayRenderPassPtr pRenderPass = new DisplayRenderPass(*m_rApplication.GetDisplay());
-		string strName;
-		Scripting::Lua::Get(_rLuaObject, "name", string(""), strName);
-		const Key uNameKey = MakeKey(strName);
-		bool bResult = (false == strName.empty())
-			&& (m_mRenderPasses.end() == m_mRenderPasses.find(uNameKey)) // <== check that there is NOT another render pass with the same name
-			&& pRenderPass->Create(boost::any(&_rLuaObject));
-
-		if (false != bResult)
-		{
-			m_mRenderPasses[uNameKey] = pRenderPass;
-			m_vRenderPasses.push_back(pRenderPass);
-		}
-		else
-		{
-			pRenderPass->Release();
-			delete pRenderPass;
-		}
-
-		return bResult;
-	}
-
-	bool Scene::CreateLoadHierarchy(LuaObjectRef _rLuaObject)
-	{
-		LuaObject oHierarchy = _rLuaObject["hierarchy"];
-		bool bResult = true;
-
-		if (false == oHierarchy.IsNil())
-		{
-			const int sCount = oHierarchy.GetCount();
-			for (int i = 0 ; sCount > i ; ++i)
-			{
-				LuaObject oObject = oHierarchy[i + 1];
-				string strClass;
-				bResult = Scripting::Lua::Get(oObject, "class", strClass, strClass);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				const Key uClassKey = MakeKey(strClass);
-				CreateClassFuncMap::iterator iPair = s_mClasses.find(uClassKey);
-				bResult = (s_mClasses.end() != iPair);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				string strName;
-				bResult = Scripting::Lua::Get(oObject, "name", strName, strName);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				const Key uObjectNameKey = MakeKey(strName);
-				bResult = (m_mHierarchy.end() == m_mHierarchy.find(uObjectNameKey));
-				if (false == bResult)
-				{
-					break;
-				}
-
-				CreateClassFunc& pCreateClass = iPair->second;
-				CoreObjectPtr pObject = pCreateClass(oObject, this);
-				bResult = (NULL != pObject);
-				if (false == bResult)
-				{
-					break;
-				}
-
-				m_mHierarchy[uObjectNameKey] = pObject;
-
-				// hack....
-				Scripting::Lua::Get(oObject, "daytime", m_fDayTime, m_fDayTime);
-			}
-		}
-
 		return bResult;
 	}
 
@@ -599,7 +288,7 @@ namespace BastionGame
 		DisplayPtr pDisplay = Display::GetInstance();
 		LandscapePtr pLandscape = new Landscape(*pDisplay);
 		Landscape::OpenInfo oLOInfo;
-		string strTargetPass;
+		string strRenderStage;
 
 		oLOInfo.m_strName = _rTable["name"].GetString();
 		oLOInfo.m_uGridSize = _rTable["grid_size"].GetInteger();
@@ -607,8 +296,8 @@ namespace BastionGame
 		oLOInfo.m_fPixelErrorMax = _rTable["pixel_error_max"].GetFloat();
 		oLOInfo.m_fFloorScale = _rTable["floor_scale"].GetFloat();
 		oLOInfo.m_fHeightScale = _rTable["height_scale"].GetFloat();
-		Scripting::Lua::Get(_rTable, "target_pass", strTargetPass, strTargetPass);
-		oLOInfo.m_uRenderPassKey = MakeKey(strTargetPass);
+		Scripting::Lua::Get(_rTable, "target_stage", strRenderStage, strRenderStage);
+		oLOInfo.m_uRenderPassKey = MakeKey(strRenderStage);
 
 		bool bResult = (false != pLandscape->Create(boost::any(0)));
 
@@ -662,7 +351,7 @@ namespace BastionGame
 		Scripting::Lua::Get(_rTable, "view_from_inside", false, oGSCInfo.m_bViewFromInside);
 		Scripting::Lua::Get(_rTable, "position", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oPos);
 		Scripting::Lua::Get(_rTable, "rotation", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oRot);
-		Scripting::Lua::Get(_rTable, "size", Vector3(fSize, fSize, fSize), oGSCInfo.m_oRadius);
+		Scripting::Lua::Get(_rTable, "radius", Vector3(fSize, fSize, fSize), oGSCInfo.m_oRadius);
 		Scripting::Lua::Get(_rTable, "horiz_slices", UInt(10), oGSCInfo.m_uHorizSlices);
 		Scripting::Lua::Get(_rTable, "vert_slices", UInt(10), oGSCInfo.m_uVertSlices);
 		Scripting::Lua::Get(_rTable, "color", Vector4(26.0f / 255.0f, 103.0f / 255.0f, 149.0f / 255.0f, 1.0f), oGSCInfo.m_f4Color);
@@ -681,15 +370,15 @@ namespace BastionGame
 				break;
 			}
 
-			string strRenderPass;
-			bResult = Scripting::Lua::Get(_rTable, "target_pass", strRenderPass, strRenderPass);
+			string strRenderStage;
+			bResult = Scripting::Lua::Get(_rTable, "target_stage", strRenderStage, strRenderStage);
 			if (false == bResult)
 			{
 				break;
 			}
 
 			pSphere->SetMaterial(pMaterial);
-			pSphere->SetRenderPass(MakeKey(strRenderPass));
+			pSphere->SetRenderStage(MakeKey(strRenderStage));
 			break;
 		}
 

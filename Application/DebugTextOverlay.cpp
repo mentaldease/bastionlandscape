@@ -78,7 +78,7 @@ namespace BastionGame
 	void DebugTextOverlay::Update()
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
-		if (m_uRenderPassKey == pDisplay->GetCurrentRenderPass()->GetNameKey())
+		if (m_uRenderPassKey == pDisplay->GetCurrentRenderStage()->GetNameKey())
 		{
 			for (UInt i = 0 ; m_uDrawCount > i ; ++i)
 			{

@@ -28,7 +28,9 @@ namespace BastionGame
 		m_fHazeIntensity(0.0f),
 		m_fDayTime(12.0f * 60.0f),
 		m_fVerticalOffset(0.0f),
-		m_fIntensity(100.0f)
+		m_fIntensity(100.0f),
+		m_bAlwaysVisible(false),
+		m_bInOctree(true)
 	{
 
 	}
@@ -49,7 +51,7 @@ namespace BastionGame
 		Scripting::Lua::Get(rTable, "view_from_inside", false, oGSCInfo.m_bViewFromInside);
 		Scripting::Lua::Get(rTable, "position", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oPos);
 		Scripting::Lua::Get(rTable, "rotation", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oRot);
-		Scripting::Lua::Get(rTable, "size", Vector3(fSize, fSize, fSize), oGSCInfo.m_oRadius);
+		Scripting::Lua::Get(rTable, "radius", Vector3(fSize, fSize, fSize), oGSCInfo.m_oRadius);
 		Scripting::Lua::Get(rTable, "horiz_slices", UInt(10), oGSCInfo.m_uHorizSlices);
 		Scripting::Lua::Get(rTable, "vert_slices", UInt(10), oGSCInfo.m_uVertSlices);
 		Scripting::Lua::Get(rTable, "color", Vector4(26.0f / 255.0f, 103.0f / 255.0f, 149.0f / 255.0f, 1.0f), oGSCInfo.m_f4Color);
@@ -68,15 +70,18 @@ namespace BastionGame
 				break;
 			}
 
-			string strRenderPass;
-			bResult = Scripting::Lua::Get(rTable, "target_pass", strRenderPass, strRenderPass);
+			string strRenderStage;
+			bResult = Scripting::Lua::Get(rTable, "target_stage", strRenderStage, strRenderStage);
 			if (false == bResult)
 			{
 				break;
 			}
 
+			Scripting::Lua::Get(rTable, "always_visible", m_bAlwaysVisible, m_bAlwaysVisible);
+			Scripting::Lua::Get(rTable, "in_octree", m_bInOctree, m_bInOctree);
+
 			m_pSphere->SetMaterial(pMaterial);
-			m_pSphere->SetRenderPass(MakeKey(strRenderPass));
+			m_pSphere->SetRenderStage(MakeKey(strRenderStage));
 			bResult = InitSkyParameters();
 
 			break;
@@ -91,6 +96,10 @@ namespace BastionGame
 		{
 			UpdateSkyParameters();
 			m_pSphere->Update();
+			if (false != m_bAlwaysVisible)
+			{
+				Display::GetInstance()->RenderRequest(m_pSphere->GetRenderStage(), m_pSphere);
+			}
 		}
 	}
 

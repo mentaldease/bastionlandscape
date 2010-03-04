@@ -49,13 +49,19 @@ scenetest00 =
 		"data/scenes/CameraLib00.lua",
 	},
 	water_config = "data/scenes/WaterSceneTest00.lua",
+	octree =
+	{
+		leaf_size = 200.0,
+		depth = 6,
+		position = { 0.0, 0.0, 0.0, },
+	},
 	hierarchy =
 	{
 		{
 			class = "landscape",
 			name = "ground00",
-			vertex_format = "default",
 			material = "terrain04",
+			vertex_format = "default",
 			grid_size = 16,
 			grid_chunk_size = 16,
 			position = { 0.0, 0.0, 0.0, },
@@ -64,13 +70,13 @@ scenetest00 =
 			height_scale = 1.0,
 			heightmap = "data/landscapes/land02.tga",
 			layers_config = "data/landscapes/layers00.lua",
-			target_pass = "scene",
+			target_stage = "scene",
 		},
 		{
 			class = "sky",
 			name = "sky00",
 			material = "sky",
-			size = { 2000.0, 2000.0, 2000.0 },
+			radius = { 2000.0, 2000.0, 2000.0 },
 			bottom_hemisphere = true,
 			top_hemisphere = true,
 			view_from_inside = true,
@@ -80,15 +86,17 @@ scenetest00 =
 			vert_slices = 50,
 			color = { 26.0 / 255.0, 103.0 / 255.0, 149.0 / 255.0, 1.0 },
 			daytime = 12.0 * 60.0,
-			target_pass = "scene",
+			target_stage = "scene",
+			always_visible = true,
+			in_octree = false,
 		},
 	},
-	renderpasses =
+	render_stages =
 	{
 		{
 			name = "scene",
 			camera = "scenecamera00",
-			normalprocesses =
+			normal_processes =
 			{
 				{
 					name = "reflection",
@@ -137,7 +145,7 @@ scenetest00 =
 					},
 				},
 			},
-			postprocesses =
+			post_processes =
 			{
 				{
 					name = "water",
@@ -165,7 +173,7 @@ scenetest00 =
 		{
 			name = "ui",
 			camera = "uicameraortho00",
-			normalprocesses =
+			normal_processes =
 			{
 				{
 					name = "ui",

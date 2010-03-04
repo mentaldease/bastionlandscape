@@ -235,11 +235,11 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class DisplayRenderPass;
-	typedef DisplayRenderPass* DisplayRenderPassPtr;
-	typedef DisplayRenderPass& DisplayRenderPassRef;
-	typedef map<Key, DisplayRenderPassPtr> DisplayRenderPassPtrMap;
-	typedef vector<DisplayRenderPassPtr> DisplayRenderPassPtrVec;
+	class DisplayRenderStage;
+	typedef DisplayRenderStage* DisplayRenderStagePtr;
+	typedef DisplayRenderStage& DisplayRenderStageRef;
+	typedef map<Key, DisplayRenderStagePtr> DisplayRenderStagePtrMap;
+	typedef vector<DisplayRenderStagePtr> DisplayRenderStagePtrVec;
 	typedef map<Key, DisplayObjectPtrVec> DisplayRenderRequestListMap;
 
 	//-----------------------------------------------------------------------------------------------
