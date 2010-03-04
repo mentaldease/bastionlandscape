@@ -8,7 +8,7 @@
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
 #include "../Display/Font.h"
-#include "../Display/RenderPass.h"
+#include "../Display/RenderStage.h"
 #include "../Core/Scripting.h"
 
 namespace ElixirEngine
@@ -233,12 +233,12 @@ namespace ElixirEngine
 		return m_pMaterial;
 	}
 
-	void DisplayObject::SetRenderPass(const Key& _uRenderPass)
+	void DisplayObject::SetRenderStage(const Key& _uRenderPass)
 	{
 		m_uRenderPass = _uRenderPass;
 	}
 
-	const Key& DisplayObject::SetRenderPass() const
+	const Key& DisplayObject::GetRenderStage() const
 	{
 		return m_uRenderPass;
 	}
@@ -270,7 +270,7 @@ namespace ElixirEngine
 		m_pCurrentNormalProcess(NULL),
 		m_pCurrentVertexBuffer(NULL),
 		m_pCurrentIndexBuffer(NULL),
-		m_pCurrentRenderPass(NULL),
+		m_pCurrentRenderStage(NULL),
 		m_oWorldInvTransposeMatrix(),
 		m_uWidth(0),
 		m_uHeight(0)
@@ -317,15 +317,15 @@ namespace ElixirEngine
 
 		m_pRTChain->SetImmediateWrite(false);
 
-		DisplayRenderPassPtrVec::iterator iRP = m_vRenderPasses.begin();
-		DisplayRenderPassPtrVec::iterator iEnd = m_vRenderPasses.end();
-		while (iEnd != iRP)
+		DisplayRenderStagePtrVec::iterator iRS = m_vRenderStages.begin();
+		DisplayRenderStagePtrVec::iterator iEnd = m_vRenderStages.end();
+		while (iEnd != iRS)
 		{
-			m_pCurrentRenderPass = *iRP;
-			RenderPass(m_pCurrentRenderPass);
-			++iRP;
+			m_pCurrentRenderStage = *iRS;
+			RenderPass(m_pCurrentRenderStage);
+			++iRS;
 		}
-		m_pCurrentRenderPass = NULL;
+		m_pCurrentRenderStage = NULL;
 
 		// copy back to back buffer
 		if (false == m_pRTChain->GetImmediateWrite())
@@ -543,10 +543,10 @@ namespace ElixirEngine
 
 	void Display::RenderRequest(const Key& _uRenderPassKey, DisplayObjectPtr _pDisplayObject)
 	{
-		DisplayRenderPassPtr pRP = m_mRenderPasses[_uRenderPassKey];
-		if (NULL != pRP)
+		DisplayRenderStagePtr pRS = m_mRenderStages[_uRenderPassKey];
+		if (NULL != pRS)
 		{
-			pRP->RenderRequest(_pDisplayObject);
+			pRS->RenderRequest(_pDisplayObject);
 		}
 	}
 
@@ -800,46 +800,46 @@ namespace ElixirEngine
 		return (m_mViewports.end() == iPair) ? NULL : &iPair->second;
 	}
 
-	void Display::AddRenderPasses(DisplayRenderPassPtrVec _vRenderPasses)
+	void Display::AddRenderStages(DisplayRenderStagePtrVec _vRenderPasses)
 	{
-		DisplayRenderPassPtrVec::iterator iRP = _vRenderPasses.begin();
-		DisplayRenderPassPtrVec::iterator iEnd = _vRenderPasses.end();
-		while (iEnd != iRP)
+		DisplayRenderStagePtrVec::iterator iRS = _vRenderPasses.begin();
+		DisplayRenderStagePtrVec::iterator iEnd = _vRenderPasses.end();
+		while (iEnd != iRS)
 		{
-			DisplayRenderPassPtr pRP = *iRP;
-			m_vRenderPasses.push_back(pRP);
-			m_mRenderPasses[pRP->GetNameKey()] = pRP;
-			++iRP;
+			DisplayRenderStagePtr pRS = *iRS;
+			m_vRenderStages.push_back(pRS);
+			m_mRenderStages[pRS->GetNameKey()] = pRS;
+			++iRS;
 		}
 	}
 
-	void Display::RemoveRenderPasses(DisplayRenderPassPtrVec _vRenderPasses)
+	void Display::RemoveRenderStages(DisplayRenderStagePtrVec _vRenderPasses)
 	{
-		DisplayRenderPassPtrVec::iterator iRP = _vRenderPasses.begin();
-		DisplayRenderPassPtrVec::iterator iEnd = _vRenderPasses.end();
-		while (iEnd != iRP)
+		DisplayRenderStagePtrVec::iterator iRS = _vRenderPasses.begin();
+		DisplayRenderStagePtrVec::iterator iEnd = _vRenderPasses.end();
+		while (iEnd != iRS)
 		{
-			DisplayRenderPassPtr pRP = *iRP;
+			DisplayRenderStagePtr pRS = *iRS;
 
-			DisplayRenderPassPtrVec::iterator iRPToErase = find(m_vRenderPasses.begin(), m_vRenderPasses.end(), pRP);
-			if (m_vRenderPasses.end() != iRPToErase)
+			DisplayRenderStagePtrVec::iterator iRPToErase = find(m_vRenderStages.begin(), m_vRenderStages.end(), pRS);
+			if (m_vRenderStages.end() != iRPToErase)
 			{
-				m_vRenderPasses.erase(iRPToErase);
+				m_vRenderStages.erase(iRPToErase);
 			}
 
-			DisplayRenderPassPtrMap::iterator iPair = m_mRenderPasses.find(pRP->GetNameKey());
-			if (m_mRenderPasses.end() != iPair)
+			DisplayRenderStagePtrMap::iterator iPair = m_mRenderStages.find(pRS->GetNameKey());
+			if (m_mRenderStages.end() != iPair)
 			{
-				m_mRenderPasses.erase(iPair);
+				m_mRenderStages.erase(iPair);
 			}
 
-			++iRP;
+			++iRS;
 		}
 	}
 
-	DisplayRenderPassPtr Display::GetCurrentRenderPass()
+	DisplayRenderStagePtr Display::GetCurrentRenderStage()
 	{
-		return m_pCurrentRenderPass;
+		return m_pCurrentRenderStage;
 	}
 
 	void Display::RenderUpdate()
@@ -853,7 +853,7 @@ namespace ElixirEngine
 		}
 	}
 
-	void Display::RenderPass(DisplayRenderPassPtr _pRP)
+	void Display::RenderPass(DisplayRenderStagePtr _pRP)
 	{
 		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
 		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
@@ -911,7 +911,7 @@ namespace ElixirEngine
 		_pRP->GetRenderList().clear();
 	}
 
-	void Display::Render(DisplayRenderPassPtr _pRP)
+	void Display::Render(DisplayRenderStagePtr _pRP)
 	{
 		m_pCurrentCamera->Update();
 

@@ -48,6 +48,8 @@ namespace BastionGame
 		float						m_fDayTime;
 		float						m_fVerticalOffset;
 		float						m_fIntensity;
+		bool						m_bAlwaysVisible;
+		bool						m_bInOctree;
 	};
 }
 

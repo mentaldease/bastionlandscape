@@ -1,8 +1,18 @@
 #ifndef __CORETYPES_H__
 #define __CORETYPES_H__
 
+#include "../Core/VMath.h"
+
 namespace ElixirEngine
 {
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	typedef vector<fsVector2> fsVector2Vec;
+	typedef vector<fsVector3> fsVector3Vec;
+	typedef vector<fsVector4> fsVector4Vec;
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -95,6 +105,29 @@ namespace ElixirEngine
 	class NoiseGenerator;
 	typedef NoiseGenerator*	NoiseGeneratorPtr;
 	typedef NoiseGenerator&	NoiseGeneratorRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class OctreeObject;
+	typedef OctreeObject* OctreeObjectPtr;
+	typedef OctreeObject& OctreeObjectRef;
+	typedef vector<OctreeObjectPtr> OctreeObjectPtrVec;
+	typedef map<Key, OctreeObjectPtr> OctreeObjectPtrMap;
+
+	class OctreeNode;
+	typedef OctreeNode* OctreeNodePtr;
+	typedef OctreeNode& OctreeNodeRef;
+	typedef vector<OctreeNodePtr> OctreeNodePtrVec;
+	typedef map<Key, OctreeNodePtr> OctreeNodePtrMap;
+
+	class Octree;
+	typedef Octree* OctreePtr;
+	typedef Octree& OctreeRef;
+
+	typedef boost::function<bool (OctreeNodeRef _rNode)> OctreeTraverseFunc;
+	typedef map<Key, OctreeTraverseFunc> OctreeTraverseFuncMap;
 }
 
 namespace LuaPlus
