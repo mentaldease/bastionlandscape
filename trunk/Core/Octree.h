@@ -60,6 +60,19 @@ namespace ElixirEngine
 		typedef CreateInfo* CreateInfoPtr;
 		typedef CreateInfo& CreateInfoRef;
 
+		struct CopyData
+		{
+			fsVector3Vec&		m_vPoints;
+			fsVector3Vec&		m_vChildrenAABB;
+			UIntVec&			m_vChildren;
+			OctreeObjectPtrVec&	m_vObjects;
+			fsVector3&			m_fs3Center;
+			float&				m_fNodeSize;
+			UInt&				m_uDepthLevel;
+		};
+		typedef CopyData* CopyDataPtr;
+		typedef CopyData& CopyDataRef;
+
 	public:
 		OctreeNode(OctreeRef _rOctree);
 		virtual ~OctreeNode();
@@ -68,16 +81,26 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		OctreeRef GetOctree() const;
+
 		bool AddObject(OctreeObjectPtr _pObject);
 		bool RemoveObject(OctreeObjectPtr _pObject);
 
 		void GetAABB(fsVector3Vec& _vPoints);
 		UInt GetChildrenCount() const;
 
+		void Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride = EOctreeTraverseResult_UNKNOWN);
+
+		// WARNING these methods are ONLY intended for initialization of a OctreeNode pool container.
+		// They have been made public because the container need them but they are for PRIVATE USE ONLY.
+		// DO NOT USE THEM.
+		OctreeNode& operator = (const OctreeNode& _rNode);
+		void CopyTo(CopyDataRef _rCopyData) const;
+
 	protected:
 		fsVector3Vec		m_vPoints;
 		fsVector3Vec		m_vChildrenAABB;
-		OctreeNodePtrVec	m_vChildren;
+		UIntVec				m_vChildren;
 		OctreeObjectPtrVec	m_vObjects;
 		OctreeRef			m_rOctree;
 		fsVector3			m_fs3Center;
@@ -109,21 +132,25 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		bool AddTraverseMode(KeyRef _uModeNameKey, OctreeTraverseFunc _pFunc);
-		void RemoveTraverseMode(KeyRef _uModeNameKey);
-		void Traverse(KeyRef _uModeNameKey, OctreeNodePtr _pStartingNode = NULL);
+		bool AddTraverseMode(Key _uModeNameKey, OctreeTraverseFunc _pFunc);
+		void RemoveTraverseMode(Key _uModeNameKey);
+		void Traverse(Key _uModeNameKey, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, OctreeNodePtr _pStartingNode = NULL);
 
 		bool AddObject(OctreeObjectPtr _pObject);
 		bool RemoveObject(OctreeObjectPtr _pObject);
 
-		OctreeNodePtr NewNode();
-		void DeleteNode(OctreeNodePtr _pNode);
+		UInt NewNode();
+		void DeleteNode(UInt _uIndex);
+		OctreeNodePtr GetNode(const UInt _uIndex);
+
+	protected:
+		UInt NewNode_();
 
 	protected:
 		OctreeTraverseFuncMap	m_mTraverseModes;
-		OctreeNodePtrVec		m_vPool;
-		OctreeNodePtrVec		m_vInUse;
-		OctreeNodePtrVec		m_vAvailable;
+		OctreeNodeVec			m_vPool;
+		UIntVec					m_vInUse;
+		UIntVec					m_vAvailable;
 		OctreeNodePtr			m_pRoot;
 		fsVector3				m_fs3Center;
 		float					m_fLeafSize;

@@ -253,6 +253,14 @@ namespace ElixirEngine
 	class DisplayGeometrySphere;
 	typedef DisplayGeometrySphere* DisplayGeometrySpherePtr;
 	typedef DisplayGeometrySphere& DisplayGeometrySphereRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class OctreeTraverseFuncFrustum;
+	typedef OctreeTraverseFuncFrustum* OctreeTraverseFuncFrustumPtr;
+	typedef OctreeTraverseFuncFrustum& OctreeTraverseFuncFrustumRef;
 }
 
 #endif // __DISPLAYTYPES_H__

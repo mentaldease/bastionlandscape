@@ -29,11 +29,14 @@ namespace BastionGame
 		m_vRenderStages(),
 		m_f4LightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
+		m_pOctree(NULL),
+		m_pOTFFrustum(NULL),
 		m_uWaterDataCount(0),
 		m_strName(),
 		m_fWaterLevel(200.0f),
 		m_uWaterLevelKey(MakeKey(string("WATERLEVEL"))),
 		m_uWaterDataKey(MakeKey(string("WATERDATA"))),
+		m_uFrustumModeKey(MakeKey(string("FRUSTUM"))),
 		m_pUITextOverlay(NULL),
 		m_uUIMainFontLabel(0),
 		m_uUIRenderPass(0),
@@ -193,6 +196,21 @@ namespace BastionGame
 		// landscape layer system
 		LandscapeLayerManager::GetInstance()->UnloadAll();
 
+		// octree
+		if (NULL != m_pOTFFrustum)
+		{
+			m_pOTFFrustum->Release();
+			delete m_pOTFFrustum;
+			m_pOTFFrustum = NULL;
+		}
+		if (NULL != m_pOctree)
+		{
+			m_pOctree->RemoveTraverseMode(m_uFrustumModeKey);
+			m_pOctree->Release();
+			delete m_pOctree;
+			m_pOctree = NULL;
+		}
+
 		// materials
 		while (m_mMaterials.end() != m_mMaterials.begin())
 		{
@@ -257,6 +275,7 @@ namespace BastionGame
 			m_strName = oRoot["name"].GetString();
 			bResult = CreateLoadRenderTargets(oRoot)
 				&& CreateLoadMaterials(oRoot)
+				&& CreateLoadOctree(oRoot)
 				&& CreateLoadHierarchy(oRoot)
 				&& CreateLoadWaterDataList(oRoot)
 				&& CreateLoadCameras(oRoot)

@@ -10,12 +10,14 @@
 #include "../Landscape/Landscape.h"
 #include "../Input/Input.h"
 #include "../Core/Time.h"
+#include "../Core/Octree.h"
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
 #include "../Core/Scripting.h"
 #include "../Display/Font.h"
 #include "../Display/RenderStage.h"
 #include "../Display/GeometryHelper.h"
+#include "../Display/OctreeTraverseFuncFrustum.h"
 using namespace ElixirEngine;
 
 #include "../Application/ApplicationTypes.h"

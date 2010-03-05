@@ -43,6 +43,7 @@ namespace BastionGame
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
 		bool CreateLoadRenderTargets(LuaObjectRef _rLuaObject);
 		bool CreateLoadMaterials(LuaObjectRef _rLuaObject);
+		bool CreateLoadOctree(LuaObjectRef _rLuaObject);
 		bool CreateLoadWaterDataList(LuaObjectRef _rLuaObject);
 		bool CreateLoadWaterData(LuaObjectRef _rLuaObject, WaterDataRef _rWaterData);
 		bool CreateLoadCameras(LuaObjectRef _rLuaObject);
@@ -56,29 +57,32 @@ namespace BastionGame
 		static CoreObjectPtr CreateClassSky(LuaObjectRef _rTable, ScenePtr _pScene);
 
 	protected:
-		static CreateClassFuncMap	s_mClasses;
+		static CreateClassFuncMap		s_mClasses;
 
-		ApplicationRef				m_rApplication;
-		CoreObjectPtrMap			m_mHierarchy;
-		DisplayMaterialPtrMap		m_mMaterials;
-		DisplayTexturePtrMap		m_mAdditionalRTs;
-		DisplayCameraPtrMap			m_mCameras;
-		DisplayRenderStagePtrMap	m_mRenderStages;
-		DisplayRenderStagePtrVec	m_vRenderStages;
-		Vector4						m_f4LightDir;
-		WaterDataPtr				m_pWaterData;
-		UInt						m_uWaterDataCount;
-		string						m_strName;
-		float						m_fWaterLevel;
-		Key							m_uWaterLevelKey;
-		Key							m_uWaterDataKey;
+		ApplicationRef					m_rApplication;
+		CoreObjectPtrMap				m_mHierarchy;
+		DisplayMaterialPtrMap			m_mMaterials;
+		DisplayTexturePtrMap			m_mAdditionalRTs;
+		DisplayCameraPtrMap				m_mCameras;
+		DisplayRenderStagePtrMap		m_mRenderStages;
+		DisplayRenderStagePtrVec		m_vRenderStages;
+		Vector4							m_f4LightDir;
+		WaterDataPtr					m_pWaterData;
+		OctreePtr						m_pOctree;
+		OctreeTraverseFuncFrustumPtr	m_pOTFFrustum;
+		UInt							m_uWaterDataCount;
+		string							m_strName;
+		float							m_fWaterLevel;
+		Key								m_uWaterLevelKey;
+		Key								m_uWaterDataKey;
+		Key								m_uFrustumModeKey;
 
-		DebugTextOverlayPtr			m_pUITextOverlay;
-		Key							m_uUIMainFontLabel;
-		Key							m_uUIRenderPass;
+		DebugTextOverlayPtr				m_pUITextOverlay;
+		Key								m_uUIMainFontLabel;
+		Key								m_uUIRenderPass;
 
-		float						m_fDayTime;
-		float						m_fVerticalOffset;
+		float							m_fDayTime;
+		float							m_fVerticalOffset;
 	};
 }
 

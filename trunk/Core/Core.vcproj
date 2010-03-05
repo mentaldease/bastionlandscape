@@ -157,6 +157,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CoreScripting.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\File.cpp"
 				>
 			</File>

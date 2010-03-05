@@ -98,13 +98,16 @@ namespace ElixirEngine
 
 	Time::TimerRef Time::Timer::operator = (Time::Timer _oTimer)
 	{
-		m_rTicksPerSeconds	= _oTimer.m_rTicksPerSeconds;
-		m_lStart			= _oTimer.m_lStart;
-		m_lLastPause		= _oTimer.m_lLastPause;
-		m_lTotalPause		= _oTimer.m_lTotalPause;
-		m_lCurrentCounter	= _oTimer.m_lCurrentCounter;
-		m_bIsPaused			= _oTimer.m_bIsPaused;
-		m_bIsActive			= _oTimer.m_bIsActive;
+		if (this != &_oTimer)
+		{
+			m_rTicksPerSeconds	= _oTimer.m_rTicksPerSeconds;
+			m_lStart			= _oTimer.m_lStart;
+			m_lLastPause		= _oTimer.m_lLastPause;
+			m_lTotalPause		= _oTimer.m_lTotalPause;
+			m_lCurrentCounter	= _oTimer.m_lCurrentCounter;
+			m_bIsPaused			= _oTimer.m_bIsPaused;
+			m_bIsActive			= _oTimer.m_bIsActive;
+		}
 		return *this;
 	}
 

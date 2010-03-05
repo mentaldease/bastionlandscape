@@ -108,6 +108,35 @@ namespace BastionGame
 		return bResult;
 	}
 
+	bool Scene::CreateLoadOctree(LuaObjectRef _rLuaObject)
+	{
+		LuaObject oOctree = _rLuaObject["octree"];
+		bool bResult = (false == oOctree.IsNil());
+
+		if (false != bResult)
+		{
+			Octree::CreateInfo oOCInfo;
+			Scripting::Lua::Get(oOctree, "leaf_size", 0.0f, oOCInfo.m_fLeafSize);
+			Scripting::Lua::Get(oOctree, "depth", 1u, oOCInfo.m_uDepth);
+			Scripting::Lua::Get(oOctree, "position", fsVector3(0.0f, 0.0f, 0.0f), oOCInfo.m_fs3Center);
+
+			m_pOctree = new Octree();
+			bResult = m_pOctree->Create(boost::any(&oOCInfo));
+		}
+
+		if (false != bResult)
+		{
+			m_pOTFFrustum = new OctreeTraverseFuncFrustum;
+			bResult = m_pOTFFrustum->Create(boost::any(0));
+			if (false != bResult)
+			{
+				m_pOctree->AddTraverseMode(m_uFrustumModeKey, boost::bind(&OctreeTraverseFuncFrustum::Do, m_pOTFFrustum, _1));
+			}
+		}
+
+		return bResult;
+	}
+
 	bool Scene::CreateLoadWaterDataList(LuaObjectRef _rLuaObject)
 	{
 		string strWaterConfig;

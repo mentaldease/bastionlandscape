@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OctreeTraverseFuncFrustum.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PostProcess.cpp"
 				>
 			</File>
@@ -262,6 +266,10 @@
 			</File>
 			<File
 				RelativePath=".\NormalProcess.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OctreeTraverseFuncFrustum.h"
 				>
 			</File>
 			<File

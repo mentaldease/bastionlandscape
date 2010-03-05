@@ -2,6 +2,7 @@
 #define __LANDSCAPE_H__
 
 #include "../Core/Core.h"
+#include "../Core/Octree.h"
 #include "../Display/Display.h"
 #include "../Display/Surface.h"
 #include "../Landscape/LandscapeTypes.h"
@@ -92,6 +93,7 @@ namespace ElixirEngine
 		struct OpenInfo
 		{
 			string					m_strName;
+			OctreePtr				m_pOctree;
 			unsigned int			m_uQuadSize;
 			unsigned int			m_uGridSize;
 			ELandscapeVertexFormat	m_eFormat;
@@ -131,6 +133,8 @@ namespace ElixirEngine
 			void Release();
 
 			string					m_strName;
+			LODInfoPtr				m_pLODs;
+			OctreePtr				m_pOctree;
 			unsigned int			m_uQuadSize;
 			unsigned int			m_uGridSize;
 			unsigned int			m_uChunkCount;
@@ -140,7 +144,6 @@ namespace ElixirEngine
 			unsigned int			m_uStripSize;
 			unsigned int			m_uLODCount;
 			unsigned int			m_uTotalLODStripSize;
-			LODInfoPtr				m_pLODs;
 			float					m_fPixelErrorMax;
 			float					m_fFloorScale;
 			float					m_fHeightScale;
@@ -203,7 +206,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class LandscapeChunk : public DisplayObject
+	class LandscapeChunk : public DisplayObject, public OctreeObject
 	{
 	public:
 		enum ESubChild
@@ -222,7 +225,7 @@ namespace ElixirEngine
 		};
 
 	public:
-		LandscapeChunk(LandscapeRef _rLandscape, const unsigned int& _uLOD);
+		LandscapeChunk(LandscapeRef _rLandscape, OctreeRef _rOctree, const unsigned int& _uLOD);
 		virtual ~LandscapeChunk();
 
 		virtual bool Create(const boost::any& _rConfig);
