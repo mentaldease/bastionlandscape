@@ -56,6 +56,8 @@ namespace ElixirEngine
 
 	Landscape::GlobalInfo::GlobalInfo()
 	:	m_strName(),
+		m_pLODs(NULL),
+		m_pOctree(NULL),
 		m_uQuadSize(0),
 		m_uGridSize(0),
 		m_uChunkCount(0),
@@ -65,7 +67,6 @@ namespace ElixirEngine
 		m_uStripSize(0),
 		m_uLODCount(0),
 		m_uTotalLODStripSize(0),
-		m_pLODs(NULL),
 		m_fPixelErrorMax(0.0f),
 		m_fFloorScale(1.0f),
 		m_fHeightScale(1.0f),
@@ -79,6 +80,8 @@ namespace ElixirEngine
 	void Landscape::GlobalInfo::Reset()
 	{
 		m_strName.clear();
+		m_pLODs = NULL;
+		m_pOctree = NULL;
 		m_uQuadSize = 0;
 		m_uGridSize = 0;
 		m_uChunkCount = 0;
@@ -88,7 +91,6 @@ namespace ElixirEngine
 		m_uStripSize = 0;
 		m_uLODCount = 0;
 		m_uTotalLODStripSize = 0;
-		m_pLODs = NULL;
 		m_fPixelErrorMax = 0.0f;
 		m_fFloorScale = 1.0f;
 		m_fHeightScale = 1.0f;
@@ -101,6 +103,7 @@ namespace ElixirEngine
 	{
 		Release();
 		Reset();
+
 		m_strName = _rOpenInfo.m_strName;
 		m_uQuadSize = _rOpenInfo.m_uQuadSize;
 		m_uGridSize = _rOpenInfo.m_uGridSize;
@@ -137,6 +140,12 @@ namespace ElixirEngine
 			}
 		}
 
+		if (false != bResult)
+		{
+			m_pOctree = _rOpenInfo.m_pOctree;
+			bResult = (NULL != m_pOctree);
+		}
+
 		return bResult;
 	}
 
@@ -163,7 +172,8 @@ namespace ElixirEngine
 		m_pCurrentVertexBuffer(NULL),
 		m_pIndexBuffer(NULL),
 		m_pIndexes(NULL),
-		m_pLayering(NULL)
+		m_pLayering(NULL),
+		m_uRenderPassKey(0)
 	{
 
 	}
@@ -252,6 +262,8 @@ namespace ElixirEngine
 
 	bool Landscape::Open(const OpenInfo& _rOpenInfo)
 	{
+		Close();
+
 		bool bResult = m_vGrid.empty() && m_oGlobalInfo.Create(_rOpenInfo);
 
 		if (false != bResult)
@@ -456,7 +468,7 @@ namespace ElixirEngine
 		// create chunks recursively
 		if (false != bResult)
 		{
-			LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(*this, m_oGlobalInfo.m_uLODCount - 1);
+			LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(*this, *m_oGlobalInfo.m_pOctree, m_oGlobalInfo.m_uLODCount - 1);
 			LandscapeChunk::CreateInfo oLCCInfo;
 			oLCCInfo.m_uX = 0;
 			oLCCInfo.m_uZ = 0;

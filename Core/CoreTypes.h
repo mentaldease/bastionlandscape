@@ -114,19 +114,33 @@ namespace ElixirEngine
 	typedef OctreeObject* OctreeObjectPtr;
 	typedef OctreeObject& OctreeObjectRef;
 	typedef vector<OctreeObjectPtr> OctreeObjectPtrVec;
+	typedef OctreeObjectPtrVec* OctreeObjectPtrVecPtr;
+	typedef OctreeObjectPtrVec& OctreeObjectPtrVecRef;
 	typedef map<Key, OctreeObjectPtr> OctreeObjectPtrMap;
 
 	class OctreeNode;
 	typedef OctreeNode* OctreeNodePtr;
 	typedef OctreeNode& OctreeNodeRef;
+	typedef vector<OctreeNode> OctreeNodeVec;
 	typedef vector<OctreeNodePtr> OctreeNodePtrVec;
+	typedef OctreeNodePtrVec* OctreeNodePtrVecPtr;
+	typedef OctreeNodePtrVec& OctreeNodePtrVecRef;
 	typedef map<Key, OctreeNodePtr> OctreeNodePtrMap;
 
 	class Octree;
 	typedef Octree* OctreePtr;
 	typedef Octree& OctreeRef;
 
-	typedef boost::function<bool (OctreeNodeRef _rNode)> OctreeTraverseFunc;
+	enum EOctreeTraverseResult
+	{
+		EOctreeTraverseResult_UNKNOWN,
+		EOctreeTraverseResult_NONE,
+		EOctreeTraverseResult_PARTIAL,
+		EOctreeTraverseResult_FULL
+	};
+	typedef boost::function<EOctreeTraverseResult (OctreeNodeRef _rNode)> OctreeTraverseFunc;
+	typedef OctreeTraverseFunc* OctreeTraverseFuncPtr;
+	typedef OctreeTraverseFunc& OctreeTraverseFuncRef;
 	typedef map<Key, OctreeTraverseFunc> OctreeTraverseFuncMap;
 }
 

@@ -52,8 +52,8 @@ scenetest00 =
 	octree =
 	{
 		leaf_size = 200.0,
-		depth = 6,
-		position = { 0.0, 0.0, 0.0, },
+		depth = 4,
+		position = { 0.0, 0.0, 0.0 },
 	},
 	hierarchy =
 	{
@@ -64,7 +64,7 @@ scenetest00 =
 			vertex_format = "default",
 			grid_size = 16,
 			grid_chunk_size = 16,
-			position = { 0.0, 0.0, 0.0, },
+			position = { 0.0, 0.0, 0.0 },
 			pixel_error_max = 2.5,
 			floor_scale = 10.0,
 			height_scale = 1.0,
@@ -80,8 +80,8 @@ scenetest00 =
 			bottom_hemisphere = true,
 			top_hemisphere = true,
 			view_from_inside = true,
-			position = { 0.0, 0.0, 0.0, },
-			rotation = { 0.0, 0.0, 0.0, },
+			position = { 0.0, 0.0, 0.0 },
+			rotation = { 0.0, 0.0, 0.0 },
 			horiz_slices = 50,
 			vert_slices = 50,
 			color = { 26.0 / 255.0, 103.0 / 255.0, 149.0 / 255.0, 1.0 },

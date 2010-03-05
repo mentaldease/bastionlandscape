@@ -16,8 +16,9 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	LandscapeChunk::LandscapeChunk(Landscape& _rLandscape, const unsigned int& _uLOD)
+	LandscapeChunk::LandscapeChunk(Landscape& _rLandscape, OctreeRef _rOctree, const unsigned int& _uLOD)
 	:	DisplayObject(),
+		OctreeObject(_rOctree),
 		m_rLandscape(_rLandscape),
 		m_uStartVertexIndex(0),
 		m_uLOD(_uLOD),
@@ -89,7 +90,7 @@ namespace ElixirEngine
 				{
 					for (unsigned int i = 0 ; 2 > i ; ++i)
 					{
-						LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(m_rLandscape, m_uLOD - 1);
+						LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(m_rLandscape, m_rOctree, m_uLOD - 1);
 						oLCCInfo.m_uX = pInfo->m_uX * 2 + i;
 						oLCCInfo.m_uZ = pInfo->m_uZ * 2 + j;
 						bResult = pLandscapeChunk->Create(boost::any(&oLCCInfo));
@@ -106,6 +107,11 @@ namespace ElixirEngine
 					}
 				}
 			}
+			else
+			{
+				SetAABB(fsVector3(oAABB[0].x, oAABB[0].y, oAABB[0].z), fsVector3(oAABB[1].x, oAABB[1].y, oAABB[1].z));
+				m_rOctree.AddObject(this);
+			}
 		}
 
 		return bResult;
@@ -118,6 +124,10 @@ namespace ElixirEngine
 
 	void LandscapeChunk::Release()
 	{
+		if (0 == m_uLOD)
+		{
+			m_rOctree.RemoveObject(this);
+		}
 	}
 
 	void LandscapeChunk::RenderBegin()
