@@ -124,6 +124,16 @@ namespace ElixirEngine
 
 	void LandscapeChunk::Release()
 	{
+		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
+		{
+			if (NULL != m_pChildren[i])
+			{
+				m_pChildren[i]->Release();
+				delete m_pChildren[i];
+				m_pChildren[i] = NULL;
+			}
+		}
+
 		if (0 == m_uLOD)
 		{
 			m_rOctree.RemoveObject(this);

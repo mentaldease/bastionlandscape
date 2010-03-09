@@ -115,6 +115,7 @@ namespace ElixirEngine
 		const float& GetPixelSize() const;
 		ECollision CollisionWithSphere(const Vector3& _rCenter, const float& _fRadius);
 		ECollision CollisionWithAABB(AABBRef _rAABB);
+		ECollision CollisionWithAABB(const fsVector3Vec& _rvAABB);
 
 		void AddListener(CoreObjectPtr _pListener);
 		void RemoveListener(CoreObjectPtr _pListener);

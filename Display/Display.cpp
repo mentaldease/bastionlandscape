@@ -10,6 +10,7 @@
 #include "../Display/Font.h"
 #include "../Display/RenderStage.h"
 #include "../Core/Scripting.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -858,6 +859,8 @@ namespace ElixirEngine
 		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
 		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
 		const UInt uClearColor = uBlack;
+
+		//vsoutput(__FUNCTION__" : render stage %x\n", _pRP->GetNameKey());
 
 		_pRP->Update();
 

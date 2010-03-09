@@ -50,10 +50,12 @@ namespace BastionGame
 					if (m_uReflectionKey == uProcessNameKey)
 					{
 						pWaterLevel = &pWaterData[0].m_fWaterLevel;
+						//vsoutput(__FUNCTION__" : reflection camera\n");
 					}
 					else if (m_uReflection2Key == uProcessNameKey)
 					{
 						pWaterLevel = &pWaterData[1].m_fWaterLevel;
+						//vsoutput(__FUNCTION__" : reflection2 camera\n");
 					}
 				}
 				Vector3 oWaterLevel(0.0f, *pWaterLevel, 0.0f);
@@ -66,6 +68,7 @@ namespace BastionGame
 			{
 				m_pCamera->SetReflection(false);
 				m_pCamera->SetClipPlanes(0, NULL);
+				//vsoutput(__FUNCTION__" : main camera\n");
 			}
 		}
 

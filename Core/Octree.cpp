@@ -303,28 +303,28 @@ namespace ElixirEngine
 				{
 					const UInt uIndex = i * 2;
 
-					if (m_vChildrenAABB[i].x() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].x())
+					if (m_vChildrenAABB[uIndex].x() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].x())
 					{
 						continue;
 					}
-					if (m_vChildrenAABB[i].y() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].y())
+					if (m_vChildrenAABB[uIndex].y() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].y())
 					{
 						continue;
 					}
-					if (m_vChildrenAABB[i].z() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].z())
+					if (m_vChildrenAABB[uIndex].z() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].z())
 					{
 						continue;
 					}
 
-					if (m_vChildrenAABB[i + 1].x() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].x())
+					if (m_vChildrenAABB[uIndex + 1].x() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].x())
 					{
 						continue;
 					}
-					if (m_vChildrenAABB[i + 1].y() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].y())
+					if (m_vChildrenAABB[uIndex + 1].y() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].y())
 					{
 						continue;
 					}
-					if (m_vChildrenAABB[i + 1].z() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].z())
+					if (m_vChildrenAABB[uIndex + 1].z() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].z())
 					{
 						continue;
 					}
@@ -356,6 +356,11 @@ namespace ElixirEngine
 	void OctreeNode::GetAABB(fsVector3Vec& _vPoints)
 	{
 		_vPoints = m_vPoints;
+	}
+
+	const fsVector3Vec& OctreeNode::GetAABB() const
+	{
+		return m_vPoints;
 	}
 
 	UInt OctreeNode::GetChildrenCount() const
