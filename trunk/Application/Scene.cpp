@@ -259,6 +259,11 @@ namespace BastionGame
 		return m_f4LightDir;
 	}
 
+	OctreePtr Scene::GetOctree()
+	{
+		return m_pOctree;
+	}
+
 	bool Scene::CreateFromLuaConfig(Scene::CreateInfoPtr _pInfo)
 	{
 		bool bResult = Scripting::Lua::Loadfile(_pInfo->m_strPath);
@@ -332,6 +337,7 @@ namespace BastionGame
 			oLOInfo.m_strHeightmap = _rTable["heightmap"].GetString();
 			oLOInfo.m_strLayersConfig.clear();
 			oLOInfo.m_strLayersConfig = _rTable["layers_config"].GetString();
+			oLOInfo.m_pOctree = _pScene->GetOctree();
 			bResult = pLandscape->Open(oLOInfo);
 		}
 		if (false != bResult)

@@ -109,7 +109,7 @@ namespace ElixirEngine
 			}
 			else
 			{
-				SetAABB(fsVector3(oAABB[0].x, oAABB[0].y, oAABB[0].z), fsVector3(oAABB[1].x, oAABB[1].y, oAABB[1].z));
+				SetAABB(fsVector3(oAABB[1].x, oAABB[1].y, oAABB[1].z), fsVector3(oAABB[0].x, oAABB[0].y, oAABB[0].z));
 				m_rOctree.AddObject(this);
 			}
 		}
