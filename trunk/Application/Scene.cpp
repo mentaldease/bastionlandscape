@@ -4,7 +4,6 @@
 #include "../Application/Sky.h"
 #include "../Application/DebugTextOverlay.h"
 #include "../Core/Scripting.h"
-#include "../Core/Util.h"
 
 namespace BastionGame
 {
@@ -129,29 +128,39 @@ namespace BastionGame
 
 	void Scene::Update()
 	{
+		DisplayPtr pDisplay = Display::GetInstance();
+		if (m_uUIRenderPass != pDisplay->GetCurrentRenderStage()->GetNameKey())
 		{
-			CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
-			CoreObjectPtrMap::iterator iEnd = m_mHierarchy.end();
-			while (iEnd != iPair)
 			{
-				iPair->second->Update();
-				++iPair;
+				CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
+				CoreObjectPtrMap::iterator iEnd = m_mHierarchy.end();
+				while (iEnd != iPair)
+				{
+					iPair->second->Update();
+					++iPair;
+				}
 			}
-		}
 
-		{
-			wstring wstrText = L"BASTION";
-			Vector4 f4Color(1.0f, 1.0f, 1.0f, 1.0f);
-			DrawOverlayText(0.0f, 0.0f, wstrText, f4Color);
-		}
-		{
-			wstring wstrText = L"33S";
-			Vector4 f4Color(1.0f, 1.0f, 0.0f, 1.0f);
-			DrawOverlayText(0.0f, -30.0f, wstrText, f4Color);
+			{
+				OctreeObjectPtrVec vObjects;
+				OctreeNodePtrVec vNodes;
+				m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vObjects);
+				//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vObjects.size());
+			}
 		}
 
 		if (NULL != m_pUITextOverlay)
 		{
+			{
+				wstring wstrText = L"BASTION";
+				Vector4 f4Color(1.0f, 1.0f, 1.0f, 1.0f);
+				DrawOverlayText(0.0f, 0.0f, wstrText, f4Color);
+			}
+			{
+				wstring wstrText = L"33S";
+				Vector4 f4Color(1.0f, 1.0f, 0.0f, 1.0f);
+				DrawOverlayText(0.0f, -30.0f, wstrText, f4Color);
+			}
 			m_pUITextOverlay->Update();
 		}
 	}

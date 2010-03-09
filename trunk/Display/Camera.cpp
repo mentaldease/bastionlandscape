@@ -387,6 +387,47 @@ namespace ElixirEngine
 		return eResult;
 	}
 
+	DisplayCamera::ECollision DisplayCamera::CollisionWithAABB(const fsVector3Vec& _rvAABB)
+	{
+		ECollision eResult = ECollision_INTERSECT;
+		int sTotalIn = 0;
+
+		// test all 8 corners against the 6 sides 
+		// if all points are behind 1 specific plane, we are out
+		// if we are in with all points, then we are fully in
+		for (int p = 0 ; p < 6 ; ++p)
+		{
+			int sInCount = 8;
+			int sPtIn = 1;
+
+			for (int i = 0 ; i < 8 ; ++i)
+			{
+				// test this point against the planes
+				const Vector3 f3Corner(_rvAABB[i].x(), _rvAABB[i].y(), _rvAABB[i].z());
+				if (PointSideOfPlane(m_aFrustumNormals[p], f3Corner) == DisplayCamera::EHalfSpace_NEGATIVE)
+				{
+					sPtIn = 0;
+					--sInCount;
+				}
+			}
+
+			// were all the points outside of plane p?
+			if (0 == sInCount)
+			{
+				eResult = DisplayCamera::ECollision_OUT;
+				break;
+			}
+
+			// check if they were all on the right side of the plane
+			sTotalIn += sPtIn;
+		}
+
+		// so if sTotalIn is 6, then all are inside the view
+		eResult = (6 == sTotalIn) ? ECollision_IN : ECollision_INTERSECT;
+
+		return eResult;
+	}
+
 	void DisplayCamera::AddListener(CoreObjectPtr _pListener)
 	{
 		if (m_vListeners.end() == find(m_vListeners.begin(), m_vListeners.end(), _pListener))

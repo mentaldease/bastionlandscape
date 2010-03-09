@@ -11,6 +11,7 @@
 #include "../Input/Input.h"
 #include "../Core/Time.h"
 #include "../Core/Octree.h"
+#include "../Core/Util.h"
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
 #include "../Core/Scripting.h"

@@ -74,6 +74,7 @@ namespace ElixirEngine
 		bool RemoveObject(OctreeObjectPtr _pObject);
 
 		void GetAABB(fsVector3Vec& _vPoints);
+		const fsVector3Vec& GetAABB() const;
 		UInt GetChildrenCount() const;
 
 		void Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride = EOctreeTraverseResult_UNKNOWN);
