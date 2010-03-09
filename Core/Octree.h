@@ -60,19 +60,6 @@ namespace ElixirEngine
 		typedef CreateInfo* CreateInfoPtr;
 		typedef CreateInfo& CreateInfoRef;
 
-		struct CopyData
-		{
-			fsVector3Vec&		m_vPoints;
-			fsVector3Vec&		m_vChildrenAABB;
-			UIntVec&			m_vChildren;
-			OctreeObjectPtrVec&	m_vObjects;
-			fsVector3&			m_fs3Center;
-			float&				m_fNodeSize;
-			UInt&				m_uDepthLevel;
-		};
-		typedef CopyData* CopyDataPtr;
-		typedef CopyData& CopyDataRef;
-
 	public:
 		OctreeNode(OctreeRef _rOctree);
 		virtual ~OctreeNode();
@@ -90,12 +77,6 @@ namespace ElixirEngine
 		UInt GetChildrenCount() const;
 
 		void Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride = EOctreeTraverseResult_UNKNOWN);
-
-		// WARNING these methods are ONLY intended for initialization of a OctreeNode pool container.
-		// They have been made public because the container need them but they are for PRIVATE USE ONLY.
-		// DO NOT USE THEM.
-		OctreeNode& operator = (const OctreeNode& _rNode);
-		void CopyTo(CopyDataRef _rCopyData) const;
 
 	protected:
 		fsVector3Vec		m_vPoints;
@@ -141,14 +122,17 @@ namespace ElixirEngine
 
 		UInt NewNode();
 		void DeleteNode(UInt _uIndex);
-		OctreeNodePtr GetNode(const UInt _uIndex);
+		inline OctreeNodePtr GetNode(const UInt _uIndex)
+		{
+			return m_vPool[_uIndex];
+		}
 
 	protected:
 		UInt NewNode_();
 
 	protected:
 		OctreeTraverseFuncMap	m_mTraverseModes;
-		OctreeNodeVec			m_vPool;
+		OctreeNodePtrVec		m_vPool;
 		UIntVec					m_vInUse;
 		UIntVec					m_vAvailable;
 		OctreeNodePtr			m_pRoot;

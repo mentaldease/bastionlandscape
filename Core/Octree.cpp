@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Core/Core.h"
 #include "../Core/Octree.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -23,6 +24,10 @@ namespace ElixirEngine
 
 	void OctreeObject::SetAABB(const fsVector3& _rf3TopRightFar, const fsVector3& _rf3BottomLeftNear)
 	{
+		//vsoutput("aabb (%f %f %f) (%f %f %f)\n",
+		//	_rf3BottomLeftNear.x(), _rf3BottomLeftNear.y(), _rf3BottomLeftNear.z(),
+		//	_rf3TopRightFar.x(), _rf3TopRightFar.y(), _rf3TopRightFar.z());
+
 		#define SETPOINT(ID, XVEC3, YVEC3, ZVEC3) \
 		m_vPoints[ID].x() = XVEC3.x(); \
 		m_vPoints[ID].y() = YVEC3.y(); \
@@ -68,6 +73,7 @@ namespace ElixirEngine
 	{
 		m_vPoints.resize(EOctreeAABB_COUNT);
 		m_vChildrenAABB.resize(EOctreeAABB_COUNT * 2);
+		m_vChildren.resize(EOctreeAABB_COUNT, 0);
 	}
 	
 	OctreeNode::~OctreeNode()
@@ -184,58 +190,78 @@ namespace ElixirEngine
 		}
 		else
 		{
+			OctreeNodePtr pNode = NULL;
 			const fsVector3Vec& rvAABB = _pObject->GetAABB();
+			//vsoutput("object (%f %f %f) (%f %f %f)\n",
+			//	rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].x(), rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].y(), rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].z(),
+			//	rvAABB[EOctreeAABB_TOPRIGHTTFAR].x(), rvAABB[EOctreeAABB_TOPRIGHTTFAR].y(), rvAABB[EOctreeAABB_TOPRIGHTTFAR].z());
+			//vsoutput("node (%f %f %f) (%f %f %f)\n",
+			//	m_vPoints[EOctreeAABB_BOTTOMLEFTTNEAR].x(), m_vPoints[EOctreeAABB_BOTTOMLEFTTNEAR].y(), m_vPoints[EOctreeAABB_BOTTOMLEFTTNEAR].z(),
+			//	m_vPoints[EOctreeAABB_TOPRIGHTTFAR].x(), m_vPoints[EOctreeAABB_TOPRIGHTTFAR].y(), m_vPoints[EOctreeAABB_TOPRIGHTTFAR].z());
+
 			for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
 			{
 				const UInt uIndex = i * 2;
 
-				if (m_vChildrenAABB[i].x() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].x())
+				//vsoutput("child #%d (%f %f %f) (%f %f %f)\n", i,
+				//	m_vChildrenAABB[uIndex + 1].x(), m_vChildrenAABB[uIndex + 1].y(), m_vChildrenAABB[uIndex + 1].z(),
+				//	m_vChildrenAABB[uIndex].x(), m_vChildrenAABB[uIndex].y(), m_vChildrenAABB[uIndex].z());
+
+				if (m_vChildrenAABB[uIndex].x() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].x())
 				{
+					//vsoutput("child #%d reject x %f < %f \n", i, m_vChildrenAABB[uIndex].x(), rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].x());
 					continue;
 				}
-				if (m_vChildrenAABB[i].y() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].y())
+				if (m_vChildrenAABB[uIndex].y() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].y())
 				{
+					//vsoutput("child #%d reject y %f < %f \n", i, m_vChildrenAABB[uIndex].y(), rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].y());
 					continue;
 				}
-				if (m_vChildrenAABB[i].z() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].z())
+				if (m_vChildrenAABB[uIndex].z() < rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].z())
 				{
+					//vsoutput("child #%d reject z %f < %f \n", i, m_vChildrenAABB[uIndex].z(), rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR].z());
 					continue;
 				}
 
-				if (m_vChildrenAABB[i + 1].x() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].x())
+				if (m_vChildrenAABB[uIndex + 1].x() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].x())
 				{
+					//vsoutput("child #%d reject x %f > %f \n", i, m_vChildrenAABB[uIndex + 1].x(), rvAABB[EOctreeAABB_TOPRIGHTTFAR].x());
 					continue;
 				}
-				if (m_vChildrenAABB[i + 1].y() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].y())
+				if (m_vChildrenAABB[uIndex + 1].y() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].y())
 				{
+					//vsoutput("child #%d reject y %f > %f \n", i, m_vChildrenAABB[uIndex + 1].y(), rvAABB[EOctreeAABB_TOPRIGHTTFAR].y());
 					continue;
 				}
-				if (m_vChildrenAABB[i + 1].z() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].z())
+				if (m_vChildrenAABB[uIndex + 1].z() > rvAABB[EOctreeAABB_TOPRIGHTTFAR].z())
 				{
+					//vsoutput("child #%d reject z %f > %f \n", i, m_vChildrenAABB[uIndex + 1].z(), rvAABB[EOctreeAABB_TOPRIGHTTFAR].z());
 					continue;
 				}
 
-				if (0 == m_vChildren[i])
+				bResult = (0 != m_vChildren[i]);
+				if (false == bResult)
 				{
 					OctreeNode::CreateInfo oONCInfo;
 					oONCInfo.m_fNodeSize = m_fNodeSize / 2.0f;
 					oONCInfo.m_uDepth = m_uDepthLevel - 1;
-					oONCInfo.m_fs3Center.x() = m_vChildrenAABB[i].x() - oONCInfo.m_fNodeSize / 2.0f;
-					oONCInfo.m_fs3Center.y() = m_vChildrenAABB[i].y() - oONCInfo.m_fNodeSize / 2.0f;
-					oONCInfo.m_fs3Center.z() = m_vChildrenAABB[i].z() - oONCInfo.m_fNodeSize / 2.0f;
+					oONCInfo.m_fs3Center.x() = m_vChildrenAABB[uIndex].x() - oONCInfo.m_fNodeSize / 2.0f;
+					oONCInfo.m_fs3Center.y() = m_vChildrenAABB[uIndex].y() - oONCInfo.m_fNodeSize / 2.0f;
+					oONCInfo.m_fs3Center.z() = m_vChildrenAABB[uIndex].z() - oONCInfo.m_fNodeSize / 2.0f;
 
 					m_vChildren[i] = m_rOctree.NewNode();
-					OctreeNodePtr pNode = m_rOctree.GetNode(m_vChildren[i]);
+					pNode = m_rOctree.GetNode(m_vChildren[i]);
 					bResult = (NULL != pNode) && pNode->Create(boost::any(&oONCInfo));
 					if (false == bResult)
 					{
 						break;
 					}
+					//vsoutput("child #%d created\n");
 				}
 
 				if (false != bResult)
 				{
-					OctreeNodePtr pNode = m_rOctree.GetNode(m_vChildren[i]);
+					pNode = m_rOctree.GetNode(m_vChildren[i]);
 					bResult = pNode->AddObject(_pObject);
 				}
 
@@ -245,9 +271,10 @@ namespace ElixirEngine
 				}
 			}
 
-			if (false != bResult)
+			if (false == bResult)
 			{
-
+				UInt a = 0;
+				++a;
 			}
 		}
 
@@ -303,7 +330,7 @@ namespace ElixirEngine
 					}
 
 					OctreeNodePtr pNode = m_rOctree.GetNode(m_vChildren[i]);
-					bResult = pNode->RemoveObject(_pObject);
+					bResult = (NULL != pNode) && pNode->RemoveObject(_pObject);
 					if (false == bResult)
 					{
 						break;
@@ -380,37 +407,6 @@ namespace ElixirEngine
 		}
 	}
 
-	OctreeNode& OctreeNode::operator = (const OctreeNode& _rNode)
-	{
-		if (this != &_rNode)
-		{
-			CopyData oCopyData =
-			{
-				m_vPoints,
-				m_vChildrenAABB,
-				m_vChildren,
-				m_vObjects,
-				m_fs3Center,
-				m_fNodeSize,
-				m_uDepthLevel
-			};
-			_rNode.CopyTo(oCopyData);
-			m_rOctree = _rNode.GetOctree();
-		}
-		return *this;
-	}
-
-	void OctreeNode::CopyTo(CopyDataRef _rCopyData) const
-	{
-		_rCopyData.m_vPoints = m_vPoints;
-		_rCopyData.m_vChildrenAABB = m_vChildrenAABB;
-		_rCopyData.m_vChildren = m_vChildren;
-		_rCopyData.m_vObjects = m_vObjects;
-		_rCopyData.m_fs3Center = m_fs3Center;
-		_rCopyData.m_fNodeSize = m_fNodeSize;
-		_rCopyData.m_uDepthLevel = m_uDepthLevel;
-	}
-
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -449,8 +445,8 @@ namespace ElixirEngine
 			oONCInfo.m_fNodeSize = m_fLeafSize * pow(2.0f, int(m_uDepth));
 			oONCInfo.m_uDepth = m_uDepth;
 			oONCInfo.m_fs3Center = m_fs3Center;
-			NewNode();
-			m_pRoot = GetNode(0);
+			const UInt uIndex = NewNode();
+			m_pRoot = GetNode(uIndex);
 			bResult = m_pRoot->Create(boost::any(&oONCInfo));
 		}
 
@@ -464,10 +460,20 @@ namespace ElixirEngine
 
 	void Octree::Release()
 	{
+		OctreeNodePtrVec::iterator iNode = m_vPool.begin();
+		OctreeNodePtrVec::iterator iEnd = m_vPool.end();
+		while (iEnd != iNode)
+		{
+			OctreeNodePtr pNode = *iNode;
+			pNode->Release();
+			delete pNode;
+			++iNode;
+		}
+
 		m_mTraverseModes.clear();
-		m_vPool.clear();
 		m_vAvailable.clear();
 		m_vInUse.clear();
+		m_vPool.clear();
 		m_pRoot = NULL;
 	}
 
@@ -516,11 +522,8 @@ namespace ElixirEngine
 	UInt Octree::NewNode()
 	{
 		UInt uResult = (false == m_vAvailable.empty()) ? m_vAvailable.back() : NewNode_();
-		if (NULL != uResult)
-		{
-			m_vInUse.push_back(uResult);
-			m_vAvailable.pop_back();
-		}
+		m_vInUse.push_back(uResult);
+		m_vAvailable.pop_back();
 		return uResult;
 	}
 
@@ -534,15 +537,10 @@ namespace ElixirEngine
 		}
 	}
 
-	OctreeNodePtr Octree::GetNode(const UInt _uIndex)
-	{
-		return &m_vPool[_uIndex];
-	}
-
 	UInt Octree::NewNode_()
 	{
-		m_vPool.push_back(OctreeNode(*this));
-		m_vAvailable.push_back(m_vPool.size());
+		m_vPool.push_back(new OctreeNode(*this));
+		m_vAvailable.push_back(m_vPool.size() - 1);
 		return m_vAvailable.back();
 	}
 }

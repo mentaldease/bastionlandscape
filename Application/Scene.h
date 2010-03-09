@@ -38,6 +38,7 @@ namespace BastionGame
 
 		ApplicationRef GetApplication();
 		Vector4 GetLightDir();
+		OctreePtr GetOctree();
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);

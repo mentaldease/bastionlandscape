@@ -130,7 +130,7 @@ namespace BastionGame
 			bResult = m_pOTFFrustum->Create(boost::any(0));
 			if (false != bResult)
 			{
-				m_pOctree->AddTraverseMode(m_uFrustumModeKey, boost::bind(&OctreeTraverseFuncFrustum::Do, m_pOTFFrustum, _1));
+				bResult = m_pOctree->AddTraverseMode(m_uFrustumModeKey, boost::bind(&OctreeTraverseFuncFrustum::Do, m_pOTFFrustum, _1));
 			}
 		}
 
