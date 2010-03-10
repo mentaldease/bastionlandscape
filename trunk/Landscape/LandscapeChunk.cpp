@@ -49,15 +49,11 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			Release();
+
 			const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
 			m_pLODInfo = &rGlobalInfo.m_pLODs[m_uLOD];
 			m_uIndexX = pInfo->m_uX * rGlobalInfo.m_uQuadSize;
 			m_uIndexZ = pInfo->m_uZ * rGlobalInfo.m_uQuadSize;
-			//{
-			//	wchar_t wszBuffer[1024];
-			//	wsprintf(wszBuffer, L"%d;%d;%d\n", m_uIndexX, m_uIndexZ, m_uLOD);
-			//	OutputDebugString(wszBuffer);
-			//}
 			m_uStartVertexIndex = m_uIndexX + m_uIndexZ * m_pLODInfo->m_uVertexPerRowCount;
 
 			// center and extend
@@ -137,6 +133,47 @@ namespace ElixirEngine
 		if (0 == m_uLOD)
 		{
 			m_rOctree.RemoveObject(this);
+		}
+	}
+
+	void LandscapeChunk::SetWorldMatrix(MatrixRef _rWorld)
+	{
+		DisplayObject::SetWorldMatrix(_rWorld);
+		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
+		{
+			if (NULL != m_pChildren[i])
+			{
+				m_pChildren[i]->SetWorldMatrix(_rWorld);
+			}
+		}
+	}
+
+	void LandscapeChunk::SetMaterial(DisplayMaterialPtr _pMaterial)
+	{
+		DisplayObject::SetMaterial(_pMaterial);
+		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
+		{
+			if (NULL != m_pChildren[i])
+			{
+				m_pChildren[i]->SetMaterial(_pMaterial);
+			}
+		}
+	}
+
+	void LandscapeChunk::SetRenderStage(const Key& _uRenderPass)
+	{
+		if (0 == _uRenderPass)
+		{
+			UInt a = 0;
+			++a;
+		}
+		DisplayObject::SetRenderStage(_uRenderPass);
+		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
+		{
+			if (NULL != m_pChildren[i])
+			{
+				m_pChildren[i]->SetRenderStage(_uRenderPass);
+			}
 		}
 	}
 

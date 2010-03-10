@@ -12,7 +12,7 @@ namespace BastionGame
 	:	CoreObject(),
 		m_vDrawInfoPool(),
 		m_f3ScreenOffset(0.0f, 0.0f, 0.0f),
-		m_uRenderPassKey(0),
+		m_uRenderStageKey(0),
 		m_uMaxText(0),
 		m_uDrawCount(0)
 	{
@@ -34,7 +34,7 @@ namespace BastionGame
 			Release();
 			m_uMaxText = pInfo->m_uMaxText;
 			m_f3ScreenOffset = pInfo->m_f3ScreenOffset;
-			m_uRenderPassKey = pInfo->m_uRenderPassKey;
+			m_uRenderStageKey = pInfo->m_uRenderStageKey;
 
 			m_vDrawInfoPool.resize(m_uMaxText);
 			for (UInt i = 0 ; m_uMaxText > i ; ++i)
@@ -78,12 +78,12 @@ namespace BastionGame
 	void DebugTextOverlay::Update()
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
-		if (m_uRenderPassKey == pDisplay->GetCurrentRenderStage()->GetNameKey())
+		if (m_uRenderStageKey == pDisplay->GetCurrentRenderStage()->GetNameKey())
 		{
 			for (UInt i = 0 ; m_uDrawCount > i ; ++i)
 			{
 				DrawInfoRef rDrawInfo = m_vDrawInfoPool[i];
-				pDisplay->RenderRequest(m_uRenderPassKey, rDrawInfo.m_pText);
+				pDisplay->RenderRequest(m_uRenderStageKey, rDrawInfo.m_pText);
 			}
 			m_uDrawCount = 0;
 		}

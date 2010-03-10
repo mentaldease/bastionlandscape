@@ -17,7 +17,7 @@ namespace BastionGame
 			map<Key, string>	m_mFontNameList;
 			map<Key, string>	m_mFontMaterialList;
 			Vector3				m_f3ScreenOffset;
-			Key					m_uRenderPassKey;
+			Key					m_uRenderStageKey;
 			UInt				m_uMaxText;
 		};
 		typedef CreateInfo* CreateInfoPtr;
@@ -52,7 +52,7 @@ namespace BastionGame
 		FontPtrMap				m_mFonts;
 		DisplayMaterialPtrMap	m_mMaterials;
 		Vector3					m_f3ScreenOffset;
-		Key						m_uRenderPassKey;
+		Key						m_uRenderStageKey;
 		UInt					m_uMaxText;
 		UInt					m_uDrawCount;
 	};

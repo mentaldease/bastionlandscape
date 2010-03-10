@@ -111,7 +111,7 @@ namespace BastionGame
 			oDTOCInfo.m_mFontNameList[m_uUIMainFontLabel] = "Data/Fonts/arial24.fnt";
 			oDTOCInfo.m_mFontMaterialList[m_uUIMainFontLabel] = "ui";
 			oDTOCInfo.m_f3ScreenOffset = Vector3(-float(uTemp[0] / 2), float(uTemp[1] / 2), 0.0f);
-			oDTOCInfo.m_uRenderPassKey = m_uUIRenderPass;
+			oDTOCInfo.m_uRenderStageKey = m_uUIRenderPass;
 			oDTOCInfo.m_uMaxText = 50;
 			m_pUITextOverlay = new DebugTextOverlay();
 			bResult = m_pUITextOverlay->Create(boost::any(&oDTOCInfo));
@@ -129,7 +129,8 @@ namespace BastionGame
 	void Scene::Update()
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
-		if (m_uUIRenderPass != pDisplay->GetCurrentRenderStage()->GetNameKey())
+		const Key uCurrentRenderStage = pDisplay->GetCurrentRenderStage()->GetNameKey();
+		if (m_uUIRenderPass != uCurrentRenderStage)
 		{
 			{
 				CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
@@ -146,10 +147,22 @@ namespace BastionGame
 				OctreeNodePtrVec vNodes;
 				m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vObjects);
 				//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vObjects.size());
+
+				OctreeObjectPtrVec::iterator iObject = vObjects.begin();
+				OctreeObjectPtrVec::iterator iEnd = vObjects.end();
+				while (iEnd != iObject)
+				{
+					DisplayObjectPtr pDisplayObject = dynamic_cast<DisplayObjectPtr>(*iObject);
+					const Key uRenderStageName = pDisplayObject->GetRenderStage();
+					if (uCurrentRenderStage == uRenderStageName)
+					{
+						pDisplay->RenderRequest(uRenderStageName, pDisplayObject);
+					}
+					++iObject;
+				}
 			}
 		}
-
-		if (NULL != m_pUITextOverlay)
+		else if (NULL != m_pUITextOverlay)
 		{
 			{
 				wstring wstrText = L"BASTION";
@@ -330,7 +343,7 @@ namespace BastionGame
 		oLOInfo.m_fFloorScale = _rTable["floor_scale"].GetFloat();
 		oLOInfo.m_fHeightScale = _rTable["height_scale"].GetFloat();
 		Scripting::Lua::Get(_rTable, "target_stage", strRenderStage, strRenderStage);
-		oLOInfo.m_uRenderPassKey = MakeKey(strRenderStage);
+		oLOInfo.m_uRenderStageKey = MakeKey(strRenderStage);
 
 		bool bResult = (false != pLandscape->Create(boost::any(0)));
 
@@ -359,11 +372,11 @@ namespace BastionGame
 		}
 		if (false != bResult)
 		{
-			Vector3 oPos;
-			oPos.x = _rTable["position"][1].GetFloat();
-			oPos.y = _rTable["position"][2].GetFloat();
-			oPos.z = _rTable["position"][3].GetFloat();
-			D3DXMatrixTranslation(pLandscape->GetWorldMatrix(), oPos.x, oPos.y, oPos.z);
+			Vector3 oPos(0.0f, 0.0f, 0.0f);
+			Scripting::Lua::Get(_rTable, "position", oPos, oPos);
+			Matrix m4World;
+			D3DXMatrixTranslation(&m4World, oPos.x, oPos.y, oPos.z);
+			pLandscape->SetWorldMatrix(m4World);
 		}
 		if (false == bResult)
 		{

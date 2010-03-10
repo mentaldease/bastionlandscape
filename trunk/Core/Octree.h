@@ -29,14 +29,15 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	class OctreeObject : public CoreObject
+	class OctreeObject// : public CoreObject
 	{
 	public:
 		OctreeObject(OctreeRef _rOctree);
 		virtual ~OctreeObject();
 
-		void SetAABB(const fsVector3& _rf3TopRightFar, const fsVector3& _rf3BottomLeftNear);
-		void GetAABB(fsVector3Vec& _vPoints);
+		virtual void SetAABB(const fsVector3& _rf3TopRightFar, const fsVector3& _rf3BottomLeftNear);
+		virtual void GetAABB(fsVector3Vec& _vPoints);
+
 		const fsVector3Vec& GetAABB() const;
 
 	protected:

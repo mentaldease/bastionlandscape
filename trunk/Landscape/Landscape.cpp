@@ -58,6 +58,7 @@ namespace ElixirEngine
 	:	m_strName(),
 		m_pLODs(NULL),
 		m_pOctree(NULL),
+		m_uRenderStageKey(0),
 		m_uQuadSize(0),
 		m_uGridSize(0),
 		m_uChunkCount(0),
@@ -82,6 +83,7 @@ namespace ElixirEngine
 		m_strName.clear();
 		m_pLODs = NULL;
 		m_pOctree = NULL;
+		m_uRenderStageKey = 0;
 		m_uQuadSize = 0;
 		m_uGridSize = 0;
 		m_uChunkCount = 0;
@@ -105,6 +107,7 @@ namespace ElixirEngine
 		Reset();
 
 		m_strName = _rOpenInfo.m_strName;
+		m_uRenderStageKey = _rOpenInfo.m_uRenderStageKey;
 		m_uQuadSize = _rOpenInfo.m_uQuadSize;
 		m_uGridSize = _rOpenInfo.m_uGridSize;
 		m_uVertexPerRowCount = _rOpenInfo.m_uQuadSize * _rOpenInfo.m_uGridSize + 1;
@@ -173,7 +176,7 @@ namespace ElixirEngine
 		m_pIndexBuffer(NULL),
 		m_pIndexes(NULL),
 		m_pLayering(NULL),
-		m_uRenderPassKey(0)
+		m_uRenderStageKey(0)
 	{
 
 	}
@@ -207,39 +210,39 @@ namespace ElixirEngine
 
 	void Landscape::Update()
 	{
-		m_uOutOfFrustum = 0;
-		const float fPixelSize = Display::GetInstance()->GetCurrentCamera()->GetPixelSize();
-		const Vector3& rCamPos = Display::GetInstance()->GetCurrentCamera()->GetPosition();
-		m_vGrid.back()->Traverse(m_vRenderList, rCamPos, fPixelSize);
 
-		struct LODCompareFunction
-		{
-			bool operator() (LandscapeChunkPtr pLC1, LandscapeChunkPtr pLC2)
-			{
-				return (pLC1->GetLODID() < pLC2->GetLODID());
-			}
-		};
-		sort(m_vRenderList.begin(), m_vRenderList.end(), LODCompareFunction());
-
-		LandscapeChunkPtrVec::iterator iChunk = m_vRenderList.begin();
-		LandscapeChunkPtrVec::iterator iEnd = m_vRenderList.end();
-		DisplayPtr pDisplay = Display::GetInstance();
-		const Key uPassNameKey = MakeKey(string("scene"));
-		MatrixRef rMatrix = *(GetWorldMatrix());
-		while (iEnd != iChunk)
-		{
-			LandscapeChunkPtr pChunk = *iChunk;
-			*(pChunk->GetWorldMatrix()) = rMatrix;
-			pChunk->SetMaterial(m_pMaterial);
-			pDisplay->RenderRequest(uPassNameKey, pChunk);
-			++iChunk;
-		}
-		m_vRenderList.clear();
 	}
 
 	void Landscape::Release()
 	{
 		Close();
+	}
+
+	void Landscape::SetWorldMatrix(MatrixRef _rWorld)
+	{
+		DisplayObject::SetWorldMatrix(_rWorld);
+		if (false == m_vGrid.empty())
+		{
+			m_vGrid.back()->SetWorldMatrix(_rWorld);
+		}
+	}
+
+	void Landscape::SetMaterial(DisplayMaterialPtr _pMaterial)
+	{
+		DisplayObject::SetMaterial(_pMaterial);
+		if (false == m_vGrid.empty())
+		{
+			m_vGrid.back()->SetMaterial(_pMaterial);
+		}
+	}
+
+	void Landscape::SetRenderStage(const Key& _uRenderPass)
+	{
+		DisplayObject::SetRenderStage(_uRenderPass);
+		if (false == m_vGrid.empty())
+		{
+			m_vGrid.back()->SetRenderStage(_uRenderPass);
+		}
 	}
 
 	void Landscape::Render()
@@ -307,6 +310,11 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			bResult = CreateChunks();
+		}
+
+		if (false != bResult)
+		{
+			SetRenderStage(m_oGlobalInfo.m_uRenderStageKey);
 		}
 
 		return bResult;

@@ -102,7 +102,7 @@ namespace ElixirEngine
 			float					m_fPixelErrorMax;
 			float					m_fFloorScale;
 			float					m_fHeightScale;
-			Key						m_uRenderPassKey;
+			Key						m_uRenderStageKey;
 		};
 
 		struct LODInfo
@@ -135,6 +135,7 @@ namespace ElixirEngine
 			string					m_strName;
 			LODInfoPtr				m_pLODs;
 			OctreePtr				m_pOctree;
+			Key						m_uRenderStageKey;
 			unsigned int			m_uQuadSize;
 			unsigned int			m_uGridSize;
 			unsigned int			m_uChunkCount;
@@ -161,6 +162,9 @@ namespace ElixirEngine
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
+		virtual void SetWorldMatrix(MatrixRef _rWorld);
+		virtual void SetMaterial(DisplayMaterialPtr _pMaterial);
+		virtual void SetRenderStage(const Key& _uRenderPass);
 		virtual void Render();
 
 		bool Open(const OpenInfo& _rOpenInfo);
@@ -197,7 +201,7 @@ namespace ElixirEngine
 		DisplayIndexBufferPtr				m_pIndexBuffer;
 		UIntPtr								m_pIndexes;
 		LandscapeLayeringPtr				m_pLayering;
-		Key									m_uRenderPassKey;
+		Key									m_uRenderStageKey;
 
 	private:
 	};
@@ -232,6 +236,9 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
+		virtual void SetWorldMatrix(MatrixRef _rWorld);
+		virtual void SetMaterial(DisplayMaterialPtr _pMaterial);
+		virtual void SetRenderStage(const Key& _uRenderPass);
 		virtual void RenderBegin();
 		virtual void Render();
 
