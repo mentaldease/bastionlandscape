@@ -382,7 +382,7 @@ namespace ElixirEngine
 		}
 
 		// so if sTotalIn is 6, then all are inside the view
-		eResult = (6 == sTotalIn) ? ECollision_IN : ECollision_INTERSECT;
+		eResult = (6 == sTotalIn) ? ECollision_IN : eResult;
 
 		return eResult;
 	}
@@ -423,7 +423,7 @@ namespace ElixirEngine
 		}
 
 		// so if sTotalIn is 6, then all are inside the view
-		eResult = (6 == sTotalIn) ? ECollision_IN : ECollision_INTERSECT;
+		eResult = (6 == sTotalIn) ? ECollision_IN : eResult;
 
 		return eResult;
 	}

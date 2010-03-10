@@ -258,7 +258,6 @@ namespace ElixirEngine
 			virtual void Render();
 			virtual void RenderEnd();
 
-			virtual void SetWorldMatrix(MatrixRef _rWorld);
 			virtual void SetText(const wstring& _wstrText);
 			virtual void SetColor(const Vector4& _f4Color);
 

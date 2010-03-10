@@ -11,6 +11,7 @@
 #include "../Display/RenderStage.h"
 #include "../Core/Scripting.h"
 #include "../Core/Util.h"
+#include "../Core/Octree.h"
 
 namespace ElixirEngine
 {
@@ -217,6 +218,11 @@ namespace ElixirEngine
 	DisplayObject::~DisplayObject()
 	{
 
+	}
+
+	void DisplayObject::SetWorldMatrix(MatrixRef _rWorld)
+	{
+		m_oWorld = _rWorld;
 	}
 
 	MatrixPtr DisplayObject::GetWorldMatrix()

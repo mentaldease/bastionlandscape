@@ -109,11 +109,6 @@ namespace ElixirEngine
 			}
 		}
 
-		void DisplayFontText::SetWorldMatrix(MatrixRef _rWorld)
-		{
-			m_oWorld = _rWorld;
-		}
-
 		void DisplayFontText::SetText(const wstring& _wstrText)
 		{
 			m_bSizeChanged = (m_wstrText.length() != _wstrText.length());

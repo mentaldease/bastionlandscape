@@ -15,7 +15,6 @@ namespace ElixirEngine
 		DisplayFontText();
 		virtual ~DisplayFontText();
 
-		virtual void SetWorldMatrix(MatrixRef _rWorld) = 0;
 		virtual void SetText(const wstring& _wstrText) = 0;
 		virtual void SetColor(const Vector4& _f4Color) = 0;
 	};

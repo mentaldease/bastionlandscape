@@ -10,7 +10,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	OctreeObject::OctreeObject(OctreeRef _rOctree)
-	:	CoreObject(),
+	:	//CoreObject(),
 		m_vPoints(),
 		m_rOctree(_rOctree)
 	{
@@ -371,7 +371,22 @@ namespace ElixirEngine
 	void OctreeNode::Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride)
 	{
 		const EOctreeTraverseResult eResult = (EOctreeTraverseResult_UNKNOWN == _eOverride) ? _rFunc(*this) : _eOverride;
-		if (EOctreeTraverseResult_PARTIAL == eResult)
+		if (0 == m_uDepthLevel)
+		{
+			if (EOctreeTraverseResult_NONE != eResult)
+			{
+				_rvNodes.push_back(this);
+				for (UInt i = 0 ; m_vObjects.size() > i ; ++i)
+				{
+					OctreeObjectPtr pObject = m_vObjects[i];
+					if (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), pObject))
+					{
+						_rvObjects.push_back(pObject);
+					}
+				}
+			}
+		}
+		else if (EOctreeTraverseResult_PARTIAL == eResult)
 		{
 			_rvNodes.push_back(this);
 			for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
@@ -387,26 +402,13 @@ namespace ElixirEngine
 		else if (EOctreeTraverseResult_FULL == eResult)
 		{
 			_rvNodes.push_back(this);
-			if (0 == m_uDepthLevel)
+			for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
 			{
-				for (UInt i = 0 ; m_vObjects.size() > i ; ++i)
+				const UInt uIndex = m_vChildren[i];
+				if (0 < uIndex)
 				{
-					if (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), m_vObjects[i]))
-					{
-						_rvObjects.push_back(m_vObjects[i]);
-					}
-				}
-			}
-			else
-			{
-				for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
-				{
-					const UInt uIndex = m_vChildren[i];
-					if (0 < uIndex)
-					{
-						OctreeNodePtr pNode = m_rOctree.GetNode(uIndex);
-						pNode->Traverse(_rFunc, _rvNodes, _rvObjects, eResult);
-					}
+					OctreeNodePtr pNode = m_rOctree.GetNode(uIndex);
+					pNode->Traverse(_rFunc, _rvNodes, _rvObjects, eResult);
 				}
 			}
 		}
