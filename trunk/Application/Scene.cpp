@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "../Application/Application.h"
 #include "../Application/Scene.h"
-#include "../Application/Sky.h"
 #include "../Application/DebugTextOverlay.h"
 #include "../Core/Scripting.h"
 
@@ -148,17 +147,56 @@ namespace BastionGame
 				m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vObjects);
 				//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vObjects.size());
 
-				OctreeObjectPtrVec::iterator iObject = vObjects.begin();
-				OctreeObjectPtrVec::iterator iEnd = vObjects.end();
-				while (iEnd != iObject)
 				{
-					DisplayObjectPtr pDisplayObject = dynamic_cast<DisplayObjectPtr>(*iObject);
-					const Key uRenderStageName = pDisplayObject->GetRenderStage();
-					if (uCurrentRenderStage == uRenderStageName)
+					OctreeObjectPtrVec::iterator iObject = vObjects.begin();
+					OctreeObjectPtrVec::iterator iEnd = vObjects.end();
+					while (iEnd != iObject)
 					{
-						pDisplay->RenderRequest(uRenderStageName, pDisplayObject);
+						DisplayObjectPtr pDisplayObject = dynamic_cast<DisplayObjectPtr>(*iObject);
+						const Key uRenderStageName = pDisplayObject->GetRenderStage();
+						if (uCurrentRenderStage == uRenderStageName)
+						{
+							pDisplay->RenderRequest(uRenderStageName, pDisplayObject);
+						}
+						++iObject;
 					}
-					++iObject;
+				}
+
+				DisplayGeometryLineManagerPtr pLineManager = static_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
+				if (NULL != pLineManager)
+				{
+					OctreeNodePtrVec::iterator iNode = vNodes.begin();
+					OctreeNodePtrVec::iterator iEnd = vNodes.end();
+					while (iEnd != iNode)
+					{
+						const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
+						DisplayGeometryLineManager::LineStripInfoRef rLS = pLineManager->NewLineStrip();
+
+						rLS.m_vVertexBuffer.resize(8);
+						rLS.m_vIndexBuffer.resize(16);
+						rLS.m_vIndexBuffer[0] = 3; rLS.m_vIndexBuffer[1] = 0; rLS.m_vIndexBuffer[2] = 1; rLS.m_vIndexBuffer[3] = 2;
+						rLS.m_vIndexBuffer[4] = 3; rLS.m_vIndexBuffer[5] = 7; rLS.m_vIndexBuffer[6] = 6; rLS.m_vIndexBuffer[7] = 5;
+						rLS.m_vIndexBuffer[8] = 4; rLS.m_vIndexBuffer[9] = 7; rLS.m_vIndexBuffer[10] = 6; rLS.m_vIndexBuffer[11] = 2;
+						rLS.m_vIndexBuffer[12] = 1; rLS.m_vIndexBuffer[13] = 5; rLS.m_vIndexBuffer[14] = 4; rLS.m_vIndexBuffer[15] = 0;
+
+						OctreeNodePtr pNode = *iNode;
+						const fsVector3Vec& rvAABB = pNode->GetAABB();
+						#define fsVec3ToVec3(ID, vFSVEC3, vVEC3, COLOR) \
+							vVEC3[ID].m_f3Position.x = vFSVEC3[ID].x(); \
+							vVEC3[ID].m_f3Position.y = vFSVEC3[ID].y(); \
+							vVEC3[ID].m_f3Position.z = vFSVEC3[ID].z(); \
+							vVEC3[ID].m_f4Color = COLOR;
+						fsVec3ToVec3(EOctreeAABB_TOPLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						fsVec3ToVec3(EOctreeAABB_TOPRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						fsVec3ToVec3(EOctreeAABB_TOPRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						fsVec3ToVec3(EOctreeAABB_TOPLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+						#undef fsVec3ToVec3
+						++iNode;
+					}
 				}
 			}
 		}
@@ -309,148 +347,5 @@ namespace BastionGame
 				&& CreateLoadRenderStages(oRoot);
 		}
 		return bResult;
-	}
-
-	bool Scene::RegisterClasses()
-	{
-		bool bResult = true;
-
-		#define CHECK_RETURN(ReturnValue, Expression) if (false != ReturnValue) { ReturnValue = Expression; }
-		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("landscape")), boost::bind(&Scene::CreateClassLandscape, _1, _2)));
-		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("sphere")), boost::bind(&Scene::CreateClassShpere, _1, _2)));
-		CHECK_RETURN(bResult, RegisterClass(MakeKey(string("sky")), boost::bind(&Scene::CreateClassSky, _1, _2)));
-		#undef CHECK_RETURN
-
-		return bResult;
-	}
-
-	void Scene::UnregisterClasses()
-	{
-		s_mClasses.clear();
-	}
-
-	CoreObjectPtr Scene::CreateClassLandscape(LuaObjectRef _rTable, ScenePtr _pScene)
-	{
-		DisplayPtr pDisplay = Display::GetInstance();
-		LandscapePtr pLandscape = new Landscape(*pDisplay);
-		Landscape::OpenInfo oLOInfo;
-		string strRenderStage;
-
-		oLOInfo.m_strName = _rTable["name"].GetString();
-		oLOInfo.m_uGridSize = _rTable["grid_size"].GetInteger();
-		oLOInfo.m_uQuadSize = _rTable["grid_chunk_size"].GetInteger();
-		oLOInfo.m_fPixelErrorMax = _rTable["pixel_error_max"].GetFloat();
-		oLOInfo.m_fFloorScale = _rTable["floor_scale"].GetFloat();
-		oLOInfo.m_fHeightScale = _rTable["height_scale"].GetFloat();
-		Scripting::Lua::Get(_rTable, "target_stage", strRenderStage, strRenderStage);
-		oLOInfo.m_uRenderStageKey = MakeKey(strRenderStage);
-
-		bool bResult = (false != pLandscape->Create(boost::any(0)));
-
-		if (false != bResult)
-		{
-			string strFormat = _rTable["vertex_format"].GetString();
-			oLOInfo.m_eFormat = Landscape::StringToVertexFormat(strFormat);
-			bResult = (ELandscapeVertexFormat_UNKNOWN != oLOInfo.m_eFormat);
-		}
-		if (false != bResult)
-		{
-			oLOInfo.m_strHeightmap.clear();
-			oLOInfo.m_strHeightmap = _rTable["heightmap"].GetString();
-			oLOInfo.m_strLayersConfig.clear();
-			oLOInfo.m_strLayersConfig = _rTable["layers_config"].GetString();
-			oLOInfo.m_pOctree = _pScene->GetOctree();
-			bResult = pLandscape->Open(oLOInfo);
-		}
-		if (false != bResult)
-		{
-			string strMaterialName = _rTable["material"].GetString();
-			Key uKey = MakeKey(strMaterialName);
-			DisplayMaterialPtr pMaterial = pDisplay->GetMaterialManager()->GetMaterial(uKey);
-			bResult = (NULL != pMaterial);
-			pLandscape->SetMaterial(pMaterial);
-		}
-		if (false != bResult)
-		{
-			Vector3 oPos(0.0f, 0.0f, 0.0f);
-			Scripting::Lua::Get(_rTable, "position", oPos, oPos);
-			Matrix m4World;
-			D3DXMatrixTranslation(&m4World, oPos.x, oPos.y, oPos.z);
-			pLandscape->SetWorldMatrix(m4World);
-		}
-		if (false == bResult)
-		{
-			pLandscape->Release();
-			delete pLandscape;
-			pLandscape = NULL;
-		}
-
-		return pLandscape;
-	}
-
-	CoreObjectPtr Scene::CreateClassShpere(LuaObjectRef _rTable, ScenePtr _pScene)
-	{
-		DisplayGeometrySpherePtr pSphere = new DisplayGeometrySphere();
-		const float fSize = 100.f;
-		DisplayGeometrySphere::CreateInfo oGSCInfo;
-		Scripting::Lua::Get(_rTable, "bottom_hemisphere", true, oGSCInfo.m_bBottomHemisphere);
-		Scripting::Lua::Get(_rTable, "top_hemisphere", true, oGSCInfo.m_bTopHemisphere);
-		Scripting::Lua::Get(_rTable, "view_from_inside", false, oGSCInfo.m_bViewFromInside);
-		Scripting::Lua::Get(_rTable, "position", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oPos);
-		Scripting::Lua::Get(_rTable, "rotation", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oRot);
-		Scripting::Lua::Get(_rTable, "radius", Vector3(fSize, fSize, fSize), oGSCInfo.m_oRadius);
-		Scripting::Lua::Get(_rTable, "horiz_slices", UInt(10), oGSCInfo.m_uHorizSlices);
-		Scripting::Lua::Get(_rTable, "vert_slices", UInt(10), oGSCInfo.m_uVertSlices);
-		Scripting::Lua::Get(_rTable, "color", Vector4(26.0f / 255.0f, 103.0f / 255.0f, 149.0f / 255.0f, 1.0f), oGSCInfo.m_f4Color);
-
-		bool bResult = pSphere->Create(boost::any(&oGSCInfo));
-		while (false != bResult)
-		{
-			DisplayPtr pDisplay = Display::GetInstance();
-			string strMaterialName;
-			Scripting::Lua::Get(_rTable, "material", strMaterialName, strMaterialName);
-			const Key uMaterialKey = MakeKey(strMaterialName);
-			DisplayMaterialPtr pMaterial = pDisplay->GetMaterialManager()->GetMaterial(uMaterialKey);
-			bResult = (NULL != pMaterial);
-			if (false == bResult)
-			{
-				break;
-			}
-
-			string strRenderStage;
-			bResult = Scripting::Lua::Get(_rTable, "target_stage", strRenderStage, strRenderStage);
-			if (false == bResult)
-			{
-				break;
-			}
-
-			pSphere->SetMaterial(pMaterial);
-			pSphere->SetRenderStage(MakeKey(strRenderStage));
-			break;
-		}
-
-		if (false == bResult)
-		{
-			pSphere->Release();
-			delete pSphere;
-			pSphere = NULL;
-		}
-
-		return pSphere;
-	}
-
-	CoreObjectPtr Scene::CreateClassSky(LuaObjectRef _rTable, ScenePtr _pScene)
-	{
-		SkyPtr pResult = new Sky(*_pScene);
-		bool bResult = pResult->Create(boost::any(_rTable));
-
-		if (false == bResult)
-		{
-			pResult->Release();
-			delete pResult;
-			pResult = NULL;
-		}
-
-		return pResult;
 	}
 }

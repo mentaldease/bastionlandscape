@@ -90,6 +90,16 @@ scenetest00 =
 			always_visible = true,
 			in_octree = false,
 		},
+		{
+			class = "lines",
+			name = "debuglines",
+			material = "geomhelper_line",
+			max_vertex = 2000,
+			max_index = 10000,
+			position = { 0.0, 0.0, 0.0 },
+			rotation = { 0.0, 0.0, 0.0 },
+			target_stage = "scene",
+		},
 	},
 	render_stages =
 	{

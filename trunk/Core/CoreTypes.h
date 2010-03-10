@@ -50,6 +50,7 @@ namespace ElixirEngine
 	typedef UInt*				UIntPtr;
 	typedef UInt&				UIntRef;
 	typedef vector<UInt>		UIntVec;
+	typedef UIntVec::iterator	UIntVecIt;
 
 	typedef unsigned char		Byte;
 	typedef Byte*				BytePtr;

@@ -70,6 +70,7 @@ namespace ElixirEngine
 				m_pFont->m_rFontLoader.GetVertexPool().Free(m_pVertex);
 				m_pVertex = NULL;
 			}
+			DisplayObject::Release();
 		}
 
 		void DisplayFontText::RenderBegin()

@@ -134,6 +134,8 @@ namespace ElixirEngine
 		{
 			m_rOctree.RemoveObject(this);
 		}
+
+		DisplayObject::Release();
 	}
 
 	void LandscapeChunk::SetWorldMatrix(MatrixRef _rWorld)

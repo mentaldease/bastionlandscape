@@ -14,7 +14,7 @@ namespace ElixirEngine
 	#define SV3	sizeof(Vector3)
 	#define SV4	sizeof(Vector4)
 
-	VertexElement GeometryHelperVertex::s_VertexElement[5] =
+	VertexElement GeometryHelperVertex::s_VertexElement[4] =
 	{
 		{ 0,	0,						D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION,	0 },
 		{ 0,	1 * SV3,				D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_NORMAL,		0 },
@@ -67,8 +67,14 @@ namespace ElixirEngine
 			}
 			if (false != bResult)
 			{
-				MatrixPtr pWorld = GetWorldMatrix();
-				D3DXMatrixTransformation(pWorld, NULL, NULL, NULL, NULL, NULL, &pInfo->m_oPos);
+				Matrix m4Pos;
+				D3DXMatrixTranslation(&m4Pos, pInfo->m_oPos.x, pInfo->m_oPos.y, pInfo->m_oPos.z);
+				Matrix m4Rot;
+				D3DXMatrixRotationYawPitchRoll(&m4Rot, D3DXToRadian(pInfo->m_oRot.x), D3DXToRadian(pInfo->m_oRot.y), D3DXToRadian(pInfo->m_oRot.z));
+				Matrix m4World;
+				D3DXMatrixMultiply(&m4World, &m4Rot, &m4Pos);
+				SetWorldMatrix(m4World);
+
 				m_f4Color = pInfo->m_f4Color;
 			}
 		}
@@ -94,6 +100,7 @@ namespace ElixirEngine
 			m_pVertexBuffer = NULL;
 			m_uVertexCount = 0;
 		}
+		DisplayObject::Release();
 	}
 
 	void DisplayGeometrySphere::RenderBegin()

@@ -56,6 +56,7 @@ namespace BastionGame
 		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable, ScenePtr _pScene);
 		static CoreObjectPtr CreateClassShpere(LuaObjectRef _rTable, ScenePtr _pScene);
 		static CoreObjectPtr CreateClassSky(LuaObjectRef _rTable, ScenePtr _pScene);
+		static CoreObjectPtr CreateClassLineManager(LuaObjectRef _rTable, ScenePtr _pScene);
 
 	protected:
 		static CreateClassFuncMap		s_mClasses;
