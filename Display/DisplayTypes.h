@@ -249,10 +249,22 @@ namespace ElixirEngine
 	struct GeometryHelperVertex;
 	typedef GeometryHelperVertex* GeometryHelperVertexPtr;
 	typedef GeometryHelperVertex& GeometryHelperVertexRef;
+	typedef vector<GeometryHelperVertex> GeometryHelperVertexVec;
+	typedef GeometryHelperVertexVec::iterator GeometryHelperVertexVecIt;
+
+	struct GeometryHelperVertexColor;
+	typedef GeometryHelperVertexColor* GeometryHelperVertexColorPtr;
+	typedef GeometryHelperVertexColor& GeometryHelperVertexColorRef;
+	typedef vector<GeometryHelperVertexColor> GeometryHelperVertexColorVec;
+	typedef GeometryHelperVertexColorVec::iterator GeometryHelperVertexColorVecIt;
 
 	class DisplayGeometrySphere;
 	typedef DisplayGeometrySphere* DisplayGeometrySpherePtr;
 	typedef DisplayGeometrySphere& DisplayGeometrySphereRef;
+
+	class DisplayGeometryLineManager;
+	typedef DisplayGeometryLineManager* DisplayGeometryLineManagerPtr;
+	typedef DisplayGeometryLineManager& DisplayGeometryLineManagerRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------

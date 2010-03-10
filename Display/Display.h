@@ -97,6 +97,8 @@ namespace ElixirEngine
 		DisplayObject();
 		virtual ~DisplayObject();
 
+		virtual void Release();
+
 		virtual void SetWorldMatrix(MatrixRef _rWorld);
 		virtual MatrixPtr GetWorldMatrix();
 

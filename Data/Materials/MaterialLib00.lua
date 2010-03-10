@@ -74,6 +74,11 @@ materiallib00 =
 		technique = "RenderScene",
 	},
 	{
+		name = "geomhelper_line",
+		effect = "data/effects/Geometryhelper.fx",
+		technique = "RenderSceneVertexColor",
+	},
+	{
 		name = "sky",
 		effect = "data/effects/Sky.fx",
 		technique = "SkyDomeScatteringPerPixel",

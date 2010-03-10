@@ -220,6 +220,13 @@ namespace ElixirEngine
 
 	}
 
+	void DisplayObject::Release()
+	{
+		D3DXMatrixIdentity(&m_oWorld);
+		m_pMaterial = NULL;
+		m_uRenderPass = 0;
+	}
+
 	void DisplayObject::SetWorldMatrix(MatrixRef _rWorld)
 	{
 		m_oWorld = _rWorld;

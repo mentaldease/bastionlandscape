@@ -216,6 +216,7 @@ namespace ElixirEngine
 	void Landscape::Release()
 	{
 		Close();
+		DisplayObject::Release();
 	}
 
 	void Landscape::SetWorldMatrix(MatrixRef _rWorld)

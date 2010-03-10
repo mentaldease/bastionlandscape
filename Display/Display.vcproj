@@ -175,7 +175,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\GeometryHelper.cpp"
+				RelativePath=".\GeometryHelperLineManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\GeometryHelperSphere.cpp"
 				>
 			</File>
 			<File
