@@ -42,6 +42,7 @@ namespace ElixirEngine
 	public:
 		enum EOpenMode
 		{
+			EOpenMode_UNKNOWN,
 			EOpenMode_CREATE		= 0x00000001 << 0,
 			EOpenMode_APPEND		= 0x00000001 << 1,
 			EOpenMode_READ			= 0x00000001 << 2,

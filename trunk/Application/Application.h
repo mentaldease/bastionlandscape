@@ -55,6 +55,7 @@ namespace BastionGame
 		void UpdateSpectatorCamera(const float& _fElapsedTime);
 		void GetLuaConfigParameters();
 		bool AddViewportFromLua(LuaObjectRef _rLuaObject);
+		void Log(const string& _strFormat, ...);
 
 	protected:
 		WindowData					m_oWindow;
@@ -66,11 +67,13 @@ namespace BastionGame
 		UpdateFunction				m_pUpdateFunction;
 		FSPtr						m_pFSRoot;
 		FSPtr						m_pFSNative;
+		FSPtr						m_pFSMemory;
 		InputPtr					m_pInput;
 		InputDevicePtr				m_pKeyboard;
 		InputDevicePtr				m_pMouse;
 		TimePtr						m_pTime;
-		unsigned int				m_uRLTimerID;
+		unsigned int				m_uUpdateTimerID;
+		unsigned int				m_uProfileTimerID;
 		float						m_fRelativeTime;
 		float						m_fElapsedTime;
 		float						m_fCameraMoveSpeed;
@@ -81,6 +84,7 @@ namespace BastionGame
 		CameraListenerPtr			m_pCameraListener;
 		LuaStatePtr					m_pLuaState;
 		DisplayCameraPtr			m_pCamera;
+		FilePtr						m_pLog;
 
 	private:
 	};

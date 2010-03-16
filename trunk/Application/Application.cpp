@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Application/Application.h"
 #include "../Application/Scene.h"
+#include <stdarg.h>
 
 namespace BastionGame
 {
@@ -99,15 +100,18 @@ namespace BastionGame
 		m_pUpdateFunction(NULL),
 		m_pFSRoot(NULL),
 		m_pFSNative(NULL),
+		m_pFSMemory(NULL),
 		m_pInput(NULL),
 		m_pKeyboard(NULL),
 		m_pMouse(NULL),
-		m_uRLTimerID(0xffffffff),
+		m_uUpdateTimerID(0xffffffff),
+		m_uProfileTimerID(0xffffffff),
 		m_fRelativeTime(0.0f),
 		m_fCameraMoveSpeed(100.0f),
 		m_pCameraListener(NULL),
 		m_pLuaState(NULL),
-		m_pCamera(NULL)
+		m_pCamera(NULL),
+		m_pLog(NULL)
 	{
 	}
 
@@ -125,7 +129,9 @@ namespace BastionGame
 			m_pTime = new Time;
 			bResult = m_pTime->Create(boost::any(0));
 			Time::SetRoot(m_pTime);
-			m_uRLTimerID = m_pTime->CreateTimer(false);
+			m_uUpdateTimerID = m_pTime->CreateTimer(false);
+			m_uProfileTimerID = m_pTime->CreateTimer(true);
+			Profiling::SetTimer(m_uProfileTimerID);
 		}
 
 		if (false != bResult)
@@ -133,12 +139,17 @@ namespace BastionGame
 			m_eStateMode = EStateMode_INITIALING_FS;
 			m_pFSRoot = new FS;
 			m_pFSNative = new FSNative;
+			m_pFSMemory = new FSMemory;
 			bResult = m_pFSRoot->Create(boost::any(0))
 				&& m_pFSNative->Create(boost::any(0))
-				&& m_pFSRoot->AddFS("NATIVE", m_pFSNative);
+				&& m_pFSMemory->Create(boost::any(0))
+				&& m_pFSRoot->AddFS("NATIVE", m_pFSNative)
+				&& m_pFSRoot->AddFS("MEMORY", m_pFSMemory);
 			if (false != bResult)
 			{
 				FS::SetRoot(m_pFSRoot);
+				m_pLog = FS::GetRoot()->OpenFile("MEMORY@Log.txt", FS::EOpenMode_CREATETEXT);
+				Log("BASTION log info\n");
 			}
 		}
 
@@ -376,6 +387,27 @@ namespace BastionGame
 			m_pDisplay = NULL;
 		}
 
+		if (NULL != m_pLuaState)
+		{
+			Scripting::Lua::ReleaseState(m_pLuaState);
+			m_pLuaState = NULL;
+		}
+
+		if ((NULL != m_pFSRoot) && (NULL != m_pFSMemory))
+		{
+			Profiling::OutputInfo(m_pLog);
+			m_pFSRoot->CloseFile(m_pLog);
+			m_pLog = NULL;
+		}
+
+		if ((NULL != m_pFSRoot) && (NULL != m_pFSMemory))
+		{
+			m_pFSRoot->RemoveFS("MEMORY", m_pFSMemory);
+			m_pFSMemory->Release();
+			delete m_pFSMemory;
+			m_pFSMemory = NULL;
+		}
+
 		if ((NULL != m_pFSRoot) && (NULL != m_pFSNative))
 		{
 			m_pFSRoot->RemoveFS("NATIVE", m_pFSNative);
@@ -384,14 +416,9 @@ namespace BastionGame
 			m_pFSNative = NULL;
 		}
 
-		if (NULL != m_pLuaState)
-		{
-			Scripting::Lua::ReleaseState(m_pLuaState);
-			m_pLuaState = NULL;
-		}
-
 		if (NULL != m_pFSRoot)
 		{
+			FS::SetRoot(NULL);
 			m_pFSRoot->Release();
 			delete m_pFSRoot;
 			m_pFSRoot = NULL;
@@ -400,6 +427,9 @@ namespace BastionGame
 		if (NULL != m_pTime)
 		{
 			Time::SetRoot(NULL);
+			float fTemp;
+			m_pTime->ReleaseTimer(m_uProfileTimerID, fTemp);
+			m_pTime->ReleaseTimer(m_uUpdateTimerID, fTemp);
 			m_pTime->Release();
 			delete m_pTime;
 			m_pTime = NULL;
@@ -457,7 +487,8 @@ namespace BastionGame
 
 	void Application::RenderScene()
 	{
-		if (m_pTime->ResetTimer(m_uRLTimerID, m_fElapsedTime))
+		PROFILING(__FUNCTION__);
+		if (m_pTime->ResetTimer(m_uUpdateTimerID, m_fElapsedTime))
 		{
 			m_fElapsedTime /= 1000.0f;
 			m_fRelativeTime += m_fElapsedTime;
@@ -579,5 +610,22 @@ namespace BastionGame
 		}
 
 		return bResult;
+	}
+
+	void Application::Log(const string& _strFormat, ...)
+	{
+		if (NULL != m_pLog)
+		{
+			const size_t uBufferSize = 4 * 1024;
+			char szbuffer[uBufferSize];
+			va_list vaArgs;
+			const char* pbuffer = &szbuffer[0];
+
+			va_start(vaArgs, _strFormat);
+			const int sSize = vsnprintf_s(szbuffer, uBufferSize, _TRUNCATE, _strFormat.c_str(), vaArgs);
+			va_end(vaArgs);
+
+			m_pLog->Write(szbuffer, sSize);
+		}
 	}
 }

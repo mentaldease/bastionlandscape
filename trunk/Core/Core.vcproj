@@ -165,6 +165,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FileMemory.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\FileNative.cpp"
 				>
 			</File>
@@ -203,6 +207,10 @@
 						ShowIncludes="false"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Profiling.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\Scripting.cpp"
@@ -259,6 +267,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FileMemory.h"
+				>
+			</File>
+			<File
 				RelativePath=".\FileNative.h"
 				>
 			</File>
@@ -276,6 +288,10 @@
 			</File>
 			<File
 				RelativePath=".\Pool.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Profiling.h"
 				>
 			</File>
 			<File
