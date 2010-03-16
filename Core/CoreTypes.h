@@ -143,6 +143,14 @@ namespace ElixirEngine
 	typedef OctreeTraverseFunc* OctreeTraverseFuncPtr;
 	typedef OctreeTraverseFunc& OctreeTraverseFuncRef;
 	typedef map<Key, OctreeTraverseFunc> OctreeTraverseFuncMap;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class Profiling;
+	typedef Profiling* ProfilingPtr;
+	typedef Profiling& ProfilingRef;
 }
 
 namespace LuaPlus

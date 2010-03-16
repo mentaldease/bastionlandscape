@@ -77,6 +77,7 @@ namespace BastionGame
 
 	bool Scene::Create(const boost::any& _rConfig)
 	{
+		PROFILING(__FUNCTION__);
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
 		bool bResult = (NULL != pInfo);
@@ -127,11 +128,14 @@ namespace BastionGame
 
 	void Scene::Update()
 	{
+		PROFILING(__FUNCTION__);
+
 		DisplayPtr pDisplay = Display::GetInstance();
 		const Key uCurrentRenderStage = pDisplay->GetCurrentRenderStage()->GetNameKey();
 		if (m_uUIRenderPass != uCurrentRenderStage)
 		{
 			{
+				PROFILING(__FUNCTION__" - UPDATE");
 				CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
 				CoreObjectPtrMap::iterator iEnd = m_mHierarchy.end();
 				while (iEnd != iPair)
@@ -142,6 +146,7 @@ namespace BastionGame
 			}
 
 			{
+				PROFILING(__FUNCTION__" - TRAVERSE");
 				OctreeObjectPtrVec vObjects;
 				OctreeNodePtrVec vNodes;
 				m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vObjects);
@@ -165,6 +170,7 @@ namespace BastionGame
 				DisplayGeometryLineManagerPtr pLineManager = static_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
 				if (NULL != pLineManager)
 				{
+					PROFILING(__FUNCTION__" - DEBUGLINES");
 					OctreeNodePtrVec::iterator iNode = vNodes.begin();
 					OctreeNodePtrVec::iterator iEnd = vNodes.end();
 					while (iEnd != iNode)

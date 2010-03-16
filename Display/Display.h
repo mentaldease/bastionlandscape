@@ -2,6 +2,7 @@
 #define __DISPLAY_H__
 
 #include "../Core/Core.h"
+#include "../Core/Profiling.h"
 #include "../Display/DisplayTypes.h"
 
 namespace ElixirEngine

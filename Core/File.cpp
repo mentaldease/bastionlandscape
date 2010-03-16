@@ -115,7 +115,7 @@ namespace ElixirEngine
 
 	bool FS::AddFS(const string& _strFSName, FSPtr _pFS)
 	{
-		Key uKey = MakeKey(_strFSName);
+		const Key uKey = MakeKey(_strFSName);
 		bool bResult = ((NULL == m_mSubFS[uKey]) && (m_vSubFS.end() == find(m_vSubFS.begin(), m_vSubFS.end(), _pFS)));
 		if (false != bResult)
 		{

@@ -29,9 +29,10 @@ namespace ElixirEngine
 		FileNative::CreateInfoPtr pInfo = boost::any_cast<FileNative::CreateInfoPtr>(_rConfig);
 		bool bResult = (NULL != pInfo);
 
+		Release();
+
 		if (false != bResult)
 		{
-			Release();
 			switch (pInfo->m_eOpenMode)
 			{
 				case FS::EOpenMode_READTEXT:

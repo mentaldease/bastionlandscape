@@ -10,6 +10,7 @@ namespace BastionGame
 {
 	bool Scene::CreateLoadRenderTargets(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		bool bResult = true;
 		LuaObject oRenderTargets = _rLuaObject["render_targets"];
 
@@ -61,6 +62,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadMaterials(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		string strMaterialName;
 		bool bResult = true;
 
@@ -110,6 +112,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadOctree(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		LuaObject oOctree = _rLuaObject["octree"];
 		bool bResult = (false == oOctree.IsNil());
 
@@ -139,6 +142,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadWaterDataList(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		string strWaterConfig;
 		Scripting::Lua::Get(_rLuaObject, "water_config", string(""), strWaterConfig);
 		bool bResult = (false == strWaterConfig.empty()) && (false != Scripting::Lua::Loadfile(strWaterConfig));
@@ -171,6 +175,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadWaterData(LuaObjectRef _rLuaObject, WaterDataRef _rWaterData)
 	{
+		PROFILING(__FUNCTION__);
 		bool bResult = true;
 
 		memset(&_rWaterData, 0, sizeof(WaterData));
@@ -203,6 +208,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadCameras(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		DisplayPtr pDisplay = m_rApplication.GetDisplay();
 		string strCameraName;
 		bool bResult = true;
@@ -247,6 +253,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadRenderStages(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		LuaObject oRenderStages = _rLuaObject["render_stages"];
 		bool bResult = true;
 
@@ -268,6 +275,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadRenderStage(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		DisplayRenderStagePtr pRenderStage = new DisplayRenderStage(*m_rApplication.GetDisplay());
 		string strName;
 		Scripting::Lua::Get(_rLuaObject, "name", string(""), strName);
@@ -292,6 +300,7 @@ namespace BastionGame
 
 	bool Scene::CreateLoadHierarchy(LuaObjectRef _rLuaObject)
 	{
+		PROFILING(__FUNCTION__);
 		LuaObject oHierarchy = _rLuaObject["hierarchy"];
 		bool bResult = true;
 
