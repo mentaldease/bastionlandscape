@@ -135,7 +135,7 @@ namespace BastionGame
 		if (m_uUIRenderPass != uCurrentRenderStage)
 		{
 			{
-				PROFILING(__FUNCTION__" - UPDATE");
+				PROFILING(__FUNCTION__" [UPDATE]");
 				CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
 				CoreObjectPtrMap::iterator iEnd = m_mHierarchy.end();
 				while (iEnd != iPair)
@@ -146,13 +146,16 @@ namespace BastionGame
 			}
 
 			{
-				PROFILING(__FUNCTION__" - TRAVERSE");
 				OctreeObjectPtrVec vObjects;
 				OctreeNodePtrVec vNodes;
-				m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vObjects);
-				//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vObjects.size());
+				{
+					PROFILING(__FUNCTION__" [TRAVERSE]");
+					m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vObjects);
+					//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vObjects.size());
+				}
 
 				{
+					PROFILING(__FUNCTION__" [REQUESTS]");
 					OctreeObjectPtrVec::iterator iObject = vObjects.begin();
 					OctreeObjectPtrVec::iterator iEnd = vObjects.end();
 					while (iEnd != iObject)
@@ -168,9 +171,9 @@ namespace BastionGame
 				}
 
 				DisplayGeometryLineManagerPtr pLineManager = static_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
-				if (NULL != pLineManager)
+				if ((NULL != pLineManager) && (true))
 				{
-					PROFILING(__FUNCTION__" - DEBUGLINES");
+					PROFILING(__FUNCTION__" [DEBUGLINES]");
 					OctreeNodePtrVec::iterator iNode = vNodes.begin();
 					OctreeNodePtrVec::iterator iEnd = vNodes.end();
 					while (iEnd != iNode)

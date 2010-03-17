@@ -191,7 +191,7 @@ namespace ElixirEngine
 		static void InitDisplayFormatMap();
 
 		void RenderUpdate();
-		void RenderPass(DisplayRenderStagePtr _pRP);
+		void RenderStage(DisplayRenderStagePtr _pRP);
 		void Render(DisplayRenderStagePtr _pRP);
 
 		Direct3DPtr						m_pDirect3D;

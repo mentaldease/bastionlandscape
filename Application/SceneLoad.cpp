@@ -71,6 +71,7 @@ namespace BastionGame
 		const int uCount = oMaterialLibs.GetCount();
 		for (int i = 0 ; uCount > i ; ++i)
 		{
+			PROFILING(__FUNCTION__" [MATERIALLIB]");
 			string strFileName = oMaterialLibs[i + 1].GetString();
 			bool bResult = Scripting::Lua::Loadfile(strFileName);
 			if (false == bResult)
@@ -90,6 +91,7 @@ namespace BastionGame
 			const int uMaterialCount = oMaterialLibrary.GetCount();
 			for (int j = 0 ; uMaterialCount > j ; ++j)
 			{
+				PROFILING(__FUNCTION__" [MATERIAL]");
 				LuaObject oMaterial = oMaterialLibrary[j + 1];
 				strMaterialName = oMaterial["name"].GetString();
 				Key uMaterialNameKey = MakeKey(strMaterialName);
