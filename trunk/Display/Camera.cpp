@@ -319,6 +319,7 @@ namespace ElixirEngine
 
 	DisplayCamera::ECollision DisplayCamera::CollisionWithSphere(const Vector3& _rCenter, const float& _fRadius)
 	{
+		PROFILING(__FUNCTION__);
 		ECollision eResult = ECollision_IN;
 		float fDistance;
 
@@ -389,6 +390,7 @@ namespace ElixirEngine
 
 	DisplayCamera::ECollision DisplayCamera::CollisionWithAABB(const fsVector3Vec& _rvAABB)
 	{
+		PROFILING(__FUNCTION__);
 		ECollision eResult = ECollision_INTERSECT;
 		int sTotalIn = 0;
 

@@ -39,10 +39,14 @@ namespace ElixirEngine
 		virtual void GetAABB(fsVector3Vec& _vPoints);
 
 		const fsVector3Vec& GetAABB() const;
+		const fsVector3& GetCenter() const;
+		const float GetRadius() const;
 
 	protected:
 		fsVector3Vec	m_vPoints;
+		fsVector3		m_fs3Center;
 		OctreeRef		m_rOctree;
+		float			m_fRadius;
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -77,6 +81,8 @@ namespace ElixirEngine
 		void GetAABB(fsVector3Vec& _vPoints);
 		const fsVector3Vec& GetAABB() const;
 		UInt GetChildrenCount() const;
+		const fsVector3& GetCenter() const;
+		const float GetRadius() const;
 
 		void Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride = EOctreeTraverseResult_UNKNOWN);
 
@@ -88,6 +94,7 @@ namespace ElixirEngine
 		OctreeRef			m_rOctree;
 		fsVector3			m_fs3Center;
 		float				m_fNodeSize;
+		float				m_fRadius;
 		UInt				m_uDepthLevel;
 	};
 

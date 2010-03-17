@@ -467,6 +467,9 @@ namespace BastionGame
 			bool bResult = m_pScene->Create(boost::any(&oSCInfo));
 			if (false != bResult)
 			{
+				Profiling::OutputInfo(m_pLog);
+				Profiling::Clear();
+
 				m_pCamera = m_pDisplay->GetCamera(MakeKey(string("scenecamera00")));
 				m_pCameraListener = new CameraListener(*m_pDisplay);
 				bool bResult = m_pCameraListener->Create(boost::any(0));
@@ -501,6 +504,7 @@ namespace BastionGame
 
 	void Application::UpdateSpectatorCamera(const float& _fElapsedTime)
 	{
+		PROFILING(__FUNCTION__);
 		memcpy(m_aKeysInfoOld, m_aKeysInfo, sizeof(unsigned char) * 256);
 		m_pKeyboard->GetInfo(m_aKeysInfo);
 		memcpy(&m_oMouseInfoOld, &m_oMouseInfo, sizeof(DIMouseState));

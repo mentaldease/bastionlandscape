@@ -2,6 +2,7 @@
 #include "../Core/Core.h"
 #include "../Core/Octree.h"
 #include "../Core/Util.h"
+#include "../Core/Profiling.h"
 
 namespace ElixirEngine
 {
@@ -12,7 +13,9 @@ namespace ElixirEngine
 	OctreeObject::OctreeObject(OctreeRef _rOctree)
 	:	//CoreObject(),
 		m_vPoints(),
-		m_rOctree(_rOctree)
+		m_fs3Center(0.0f, 0.0f, 0.0f),
+		m_rOctree(_rOctree),
+		m_fRadius(0.0f)
 	{
 		m_vPoints.resize(EOctreeAABB_COUNT);
 	}
@@ -44,6 +47,15 @@ namespace ElixirEngine
 		SETPOINT(EOctreeAABB_BOTTOMLEFTTNEAR, _rf3BottomLeftNear, _rf3BottomLeftNear, _rf3BottomLeftNear);
 
 		#undef SETPOINT
+
+		m_fs3Center.x() = (_rf3TopRightFar.x() - _rf3BottomLeftNear.x()) / 2.0f;
+		m_fs3Center.y() = (_rf3TopRightFar.y() - _rf3BottomLeftNear.y()) / 2.0f;
+		m_fs3Center.z() = (_rf3TopRightFar.z() - _rf3BottomLeftNear.z()) / 2.0f;
+		m_fRadius = m_fs3Center.length();
+
+		m_fs3Center.x() += _rf3BottomLeftNear.x();
+		m_fs3Center.y() += _rf3BottomLeftNear.y();
+		m_fs3Center.z() += _rf3BottomLeftNear.z();
 	}
 
 	void OctreeObject::GetAABB(fsVector3Vec& _vPoints)
@@ -54,6 +66,16 @@ namespace ElixirEngine
 	const fsVector3Vec& OctreeObject::GetAABB() const
 	{
 		return m_vPoints;
+	}
+
+	const fsVector3& OctreeObject::GetCenter() const
+	{
+		return m_fs3Center;
+	}
+
+	const float OctreeObject::GetRadius() const
+	{
+		return m_fRadius;
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -69,6 +91,7 @@ namespace ElixirEngine
 		m_rOctree(_rOctree),
 		m_fs3Center(0.0f, 0.0f, 0.0f),
 		m_fNodeSize(0.0f),
+		m_fRadius(0.0f),
 		m_uDepthLevel(0)
 	{
 		m_vPoints.resize(EOctreeAABB_COUNT);
@@ -97,6 +120,8 @@ namespace ElixirEngine
 			const fsVector3& rfs3Center = pInfo->m_fs3Center;
 			const float fHalfSize = m_fNodeSize / 2.0f;
 			const float fQuarterSize = m_fNodeSize / 4.0f;
+
+			m_fRadius = fsVector3(fHalfSize, fHalfSize, fHalfSize).length();
 
 			#define SETPOINT(ID, CENTER, XOFFSET, YOFFSET, ZOFFSET) \
 				m_vPoints[ID].x() = CENTER.x() + (XOFFSET); \
@@ -183,10 +208,10 @@ namespace ElixirEngine
 		if (0 == m_uDepthLevel)
 		{
 			bResult = true;
-			if (m_vObjects.end() == find(m_vObjects.begin(), m_vObjects.end(), _pObject))
-			{
-				m_vObjects.push_back(_pObject);
-			}
+			//if (m_vObjects.end() == find(m_vObjects.begin(), m_vObjects.end(), _pObject))
+			//{
+			//	m_vObjects.push_back(_pObject);
+			//}
 		}
 		else
 		{
@@ -278,6 +303,14 @@ namespace ElixirEngine
 			}
 		}
 
+		if (false != bResult)
+		{
+			if (m_vObjects.end() == find(m_vObjects.begin(), m_vObjects.end(), _pObject))
+			{
+				m_vObjects.push_back(_pObject);
+			}
+		}
+
 		return bResult;
 	}
 
@@ -285,14 +318,21 @@ namespace ElixirEngine
 	{
 		bool bResult = false;
 
+		OctreeObjectPtrVec::iterator iObject = find(m_vObjects.begin(), m_vObjects.end(), _pObject);
+		if (m_vObjects.end() != iObject)
+		{
+			m_vObjects.erase(iObject);
+			bResult = true;
+		}
+
 		if (0 == m_uDepthLevel)
 		{
-			OctreeObjectPtrVec::iterator iObject = find(m_vObjects.begin(), m_vObjects.end(), _pObject);
-			if (m_vObjects.end() != iObject)
-			{
-				m_vObjects.erase(iObject);
-				bResult = true;
-			}
+			//OctreeObjectPtrVec::iterator iObject = find(m_vObjects.begin(), m_vObjects.end(), _pObject);
+			//if (m_vObjects.end() != iObject)
+			//{
+			//	m_vObjects.erase(iObject);
+			//	bResult = true;
+			//}
 		}
 		else
 		{
@@ -368,8 +408,19 @@ namespace ElixirEngine
 		return UInt(m_vObjects.size());
 	}
 
+	const fsVector3& OctreeNode::GetCenter() const
+	{
+		return m_fs3Center;
+	}
+
+	const float OctreeNode::GetRadius() const
+	{
+		return m_fRadius;
+	}
+
 	void OctreeNode::Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride)
 	{
+		PROFILING(__FUNCTION__);
 		const EOctreeTraverseResult eResult = (EOctreeTraverseResult_UNKNOWN == _eOverride) ? _rFunc(*this) : _eOverride;
 		if (0 == m_uDepthLevel)
 		{
@@ -402,13 +453,21 @@ namespace ElixirEngine
 		else if (EOctreeTraverseResult_FULL == eResult)
 		{
 			_rvNodes.push_back(this);
-			for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
+			//for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
+			//{
+			//	const UInt uIndex = m_vChildren[i];
+			//	if (0 < uIndex)
+			//	{
+			//		OctreeNodePtr pNode = m_rOctree.GetNode(uIndex);
+			//		pNode->Traverse(_rFunc, _rvNodes, _rvObjects, eResult);
+			//	}
+			//}
+			for (UInt i = 0 ; m_vObjects.size() > i ; ++i)
 			{
-				const UInt uIndex = m_vChildren[i];
-				if (0 < uIndex)
+				OctreeObjectPtr pObject = m_vObjects[i];
+				if (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), pObject))
 				{
-					OctreeNodePtr pNode = m_rOctree.GetNode(uIndex);
-					pNode->Traverse(_rFunc, _rvNodes, _rvObjects, eResult);
+					_rvObjects.push_back(pObject);
 				}
 			}
 		}
@@ -506,6 +565,7 @@ namespace ElixirEngine
 
 	void Octree::Traverse(Key _uModeNameKey, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, OctreeNodePtr _pStartingNode)
 	{
+		PROFILING(__FUNCTION__);
 		OctreeTraverseFuncMap::iterator iPair = m_mTraverseModes.find(_uModeNameKey);
 		bool bResult = (m_mTraverseModes.end() != iPair);
 		if (false != bResult)
