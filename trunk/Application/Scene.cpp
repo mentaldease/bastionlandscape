@@ -171,40 +171,76 @@ namespace BastionGame
 				}
 
 				DisplayGeometryLineManagerPtr pLineManager = static_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
-				if ((NULL != pLineManager) && (true))
+				if ((NULL != pLineManager) && (false))
 				{
 					PROFILING(__FUNCTION__" [DEBUGLINES]");
-					OctreeNodePtrVec::iterator iNode = vNodes.begin();
-					OctreeNodePtrVec::iterator iEnd = vNodes.end();
-					while (iEnd != iNode)
 					{
-						const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
-						DisplayGeometryLineManager::LineStripInfoRef rLS = pLineManager->NewLineStrip();
+						OctreeNodePtrVec::iterator iNode = vNodes.begin();
+						OctreeNodePtrVec::iterator iEnd = vNodes.end();
+						while (iEnd != iNode)
+						{
+							const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
+							DisplayGeometryLineManager::LineStripInfoRef rLS = pLineManager->NewLineStrip();
 
-						rLS.m_vVertexBuffer.resize(8);
-						rLS.m_vIndexBuffer.resize(16);
-						rLS.m_vIndexBuffer[0] = 3; rLS.m_vIndexBuffer[1] = 0; rLS.m_vIndexBuffer[2] = 1; rLS.m_vIndexBuffer[3] = 2;
-						rLS.m_vIndexBuffer[4] = 3; rLS.m_vIndexBuffer[5] = 7; rLS.m_vIndexBuffer[6] = 6; rLS.m_vIndexBuffer[7] = 5;
-						rLS.m_vIndexBuffer[8] = 4; rLS.m_vIndexBuffer[9] = 7; rLS.m_vIndexBuffer[10] = 6; rLS.m_vIndexBuffer[11] = 2;
-						rLS.m_vIndexBuffer[12] = 1; rLS.m_vIndexBuffer[13] = 5; rLS.m_vIndexBuffer[14] = 4; rLS.m_vIndexBuffer[15] = 0;
+							rLS.m_vVertexBuffer.resize(8);
+							rLS.m_vIndexBuffer.resize(16);
+							rLS.m_vIndexBuffer[0] = 3; rLS.m_vIndexBuffer[1] = 0; rLS.m_vIndexBuffer[2] = 1; rLS.m_vIndexBuffer[3] = 2;
+							rLS.m_vIndexBuffer[4] = 3; rLS.m_vIndexBuffer[5] = 7; rLS.m_vIndexBuffer[6] = 6; rLS.m_vIndexBuffer[7] = 5;
+							rLS.m_vIndexBuffer[8] = 4; rLS.m_vIndexBuffer[9] = 7; rLS.m_vIndexBuffer[10] = 6; rLS.m_vIndexBuffer[11] = 2;
+							rLS.m_vIndexBuffer[12] = 1; rLS.m_vIndexBuffer[13] = 5; rLS.m_vIndexBuffer[14] = 4; rLS.m_vIndexBuffer[15] = 0;
 
-						OctreeNodePtr pNode = *iNode;
-						const fsVector3Vec& rvAABB = pNode->GetAABB();
-						#define fsVec3ToVec3(ID, vFSVEC3, vVEC3, COLOR) \
-							vVEC3[ID].m_f3Position.x = vFSVEC3[ID].x(); \
-							vVEC3[ID].m_f3Position.y = vFSVEC3[ID].y(); \
-							vVEC3[ID].m_f3Position.z = vFSVEC3[ID].z(); \
-							vVEC3[ID].m_f4Color = COLOR;
-						fsVec3ToVec3(EOctreeAABB_TOPLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						fsVec3ToVec3(EOctreeAABB_TOPRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						fsVec3ToVec3(EOctreeAABB_TOPRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						fsVec3ToVec3(EOctreeAABB_TOPLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-						#undef fsVec3ToVec3
-						++iNode;
+							OctreeNodePtr pNode = *iNode;
+							const fsVector3Vec& rvAABB = pNode->GetAABB();
+							#define fsVec3ToVec3(ID, vFSVEC3, vVEC3, COLOR) \
+								vVEC3[ID].m_f3Position.x = vFSVEC3[ID].x(); \
+								vVEC3[ID].m_f3Position.y = vFSVEC3[ID].y(); \
+								vVEC3[ID].m_f3Position.z = vFSVEC3[ID].z(); \
+								vVEC3[ID].m_f4Color = COLOR;
+							fsVec3ToVec3(EOctreeAABB_TOPLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_TOPLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							#undef fsVec3ToVec3
+							++iNode;
+						}
+					}
+					{
+						OctreeObjectPtrVec::iterator iObject = vObjects.begin();
+						OctreeObjectPtrVec::iterator iEnd = vObjects.end();
+						while (iEnd != iObject)
+						{
+							const Vector4 f4Color(0.75f, 0.125f, 0.125f, 1.0f);
+							DisplayGeometryLineManager::LineStripInfoRef rLS = pLineManager->NewLineStrip();
+
+							rLS.m_vVertexBuffer.resize(8);
+							rLS.m_vIndexBuffer.resize(16);
+							rLS.m_vIndexBuffer[0] = 3; rLS.m_vIndexBuffer[1] = 0; rLS.m_vIndexBuffer[2] = 1; rLS.m_vIndexBuffer[3] = 2;
+							rLS.m_vIndexBuffer[4] = 3; rLS.m_vIndexBuffer[5] = 7; rLS.m_vIndexBuffer[6] = 6; rLS.m_vIndexBuffer[7] = 5;
+							rLS.m_vIndexBuffer[8] = 4; rLS.m_vIndexBuffer[9] = 7; rLS.m_vIndexBuffer[10] = 6; rLS.m_vIndexBuffer[11] = 2;
+							rLS.m_vIndexBuffer[12] = 1; rLS.m_vIndexBuffer[13] = 5; rLS.m_vIndexBuffer[14] = 4; rLS.m_vIndexBuffer[15] = 0;
+
+							OctreeObjectPtr pObject = *iObject;
+							const fsVector3Vec& rvAABB = pObject->GetAABB();
+							#define fsVec3ToVec3(ID, vFSVEC3, vVEC3, COLOR) \
+								vVEC3[ID].m_f3Position.x = vFSVEC3[ID].x(); \
+								vVEC3[ID].m_f3Position.y = vFSVEC3[ID].y(); \
+								vVEC3[ID].m_f3Position.z = vFSVEC3[ID].z(); \
+								vVEC3[ID].m_f4Color = COLOR;
+							fsVec3ToVec3(EOctreeAABB_TOPLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_TOPLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							#undef fsVec3ToVec3
+							++iObject;
+						}
 					}
 				}
 			}
