@@ -77,14 +77,21 @@ namespace ElixirEngine
 
 		bool AddObject(OctreeObjectPtr _pObject);
 		bool RemoveObject(OctreeObjectPtr _pObject);
+		inline OctreeObjectPtrVecRef GetObjects();
 
-		void GetAABB(fsVector3Vec& _vPoints);
-		const fsVector3Vec& GetAABB() const;
-		UInt GetChildrenCount() const;
-		const fsVector3& GetCenter() const;
-		const float GetRadius() const;
+		inline void GetAABB(fsVector3Vec& _vPoints);
+		inline const fsVector3Vec& GetAABB() const;
+
+		inline UInt GetChildrenCount() const;
+		inline UIntVec& GetChildren();
+
+		inline UInt GetDepth() const;
+
+		inline const fsVector3& GetCenter() const;
+		inline const float GetRadius() const;
 
 		void Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride = EOctreeTraverseResult_UNKNOWN);
+		void TraverseNoRecursion(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride = EOctreeTraverseResult_UNKNOWN);
 
 	protected:
 		fsVector3Vec		m_vPoints;
@@ -149,6 +156,46 @@ namespace ElixirEngine
 		float					m_fLeafSize;
 		UInt					m_uDepth;
 	};
+
+	inline OctreeObjectPtrVecRef OctreeNode::GetObjects()
+	{
+		return m_vObjects;
+	}
+
+	inline void OctreeNode::GetAABB(fsVector3Vec& _vPoints)
+	{
+		_vPoints = m_vPoints;
+	}
+
+	inline const fsVector3Vec& OctreeNode::GetAABB() const
+	{
+		return m_vPoints;
+	}
+
+	inline UInt OctreeNode::GetChildrenCount() const
+	{
+		return UInt(m_vObjects.size());
+	}
+
+	inline UIntVec& OctreeNode::GetChildren()
+	{
+		return m_vChildren;
+	}
+
+	inline UInt OctreeNode::GetDepth() const
+	{
+		return m_uDepthLevel;
+	}
+
+	inline const fsVector3& OctreeNode::GetCenter() const
+	{
+		return m_fs3Center;
+	}
+
+	inline const float OctreeNode::GetRadius() const
+	{
+		return m_fRadius;
+	}
 }
 
 #endif // __OCTREE_H__

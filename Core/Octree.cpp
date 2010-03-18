@@ -393,31 +393,6 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	void OctreeNode::GetAABB(fsVector3Vec& _vPoints)
-	{
-		_vPoints = m_vPoints;
-	}
-
-	const fsVector3Vec& OctreeNode::GetAABB() const
-	{
-		return m_vPoints;
-	}
-
-	UInt OctreeNode::GetChildrenCount() const
-	{
-		return UInt(m_vObjects.size());
-	}
-
-	const fsVector3& OctreeNode::GetCenter() const
-	{
-		return m_fs3Center;
-	}
-
-	const float OctreeNode::GetRadius() const
-	{
-		return m_fRadius;
-	}
-
 	void OctreeNode::Traverse(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride)
 	{
 		PROFILING(__FUNCTION__);
@@ -453,21 +428,73 @@ namespace ElixirEngine
 		else if (EOctreeTraverseResult_FULL == eResult)
 		{
 			_rvNodes.push_back(this);
-			//for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
-			//{
-			//	const UInt uIndex = m_vChildren[i];
-			//	if (0 < uIndex)
-			//	{
-			//		OctreeNodePtr pNode = m_rOctree.GetNode(uIndex);
-			//		pNode->Traverse(_rFunc, _rvNodes, _rvObjects, eResult);
-			//	}
-			//}
 			for (UInt i = 0 ; m_vObjects.size() > i ; ++i)
 			{
 				OctreeObjectPtr pObject = m_vObjects[i];
 				if (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), pObject))
 				{
 					_rvObjects.push_back(pObject);
+				}
+			}
+		}
+	}
+
+	void OctreeNode::TraverseNoRecursion(OctreeTraverseFuncRef _rFunc, OctreeNodePtrVecRef _rvNodes, OctreeObjectPtrVecRef _rvObjects, const EOctreeTraverseResult _eOverride)
+	{
+		PROFILING(__FUNCTION__);
+		OctreeNodePtrVec vNodesToProcess;
+
+		vNodesToProcess.push_back(this);
+
+		while (false == vNodesToProcess.empty())
+		{
+			OctreeNodePtr pCurrentNode = vNodesToProcess.back();
+			vNodesToProcess.pop_back();
+
+			const EOctreeTraverseResult eResult = (EOctreeTraverseResult_UNKNOWN == _eOverride) ? _rFunc(*pCurrentNode) : _eOverride;
+			const UInt uDepthLevel = pCurrentNode->GetDepth();
+
+			if (0 == uDepthLevel)
+			{
+				if (EOctreeTraverseResult_NONE != eResult)
+				{
+					OctreeObjectPtrVecRef rvCurrentObjects = pCurrentNode->GetObjects();
+					_rvNodes.push_back(pCurrentNode);
+					for (UInt i = 0 ; rvCurrentObjects.size() > i ; ++i)
+					{
+						OctreeObjectPtr pObject = rvCurrentObjects[i];
+						//if (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), pObject))
+						{
+							_rvObjects.push_back(pObject);
+						}
+					}
+				}
+			}
+			else if (EOctreeTraverseResult_PARTIAL == eResult)
+			{
+				const UIntVec& rvCurrentChildren = pCurrentNode->GetChildren();
+				_rvNodes.push_back(pCurrentNode);
+				for (UInt i = 0 ; EOctreeAABB_COUNT > i ; ++i)
+				{
+					const UInt uIndex = rvCurrentChildren[i];
+					if (0 < uIndex)
+					{
+						OctreeNodePtr pNode = m_rOctree.GetNode(uIndex);
+						vNodesToProcess.push_back(pNode);
+					}
+				}
+			}
+			else if (EOctreeTraverseResult_FULL == eResult)
+			{
+				OctreeObjectPtrVecRef rvCurrentObjects = pCurrentNode->GetObjects();
+				_rvNodes.push_back(pCurrentNode);
+				for (UInt i = 0 ; rvCurrentObjects.size() > i ; ++i)
+				{
+					OctreeObjectPtr pObject = rvCurrentObjects[i];
+					//if (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), pObject))
+					{
+						_rvObjects.push_back(pObject);
+					}
 				}
 			}
 		}
@@ -572,7 +599,8 @@ namespace ElixirEngine
 		{
 			OctreeTraverseFuncRef rFunc = iPair->second;
 			_pStartingNode = (NULL == _pStartingNode) ? m_pRoot : _pStartingNode;
-			_pStartingNode->Traverse(rFunc, _rvNodes, _rvObjects);
+			//_pStartingNode->Traverse(rFunc, _rvNodes, _rvObjects);
+			_pStartingNode->TraverseNoRecursion(rFunc, _rvNodes, _rvObjects);
 		}
 	}
 
