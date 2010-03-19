@@ -98,7 +98,7 @@ namespace ElixirEngine
 
 			if (false != m_bPerspectiveMode)
 			{
-				D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, pInfo->m_fZNear, pInfo->m_fZFar);
+				D3DXMatrixPerspectiveFovLH(&m_oMProjection, m_fFovy, m_fAspectRatio, m_fNear, m_fFar);
 			}
 			else
 			{

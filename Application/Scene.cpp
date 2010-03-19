@@ -135,7 +135,7 @@ namespace BastionGame
 		if (m_uUIRenderPass != uCurrentRenderStage)
 		{
 			{
-				PROFILING(__FUNCTION__" [UPDATE]");
+				PROFILING(__FUNCTION__" [HIERARCHY]");
 				CoreObjectPtrMap::iterator iPair = m_mHierarchy.begin();
 				CoreObjectPtrMap::iterator iEnd = m_mHierarchy.end();
 				while (iEnd != iPair)

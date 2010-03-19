@@ -7,7 +7,7 @@ cameralib00 =
 		rotation = { 0.0, 0.0, 0.0 },
 		viewport = "default",
 		depth_near = 1.0,
-		depth_far = 10000.0,
+		depth_far = 100000.0,
 		fovy = 45.0,
 	},
 	{

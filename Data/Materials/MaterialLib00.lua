@@ -31,6 +31,11 @@ materiallib00 =
 		technique = "RenderScene",
 	},
 	{
+		name = "terrain05",
+		effect = "data/effects/terrainScattering.fx",
+		technique = "RenderScene",
+	},
+	{
 		name = "waterpost02",
 		effect = "data/effects/WaterPost3.fx",
 		technique = "RenderScene",

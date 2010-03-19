@@ -34,13 +34,13 @@ SCATTERING_OUTPUT ScatteringVS( float3 vPos : POSITION, float3 Norm : NORMAL, fl
 {
     SCATTERING_OUTPUT Output;
     
-    Output.Position = mul(float4(vPos, 1.0), matWorldViewProj); 
+    Output.Position = mul(float4(vPos, 1.0f), matWorldViewProj); 
 
-    float s = mul(vPos, matWorldView).z/10.0;
+    float s = mul(vPos, matWorldView).z / 100.0f;
     
     
     // computing in scattering
-    float3 worldPos = mul(float4(vPos, 1.0), matWorld);
+    float3 worldPos = mul(float4(vPos, 1.0f), matWorld);
     float3 viewDir = worldPos - eyePos;
     //float s = length(viewDir);
     viewDir = normalize(viewDir);
@@ -49,22 +49,22 @@ SCATTERING_OUTPUT ScatteringVS( float3 vPos : POSITION, float3 Norm : NORMAL, fl
 
 
     // computing extinction = absorption + out scattering
-    float3 extinction = exp(-(betaRayleigh+betaMie)* s);  // * log2 e ???
+    float3 extinction = exp(-(betaRayleigh + betaMie) * s);  // * log2 e ???
 
 
-    float3 betaReyleighTheta = betaDashRayleigh * (1.0 + cosTheta * cosTheta); // this is correct but not nice
+    float3 betaReyleighTheta = betaDashRayleigh * (1.0f + cosTheta * cosTheta); // this is correct but not nice
     //float3 betaReyleighTheta = betaDashRayleigh * (2.0 + 0.5 * cosTheta * cosTheta); // adjusted to avoid dark band effect
     // here we use + to correct sign between hgData.y and hgData.z
-    float3 betaMieTheta = betaDashMie * (hgData.x / pow( (hgData.y + hgData.z * cosTheta), 1.5));
+    float3 betaMieTheta = betaDashMie * (hgData.x / pow( (hgData.y + hgData.z * cosTheta), 1.5f));
     
     float3 inScattering = (betaReyleighTheta + betaMieTheta);
-    inScattering *= (1.0 - extinction);
+    inScattering *= (1.0f - extinction);
     inScattering *= oneOverRayleighMie;
     
     
-    inScattering *= 0.3;                    // in scattering multiplier
+    inScattering *= 0.3f;                   // in scattering multiplier
     inScattering *= sunColorIntensity.xyz;  // color
-    inScattering *= sunColorIntensity.w;   // intensity
+    inScattering *= sunColorIntensity.w;    // intensity
     
     
     Output.InScattering = inScattering;
@@ -77,11 +77,12 @@ SCATTERING_OUTPUT ScatteringVS( float3 vPos : POSITION, float3 Norm : NORMAL, fl
 SCATTERING_OUTPUT2 ScatteringVS2( float3 vPos : POSITION, float3 Norm : NORMAL, float2 Tex : TEXCOORD) 
 {
     SCATTERING_OUTPUT2 Output;
-    
+
     Output.Position = mul(float4(vPos, 1.0f), matWorldViewProj); 
 	Output.Position.z = Output.Position.w - 0.5f;
 
-    float s = mul(float4(vPos, 1.0f), matWorldView).z / 5.0f;
+	// TODO : faire en sorte que s se scale automatiquement par rapport à la taille de la sphere
+    float s = mul(float4(vPos, 1.0f), matWorldView).z / 50.0f;
     
     // computing extinction = absorption + out scattering
     float3 extinction = exp(-(betaRayleigh+betaMie)* s);  // * log2 e ???

@@ -209,7 +209,7 @@ PS_OUTPUT RenderScenePS( VS_OUTPUT In )
 
 	float3 vNormal = (In.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;
 	Output.vNormal = float4(vNormal, 1.0f);
-	float fDepth = In.PositionZ / 10000.0f;
+	float fDepth = In.PositionZ / 100000.0f;
 	Output.vPosition = float4(fDepth, 1.0f, 1.0f, 1.0f);
 
 	return Output;
