@@ -1,0 +1,5 @@
+TODO :
+* faire en sorte que s se scale automatiquement par rapport à la taille du terrain (TerrainScattering.fx)
+* faire en sorte que s se scale automatiquement par rapport à la taille de la sphere (scattering.fxh)
+* faire en sorte que le radius sz la sphere se scale automatiquement par rapport à la taille du terrain (SceneTest00.lua)
+* mettre en place un system de jobs/tasks afin de tirer profit des cpu multicore

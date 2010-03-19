@@ -1,7 +1,7 @@
 waterscenetest00 =
 {
 	{
-		WaterLevel = 100.0,
+		WaterLevel = 800.0,
 		FadeSpeed = 0.15,
 		NormalScale = 1.0,
 		R0 = 0.5,
@@ -26,7 +26,7 @@ waterscenetest00 =
 		AtlasInfo = { 0.5, 0.5, 256.0, 8 },
 	},
 	{
-		WaterLevel = 200.0,
+		WaterLevel = 1500.0,
 		FadeSpeed = 0.15,
 		NormalScale = 1.0,
 		R0 = 0.5,

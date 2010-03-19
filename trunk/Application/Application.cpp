@@ -516,6 +516,7 @@ namespace BastionGame
 			m_oMouseInfo.lX = 0;
 			m_oMouseInfo.lY = 0;
 			m_oMouseInfo.lZ = 0;
+			vsoutput(__FUNCTION__" : mouse reseted\n");
 		}
 
 		if ((m_aKeysInfoOld[DIK_MULTIPLY]) && (!m_aKeysInfo[DIK_MULTIPLY]))
