@@ -246,8 +246,8 @@ namespace BastionGame
 			m_pInput = new Input;
 			oICInfo.m_bCreateDefaultKeyboard = true;
 			oICInfo.m_bCreateDefaultMouse = true;
-			oICInfo.m_uCooperativeLevelKeyboard = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
-			oICInfo.m_uCooperativeLevelMouse = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
+			oICInfo.m_uCooperativeLevelKeyboard = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+			oICInfo.m_uCooperativeLevelMouse = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
 			oICInfo.m_hWnd = m_oWindow.m_hWnd;
 			oICInfo.m_hInstance = m_oWindow.m_hInstance;
 			oICInfo.m_uDefaultKeyboardKey = MakeKey(string("DIKEYBOARD"));
