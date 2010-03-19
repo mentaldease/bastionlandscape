@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "../Input/Input.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -249,8 +250,12 @@ namespace ElixirEngine
 
 	void InputDeviceKeyboard::Update()
 	{
-		m_pDevice->Acquire();
-		m_pDevice->GetDeviceState(256 * sizeof(unsigned char), m_aKeys);
+		HRESULT hResult = m_pDevice->Acquire();
+		if (SUCCEEDED(hResult))
+		{
+			hResult = m_pDevice->GetDeviceState(256 * sizeof(unsigned char), m_aKeys);
+		}
+		//vsoutput(__FUNCTION__" : %s\n", SUCCEEDED(hResult) ? "succeeded" : "failed");
 	}
 
 	void InputDeviceKeyboard::Release()
@@ -309,8 +314,12 @@ namespace ElixirEngine
 
 	void InputDeviceMouse::Update()
 	{
-		m_pDevice->Acquire();
-		m_pDevice->GetDeviceState(sizeof(DIMouseState), &m_oState);
+		HRESULT hResult = m_pDevice->Acquire();
+		if (SUCCEEDED(hResult))
+		{
+			hResult = m_pDevice->GetDeviceState(sizeof(DIMouseState), &m_oState);
+		}
+		//vsoutput(__FUNCTION__" : %s\n", SUCCEEDED(hResult) ? "succeeded" : "failed");
 	}
 
 	void InputDeviceMouse::Release()
