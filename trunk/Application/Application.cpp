@@ -510,6 +510,14 @@ namespace BastionGame
 		memcpy(&m_oMouseInfoOld, &m_oMouseInfo, sizeof(DIMouseState));
 		m_pMouse->GetInfo(&m_oMouseInfo);
 
+		// hack : if mouse movement delta if too hight then reset
+		if ((-1000 >= m_oMouseInfo.lX) || (1000 <= m_oMouseInfo.lX) || (-1000 >= m_oMouseInfo.lY) || (1000 <= m_oMouseInfo.lY))
+		{
+			m_oMouseInfo.lX = 0;
+			m_oMouseInfo.lY = 0;
+			m_oMouseInfo.lZ = 0;
+		}
+
 		if ((m_aKeysInfoOld[DIK_MULTIPLY]) && (!m_aKeysInfo[DIK_MULTIPLY]))
 		{
 			m_fCameraMoveSpeed *= 2.0f;
@@ -535,6 +543,7 @@ namespace BastionGame
 		{
 			rCamRot.y += m_oMouseInfo.lX * fCameraRotSpeed;
 			rCamRot.x += m_oMouseInfo.lY * fCameraRotSpeed;
+			//vsoutput(__FUNCTION__" : mouse %d %d\n", m_oMouseInfo.lX, m_oMouseInfo.lY);
 		}
 
 		m_pCamera->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
