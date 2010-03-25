@@ -16,11 +16,13 @@ namespace ElixirEngine
 		typedef T* TPtr;
 
 	public:
-		Pool(UIntRef _uSize);
+		Pool(const UInt _uSize = 1024);
 		virtual ~Pool();
 
+		void Reserve(const UInt _uSize);
 		TPtr Alloc(const UInt _uCount = 1);
 		void Free(TPtr _pData);
+		void FreeAll();
 		UInt Size();
 
 	protected:
@@ -40,7 +42,7 @@ namespace ElixirEngine
 	};
 
 	template <typename T>
-	Pool<T>::Pool(UIntRef _uSize)
+	Pool<T>::Pool(const UInt _uSize)
 	:	m_pBuffer(NULL),
 		m_mAvailable(),
 		m_mInUse(),
@@ -64,6 +66,24 @@ namespace ElixirEngine
 		}
 		m_mAvailable.clear();
 		m_mInUse.clear();
+	}
+
+	template <typename T>
+	void Pool<T>::Reserve(const UInt _uSize)
+	{
+		if (NULL != m_pBuffer)
+		{
+			delete[] m_pBuffer;
+			m_pBuffer = NULL;
+			m_uSize = 0;
+		}
+
+		m_pBuffer = new T[_uSize];
+		if ((0 < _uSize) && (NULL != m_pBuffer))
+		{
+			m_uSize = _uSize;
+			AddToAvailable(m_pBuffer, _uSize);
+		}
 	}
 
 	template <typename T>
@@ -108,6 +128,14 @@ namespace ElixirEngine
 		{
 			AddToAvailable(_pData, uSize);
 		}
+	}
+
+	template <typename T>
+	void Pool<T>::FreeAll()
+	{
+		m_mAvailable.clear();
+		m_mInUse.clear();
+		AddToAvailable(m_pBuffer, m_uSize);
 	}
 
 	template <typename T>

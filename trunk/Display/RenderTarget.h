@@ -30,7 +30,7 @@ namespace ElixirEngine
 			float tu3, tv3, tw3;	// Frustum far coordinates
 			float tu4, tv4, tw4;	// Frustum near coordinates
 
-			const static VertexElement	s_aDecl[6];
+			static VertexElement	s_aDecl[6];
 		};
 
 	public:
@@ -49,7 +49,7 @@ namespace ElixirEngine
 		Vertex			m_aQuad[4];
 		VertexBufferPtr	m_pPreviousVertexBuffer;
 		VertexDeclPtr	m_pPreviousVertexDecl;
-		VertexDeclPtr	m_pVertDeclPP;
+		Key				m_uVertexDecl;
 		unsigned int	m_uPreviousVBOffset;
 		unsigned int	m_uPreviousVBStride;
 		float			m_fFullWidth;

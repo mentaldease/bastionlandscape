@@ -11,6 +11,74 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	DisplayMemoryBuffer::DisplayMemoryBuffer()
+	:	m_pBuffer(NULL),
+		m_uCapacity(0),
+		m_uSize(0)
+	{
+
+	}
+
+	DisplayMemoryBuffer::~DisplayMemoryBuffer()
+	{
+		if (NULL != m_pBuffer)
+		{
+			delete[] m_pBuffer;
+		}
+	}
+
+	inline bool DisplayMemoryBuffer::Reserve(const UInt _uCapacity)
+	{
+		if (NULL != m_pBuffer)
+		{
+			delete[] m_pBuffer;
+			m_pBuffer = NULL;
+		}
+
+		m_pBuffer = new Byte[_uCapacity];
+		m_uCapacity = _uCapacity;
+		m_uSize = 0;
+
+		return (NULL != m_pBuffer);
+	}
+
+	inline bool DisplayMemoryBuffer::Copy(const VoidPtr _pSrc, const UInt _uSize)
+	{
+		const bool bResult = CanCopy(_uSize);
+		if (false != bResult)
+		{
+			memcpy_s(m_pBuffer + m_uSize, m_uCapacity - m_uSize, _pSrc, _uSize);
+			m_uSize += _uSize;
+		}
+		return bResult;
+	}
+
+	inline bool DisplayMemoryBuffer::CanCopy(const UInt _uSize)
+	{
+		return (m_uCapacity >= (m_uSize + _uSize));
+	}
+
+	inline VoidPtr DisplayMemoryBuffer::Alloc(const UInt _uSize)
+	{
+		VoidPtr pResult = NULL;
+		const bool bResult = CanCopy(_uSize);
+		if (false != bResult)
+		{
+			pResult = m_pBuffer + m_uSize;
+			m_uSize += _uSize;
+		}
+		return pResult;
+	}
+
+	inline void DisplayMemoryBuffer::Clear()
+	{
+		m_uSize = 0;
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	DisplayMaterialManager::StructData::StructData()
 	:	m_pData(NULL),
 		m_uSize(0)
@@ -192,15 +260,40 @@ namespace ElixirEngine
 	{
 		struct RenderMaterialFunction
 		{
-			void Do(DisplayMaterialPtr _pDisplayMaterial)
+			void operator() (DisplayMaterialPtr _pDisplayMaterial)
 			{
 				_pDisplayMaterial->Render();
 			}
 		};
 
 		static RenderMaterialFunction oRMF;
-		for_each(m_vRenderList.begin(), m_vRenderList.end(), boost::bind(&RenderMaterialFunction::Do, &oRMF, _1));
+		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderMaterialFunction());
 		m_vRenderList.clear();
+	}
+
+	bool DisplayEffect::RenderRecord()
+	{
+		struct RecordMaterialFunction
+		{
+			RecordMaterialFunction()
+			:	m_bResult(true)
+			{
+
+			}
+
+			void operator() (DisplayMaterialPtr _pDisplayMaterial)
+			{
+				m_bResult &= _pDisplayMaterial->RenderRecord();
+			}
+
+			bool	m_bResult;
+		};
+
+		RecordMaterialFunction funcRecord;
+		for_each(m_vRenderList.begin(), m_vRenderList.end(), funcRecord);
+		m_vRenderList.clear();
+
+		return funcRecord.m_bResult;
 	}
 
 	EffectPtr DisplayEffect::GetEffect()
@@ -279,7 +372,9 @@ namespace ElixirEngine
 		m_pEffect(NULL),
 		m_vRenderList(),
 		m_vParams(),
-		m_hTechnique(NULL)
+		m_hTechnique(NULL),
+		m_pParamsBuffer(NULL),
+		m_uPassCount(0)
 	{
 
 	}
@@ -342,6 +437,8 @@ namespace ElixirEngine
 
 	void DisplayMaterial::Render()
 	{
+		//DisplayCommandPtr pCommand = Display::GetInstance()->NewCommand();
+		//StoreCommand(EDIsplayCommand_RENDERMATERIAL, pCommand);
 		m_pEffect->GetEffect()->SetTechnique(m_hTechnique);
 		size_t uCount = m_vRenderList.size();
 		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderObjectFunction(this));
@@ -351,14 +448,64 @@ namespace ElixirEngine
 
 	void DisplayMaterial::UseParams()
 	{
-		struct ParamUseFunction
+		struct UseParamFunction
 		{
 			void operator() (DisplayEffectParamPtr _pDisplayEffectParam)
 			{
 				_pDisplayEffectParam->Use();
 			}
 		};
-		for_each(m_vParams.begin(), m_vParams.end(), ParamUseFunction());
+
+		for_each(m_vParams.begin(), m_vParams.end(), UseParamFunction());
+	}
+
+	bool DisplayMaterial::RenderRecord()
+	{
+		CoreCommandPtr pCommand = Display::GetInstance()->NewCommand(EDIsplayCommand_SETMATERIALTECHNIQUE, this);
+		bool bResult = pCommand->AddArg((VoidPtr)m_hTechnique);
+
+		RecordRenderObjectFunction funcRecord(this);
+		size_t uCount = m_vRenderList.size();
+		for_each(m_vRenderList.begin(), m_vRenderList.end(), funcRecord);
+		m_vRenderList.clear();
+
+		return (funcRecord.m_bResult && bResult);
+	}
+
+	bool DisplayMaterial::RecordParams()
+	{
+		const UInt uFATSize = UInt(m_vParams.size() * sizeof(FATEntry));
+		m_pParamsBuffer = m_rMaterialManager.GetParamsMemory();
+
+		if ((NULL != m_pParamsBuffer) && (m_pParamsBuffer->CanCopy(uFATSize)))
+		{
+			struct RecordParamFunction
+			{
+				RecordParamFunction()
+				:	m_bResult(true)
+				{
+
+				}
+
+				void operator() (DisplayEffectParamPtr _pDisplayEffectParam)
+				{
+					m_bResult &= _pDisplayEffectParam->Record();
+				}
+
+				bool	m_bResult;
+			};
+
+			m_pParamFAT = (FATEntryPtr)m_pParamsBuffer->Alloc(uFATSize);
+			CoreCommandPtr pCommand = Display::GetInstance()->NewCommand(EDIsplayCommand_SETPARAMSMEMORY, this);
+			pCommand->AddArg(m_pParamsBuffer->m_pBuffer + m_pParamsBuffer->m_uSize);
+
+			RecordParamFunction funcRecordParam;
+			for_each(m_vParams.begin(), m_vParams.end(), funcRecordParam);
+
+			return funcRecordParam.m_bResult;
+		}
+
+		return false;
 	}
 
 	DisplayEffectPtr DisplayMaterial::GetEffect()
@@ -369,6 +516,41 @@ namespace ElixirEngine
 	DisplayMaterialManagerRef DisplayMaterial::GetMaterialManager()
 	{
 		return m_rMaterialManager;
+	}
+
+	UInt DisplayMaterial::GetPassCount()
+	{
+		return m_uPassCount;
+	}
+
+	bool DisplayMaterial::RecordMatrix(Handle m_hData, MatrixPtr _pValue)
+	{
+		return false;
+	}
+
+	bool DisplayMaterial::RecordTexture(Handle m_hData, BaseTexturePtr _pValue)
+	{
+		return false;
+	}
+
+	bool DisplayMaterial::RecordFloat(Handle m_hData, const float _pValue)
+	{
+		return false;
+	}
+
+	bool DisplayMaterial::RecordVector(Handle m_hData, Vector4Ptr _pValue)
+	{
+		return false;
+	}
+
+	bool DisplayMaterial::RecordVectorArray(Handle m_hData, Vector4Ptr _pValue, const UInt _uCount)
+	{
+		return false;
+	}
+
+	bool DisplayMaterial::RecordValue(Handle m_hData, VoidPtr m_pData, const UInt _uSize)
+	{
+		return false;
 	}
 
 	bool DisplayMaterial::CreateFromLuaConfig(CreateInfoPtr _pInfo)
@@ -435,6 +617,16 @@ namespace ElixirEngine
 		{
 			const char* pszTechniqueValue = (*_pInfo->m_pLuaObject)["technique"].GetString();
 			m_hTechnique = m_pEffect->GetEffect()->GetTechniqueByName(pszTechniqueValue);
+			bResult = (NULL != m_hTechnique);
+			if (false != bResult)
+			{
+				D3DXTECHNIQUE_DESC oTechDesc;
+				bResult = SUCCEEDED(m_pEffect->GetEffect()->GetTechniqueDesc(m_hTechnique, &oTechDesc));
+				if (false != bResult)
+				{
+					m_uPassCount = oTechDesc.Passes;
+				}
+			}
 		}
 
 		return bResult;
@@ -467,9 +659,9 @@ namespace ElixirEngine
 
 	bool DisplayMaterialManager::Create(const boost::any& _rConfig)
 	{
-		bool bResult = true;
-
 		Release();
+
+		bool bResult = m_oParamsBuffer.Reserve(1024 * 1024);
 
 		m_vDefaultParamKeys.resize(ECommonParamSemantic_COUNT);
 		std::string aDefaultNames[ECommonParamSemantic_COUNT] =
@@ -538,7 +730,7 @@ namespace ElixirEngine
 
 	void DisplayMaterialManager::Update()
 	{
-
+		m_oParamsBuffer.Clear();
 	}
 
 	void DisplayMaterialManager::Release()
@@ -758,6 +950,11 @@ namespace ElixirEngine
 	DisplayRef DisplayMaterialManager::GetDisplay()
 	{
 		return m_rDisplay;
+	}
+
+	DisplayMemoryBufferPtr DisplayMaterialManager::GetParamsMemory()
+	{
+		return &m_oParamsBuffer;
 	}
 
 	void DisplayMaterialManager::SetFloatBySemantic(const Key& _uSemanticKey, FloatPtr _pData)

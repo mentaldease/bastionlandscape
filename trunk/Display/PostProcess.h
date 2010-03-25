@@ -31,6 +31,9 @@ namespace ElixirEngine
 		void RenderBegin();
 		void RenderEnd();
 
+		bool RenderBeginRecord();
+		bool RenderEndRecord();
+
 	protected:
 		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
 

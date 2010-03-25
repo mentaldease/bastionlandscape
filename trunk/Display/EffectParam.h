@@ -20,7 +20,7 @@ namespace ElixirEngine
 		{
 			CreateInfo()
 			:	m_oLuaObject(NULL),
-				m_pDisplayMaterial(NULL),
+				m_pMaterial(NULL),
 				m_hSemantic(NULL),
 				m_uSemanticKey(0)
 			{
@@ -28,18 +28,18 @@ namespace ElixirEngine
 
 			CreateInfo(
 				LuaObject			_oLuaObject,
-				DisplayMaterialPtr	_pDisplayMaterial,
+				DisplayMaterialPtr	_pMaterial,
 				Handle				_hSemantic,
 				Key					_uSemanticKey)
 			:	m_oLuaObject(_oLuaObject),
-				m_pDisplayMaterial(_pDisplayMaterial),
+				m_pMaterial(_pMaterial),
 				m_hSemantic(_hSemantic),
 				m_uSemanticKey(_uSemanticKey)
 			{
 			}
 
 			LuaObject			m_oLuaObject;
-			DisplayMaterialPtr	m_pDisplayMaterial;
+			DisplayMaterialPtr	m_pMaterial;
 			Handle				m_hSemantic;
 			Key					m_uSemanticKey;
 		};
@@ -47,9 +47,11 @@ namespace ElixirEngine
 		typedef CreateInfo& CreateInfoRef;
 
 	public:
-		DisplayEffectParam(DisplayMaterialRef _rDisplayMaterial)
-		:	m_rDisplayMaterial(_rDisplayMaterial),
-			m_hData(NULL)
+		DisplayEffectParam(DisplayMaterialRef _rMaterial)
+		:	m_rMaterial(_rMaterial),
+			m_pEffect(_rMaterial.GetEffect()->GetEffect()),
+			m_hData(NULL),
+			m_uSemanticKey(0)
 		{
 
 		}
@@ -76,6 +78,7 @@ namespace ElixirEngine
 		}
 
 		virtual bool Use() = 0;
+		virtual bool Record() { return false; };
 
 	protected:
 		virtual bool CreateFromLuaConfig(CreateInfoRef _rInfo)
@@ -86,14 +89,15 @@ namespace ElixirEngine
 			{
 				const string strSemanticName = oSemantic.GetString();
 				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
+				m_hData = _rInfo.m_pMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
 			}
 
 			return ((NULL != m_hData) && (0 != m_uSemanticKey));
 		}
 
 	protected:
-		DisplayMaterialRef	m_rDisplayMaterial;
+		DisplayMaterialRef	m_rMaterial;
+		EffectPtr			m_pEffect;
 		Handle				m_hData;
 		Key					m_uSemanticKey;
 
@@ -107,8 +111,8 @@ namespace ElixirEngine
 	class DisplayEffectParamWORLDVIEWPROJ : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamWORLDVIEWPROJ(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamWORLDVIEWPROJ(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_oWVP(),
 			m_pWorld(NULL),
 			m_pViewProj(NULL)
@@ -123,12 +127,24 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pViewProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
-			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldMatrix();
+			m_pViewProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
+			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
 			if ((NULL != m_pWorld) && (NULL != m_pViewProj))
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, D3DXMatrixMultiply(&m_oWVP, m_pWorld, m_pViewProj));
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, D3DXMatrixMultiply(&m_oWVP, m_pWorld, m_pViewProj));
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pViewProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
+			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
+			if ((NULL != m_pWorld) && (NULL != m_pViewProj))
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, D3DXMatrixMultiply(&m_oWVP, m_pWorld, m_pViewProj));
+				return bResult;
 			}
 			return false;
 		}
@@ -136,7 +152,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDVIEWPROJ(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDVIEWPROJ(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -161,8 +177,8 @@ namespace ElixirEngine
 	class DisplayEffectParamWORLD : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamWORLD(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamWORLD(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pWorld(NULL)
 		{
 
@@ -175,11 +191,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldMatrix();
+			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
 			if (NULL != m_pWorld)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pWorld);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pWorld);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
+			if (NULL != m_pWorld)
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pWorld);
+				return bResult;
 			}
 			return false;
 		}
@@ -187,7 +214,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLD(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLD(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -210,8 +237,8 @@ namespace ElixirEngine
 	class DisplayEffectParamVIEW : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamVIEW(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamVIEW(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pView(NULL)
 		{
 
@@ -224,11 +251,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pView = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
+			m_pView = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
 			if (NULL != m_pView)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pView);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pView);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pView = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
+			if (NULL != m_pView)
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pView);
+				return bResult;
 			}
 			return false;
 		}
@@ -236,7 +274,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEW(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEW(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -259,8 +297,8 @@ namespace ElixirEngine
 	class DisplayEffectParamWORLDVIEW : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamWORLDVIEW(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamWORLDVIEW(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_m4WorldView(),
 			m_pView(NULL),
 			m_pWorld(NULL)
@@ -275,13 +313,26 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pView = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
-			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldMatrix();
+			m_pView = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
+			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
 			if ((NULL != m_pWorld) && (NULL != m_pView))
 			{
 				D3DXMatrixMultiply(&m_m4WorldView, m_pWorld, m_pView);
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, &m_m4WorldView);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, &m_m4WorldView);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pView = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
+			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
+			if ((NULL != m_pWorld) && (NULL != m_pView))
+			{
+				D3DXMatrixMultiply(&m_m4WorldView, m_pWorld, m_pView);
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, &m_m4WorldView);
+				return bResult;
 			}
 			return false;
 		}
@@ -289,7 +340,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDVIEW(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDVIEW(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -314,8 +365,8 @@ namespace ElixirEngine
 	class DisplayEffectParamVIEWINV : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamVIEWINV(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamVIEWINV(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pViewInv(NULL)
 		{
 
@@ -328,11 +379,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pViewInv = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
+			m_pViewInv = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
 			if (NULL != m_pViewInv)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pViewInv);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pViewInv);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pViewInv = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
+			if (NULL != m_pViewInv)
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pViewInv);
+				return bResult;
 			}
 			return false;
 		}
@@ -340,7 +402,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEWINV(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEWINV(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -363,8 +425,8 @@ namespace ElixirEngine
 	class DisplayEffectParamVIEWPROJ : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamVIEWPROJ(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamVIEWPROJ(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pViewProj(NULL)
 		{
 
@@ -377,11 +439,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pViewProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
+			m_pViewProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
 			if (NULL != m_pViewProj)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pViewProj);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pViewProj);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pViewProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
+			if (NULL != m_pViewProj)
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pViewProj);
+				return bResult;
 			}
 			return false;
 		}
@@ -389,7 +462,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEWPROJ(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEWPROJ(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -412,8 +485,8 @@ namespace ElixirEngine
 	class DisplayEffectParamPROJ : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamPROJ(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamPROJ(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pProj(NULL)
 		{
 
@@ -426,11 +499,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pProj = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_PROJ);
+			m_pProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_PROJ);
 			if (NULL != m_pProj)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pProj);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pProj);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_PROJ);
+			if (NULL != m_pProj)
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pProj);
+				return bResult;
 			}
 			return false;
 		}
@@ -438,7 +522,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamPROJ(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamPROJ(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -461,8 +545,8 @@ namespace ElixirEngine
 	class DisplayEffectParamWORLDINVTRANSPOSE : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamWORLDINVTRANSPOSE(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamWORLDINVTRANSPOSE(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pWorld(NULL)
 		{
 
@@ -475,11 +559,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pWorld = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetCurrentWorldInvTransposeMatrix();
+			m_pWorld = Display::GetInstance()->GetCurrentWorldInvTransposeMatrix();
 			if (NULL != m_pWorld)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pWorld);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pWorld);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pWorld = Display::GetInstance()->GetCurrentWorldInvTransposeMatrix();
+			if (NULL != m_pWorld)
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pWorld);
+				return bResult;
 			}
 			return false;
 		}
@@ -487,7 +582,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDINVTRANSPOSE(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDINVTRANSPOSE(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -510,8 +605,8 @@ namespace ElixirEngine
 	class DisplayEffectParamENVIRONMENTTEX : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamENVIRONMENTTEX(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamENVIRONMENTTEX(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pTexture(NULL)
 		{
 
@@ -539,7 +634,7 @@ namespace ElixirEngine
 		{
 			if (NULL == m_pTexture)
 			{
-				DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
+				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
 				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_CUBE))
 				{
 					m_pTexture = pTextureManager->Get(m_strName);
@@ -547,8 +642,26 @@ namespace ElixirEngine
 			}
 			if (NULL != m_pTexture)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetTexture(m_hData, m_pTexture->GetBase());
+				HRESULT hResult = m_pEffect->SetTexture(m_hData, m_pTexture->GetBase());
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			if (NULL == m_pTexture)
+			{
+				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
+				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_CUBE))
+				{
+					m_pTexture = pTextureManager->Get(m_strName);
+				}
+			}
+			if (NULL != m_pTexture)
+			{
+				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
+				return bResult;
 			}
 			return false;
 		}
@@ -556,7 +669,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamENVIRONMENTTEX(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamENVIRONMENTTEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -576,7 +689,7 @@ namespace ElixirEngine
 			{
 				const string strSemanticName = oLuaValue.GetString();
 				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
+				m_hData = _rInfo.m_pMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
 				bResult = (NULL != m_hData);
 			}
 			if (false != bResult)
@@ -616,8 +729,8 @@ namespace ElixirEngine
 	class DisplayEffectParamNORMALTEX : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamNORMALTEX(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamNORMALTEX(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pTexture(NULL)
 		{
 
@@ -645,7 +758,7 @@ namespace ElixirEngine
 		{
 			if (NULL == m_pTexture)
 			{
-				DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
+				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
 				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D))
 				{
 					m_pTexture = pTextureManager->Get(m_strName);
@@ -653,8 +766,26 @@ namespace ElixirEngine
 			}
 			if (NULL != m_pTexture)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetTexture(m_hData, m_pTexture->GetBase());
+				HRESULT hResult = m_pEffect->SetTexture(m_hData, m_pTexture->GetBase());
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			if (NULL == m_pTexture)
+			{
+				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
+				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D))
+				{
+					m_pTexture = pTextureManager->Get(m_strName);
+				}
+			}
+			if (NULL != m_pTexture)
+			{
+				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
+				return bResult;
 			}
 			return false;
 		}
@@ -662,7 +793,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamNORMALTEX(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamNORMALTEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -682,7 +813,7 @@ namespace ElixirEngine
 			{
 				const string strSemanticName = oLuaValue.GetString();
 				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
+				m_hData = _rInfo.m_pMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
 				bResult = (NULL != m_hData);
 			}
 			if (false != bResult)
@@ -722,8 +853,8 @@ namespace ElixirEngine
 	class DisplayEffectParamFLOAT : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamFLOAT(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial)
+		DisplayEffectParamFLOAT(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial)
 		{
 
 		}
@@ -735,11 +866,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pData = m_rDisplayMaterial.GetMaterialManager().GetFloatBySemantic(m_uSemanticKey);
+			m_pData = m_rMaterial.GetMaterialManager().GetFloatBySemantic(m_uSemanticKey);
 			if (NULL != m_pData)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetFloat(m_hData, *m_pData);
+				HRESULT hResult = m_pEffect->SetFloat(m_hData, *m_pData);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pData = m_rMaterial.GetMaterialManager().GetFloatBySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				bool bResult = m_rMaterial.RecordFloat(m_hData, *m_pData);
+				return bResult;
 			}
 			return false;
 		}
@@ -747,7 +889,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamFLOAT(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamFLOAT(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -770,8 +912,8 @@ namespace ElixirEngine
 	class DisplayEffectParamVECTOR2 : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamVECTOR2(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial)
+		DisplayEffectParamVECTOR2(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial)
 		{
 
 		}
@@ -783,13 +925,26 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pData = m_rDisplayMaterial.GetMaterialManager().GetVector2BySemantic(m_uSemanticKey);
+			m_pData = m_rMaterial.GetMaterialManager().GetVector2BySemantic(m_uSemanticKey);
 			if (NULL != m_pData)
 			{
 				m_oData.x = m_pData->x;
 				m_oData.y = m_pData->y;
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, &m_oData);
+				HRESULT hResult = m_pEffect->SetVector(m_hData, &m_oData);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pData = m_rMaterial.GetMaterialManager().GetVector2BySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				m_oData.x = m_pData->x;
+				m_oData.y = m_pData->y;
+				bool bResult = m_rMaterial.RecordVector(m_hData, &m_oData);
+				return bResult;
 			}
 			return false;
 		}
@@ -797,7 +952,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR2(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR2(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -821,8 +976,8 @@ namespace ElixirEngine
 	class DisplayEffectParamVECTOR3 : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamVECTOR3(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial)
+		DisplayEffectParamVECTOR3(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial)
 		{
 
 		}
@@ -834,14 +989,28 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pData = m_rDisplayMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
+			m_pData = m_rMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
 			if (NULL != m_pData)
 			{
 				m_oData.x = m_pData->x;
 				m_oData.y = m_pData->y;
 				m_oData.z = m_pData->z;
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, &m_oData);
+				HRESULT hResult = m_pEffect->SetVector(m_hData, &m_oData);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pData = m_rMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				m_oData.x = m_pData->x;
+				m_oData.y = m_pData->y;
+				m_oData.z = m_pData->z;
+				bool bResult = m_rMaterial.RecordVector(m_hData, &m_oData);
+				return bResult;
 			}
 			return false;
 		}
@@ -849,7 +1018,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR3(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR3(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -873,8 +1042,8 @@ namespace ElixirEngine
 	class DisplayEffectParamVECTOR4 : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamVECTOR4(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial)
+		DisplayEffectParamVECTOR4(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial)
 		{
 
 		}
@@ -886,11 +1055,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pData = m_rDisplayMaterial.GetMaterialManager().GetVector4BySemantic(m_uSemanticKey);
+			m_pData = m_rMaterial.GetMaterialManager().GetVector4BySemantic(m_uSemanticKey);
 			if (NULL != m_pData)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVector(m_hData, m_pData);
+				HRESULT hResult = m_pEffect->SetVector(m_hData, m_pData);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pData = m_rMaterial.GetMaterialManager().GetVector4BySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				bool bResult = m_rMaterial.RecordVector(m_hData, m_pData);
+				return bResult;
 			}
 			return false;
 		}
@@ -898,7 +1078,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR4(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR4(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -921,8 +1101,8 @@ namespace ElixirEngine
 	class DisplayEffectParamMATRIX : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamMATRIX(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial)
+		DisplayEffectParamMATRIX(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial)
 		{
 
 		}
@@ -934,11 +1114,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pData = m_rDisplayMaterial.GetMaterialManager().GetMatrixBySemantic(m_uSemanticKey);
+			m_pData = m_rMaterial.GetMaterialManager().GetMatrixBySemantic(m_uSemanticKey);
 			if (NULL != m_pData)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetMatrix(m_hData, m_pData);
+				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pData);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pData = m_rMaterial.GetMaterialManager().GetMatrixBySemantic(m_uSemanticKey);
+			if (NULL != m_pData)
+			{
+				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pData);
+				return bResult;
 			}
 			return false;
 		}
@@ -946,7 +1137,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamMATRIX(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamMATRIX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -969,8 +1160,8 @@ namespace ElixirEngine
 	class DisplayEffectParamDIFFUSETEX : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamDIFFUSETEX(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamDIFFUSETEX(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pTexture(NULL)
 		{
 
@@ -998,14 +1189,30 @@ namespace ElixirEngine
 		{
 			if (NULL == m_pTexture)
 			{
-				DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
+				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
 				pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D);
 				m_pTexture = pTextureManager->Get(m_strName);
 			}
 			if (NULL != m_pTexture)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetTexture(m_hData, m_pTexture->GetBase());
+				HRESULT hResult = m_pEffect->SetTexture(m_hData, m_pTexture->GetBase());
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			if (NULL == m_pTexture)
+			{
+				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
+				pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D);
+				m_pTexture = pTextureManager->Get(m_strName);
+			}
+			if (NULL != m_pTexture)
+			{
+				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
+				return bResult;
 			}
 			return false;
 		}
@@ -1013,7 +1220,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamDIFFUSETEX(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamDIFFUSETEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -1033,7 +1240,7 @@ namespace ElixirEngine
 			{
 				const string strSemanticName = oLuaValue.GetString();
 				m_uSemanticKey = MakeKey(strSemanticName);
-				m_hData = _rInfo.m_pDisplayMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
+				m_hData = _rInfo.m_pMaterial->GetEffect()->GetHandleBySemanticKey(m_uSemanticKey);
 				bResult = (NULL != m_hData);
 			}
 			if (false != bResult)
@@ -1073,8 +1280,8 @@ namespace ElixirEngine
 	class DisplayEffectParamSEMANTICTEX : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamSEMANTICTEX(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamSEMANTICTEX(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pTexture(NULL)
 		{
 
@@ -1087,12 +1294,24 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			DisplayTextureManagerPtr pTextureManager = m_rDisplayMaterial.GetMaterialManager().GetDisplay().GetTextureManager();
+			DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
 			m_pTexture = pTextureManager->GetBySemantic(m_uSemanticKey);
 			if (NULL != m_pTexture)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetTexture(m_hData, m_pTexture->GetBase());
+				HRESULT hResult = m_pEffect->SetTexture(m_hData, m_pTexture->GetBase());
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
+			m_pTexture = pTextureManager->GetBySemantic(m_uSemanticKey);
+			if (NULL != m_pTexture)
+			{
+				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
+				return bResult;
 			}
 			return false;
 		}
@@ -1100,7 +1319,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamSEMANTICTEX(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamSEMANTICTEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -1123,8 +1342,8 @@ namespace ElixirEngine
 	class DisplayEffectParamFRUSTUMCORNERS : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamFRUSTUMCORNERS(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial)
+		DisplayEffectParamFRUSTUMCORNERS(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial)
 		{
 
 		}
@@ -1136,15 +1355,30 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			Vector3* pData = m_rDisplayMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
+			Vector3* pData = m_rMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
 			if (NULL != pData)
 			{
 				for (UInt i = 0 ; DisplayCamera::EFrustumCorner_COUNT > i ; ++i)
 				{
 					m_aData[i] = Vector4(pData[i].x, pData[i].y, pData[i].z, 0.0f);
 				}
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetVectorArray(m_hData, m_aData, DisplayCamera::EFrustumCorner_COUNT);
+				HRESULT hResult = m_pEffect->SetVectorArray(m_hData, m_aData, DisplayCamera::EFrustumCorner_COUNT);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			Vector3* pData = m_rMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
+			if (NULL != pData)
+			{
+				for (UInt i = 0 ; DisplayCamera::EFrustumCorner_COUNT > i ; ++i)
+				{
+					m_aData[i] = Vector4(pData[i].x, pData[i].y, pData[i].z, 0.0f);
+				}
+				bool bResult = m_rMaterial.RecordVectorArray(m_hData, m_aData, DisplayCamera::EFrustumCorner_COUNT);
+				return bResult;
 			}
 			return false;
 		}
@@ -1152,7 +1386,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamFRUSTUMCORNERS(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamFRUSTUMCORNERS(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();
@@ -1175,8 +1409,8 @@ namespace ElixirEngine
 	class DisplayEffectParamSTRUCT : public DisplayEffectParam
 	{
 	public:
-		DisplayEffectParamSTRUCT(DisplayMaterialRef _rDisplayMaterial)
-		:	DisplayEffectParam(_rDisplayMaterial),
+		DisplayEffectParamSTRUCT(DisplayMaterialRef _rMaterial)
+		:	DisplayEffectParam(_rMaterial),
 			m_pData(NULL),
 			m_uSize(0)
 		{
@@ -1190,11 +1424,22 @@ namespace ElixirEngine
 
 		virtual bool Use()
 		{
-			m_pData = m_rDisplayMaterial.GetMaterialManager().GetStructBySemantic(m_uSemanticKey, m_uSize);
+			m_pData = m_rMaterial.GetMaterialManager().GetStructBySemantic(m_uSemanticKey, m_uSize);
 			if (NULL != m_pData)
 			{
-				HRESULT hResult = m_rDisplayMaterial.GetEffect()->GetEffect()->SetValue(m_hData, m_pData, m_uSize);
+				HRESULT hResult = m_pEffect->SetValue(m_hData, m_pData, m_uSize);
 				return SUCCEEDED(hResult);
+			}
+			return false;
+		}
+
+		virtual bool Record()
+		{
+			m_pData = m_rMaterial.GetMaterialManager().GetStructBySemantic(m_uSemanticKey, m_uSize);
+			if (NULL != m_pData)
+			{
+				bool bResult = m_rMaterial.RecordValue(m_hData, m_pData, m_uSize);
+				return bResult;
 			}
 			return false;
 		}
@@ -1202,7 +1447,7 @@ namespace ElixirEngine
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
-			DisplayEffectParamPtr pParam = new DisplayEffectParamSTRUCT(*(pDEPCInfo->m_pDisplayMaterial));
+			DisplayEffectParamPtr pParam = new DisplayEffectParamSTRUCT(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
 				pParam->Release();

@@ -190,6 +190,7 @@ namespace ElixirEngine
 
 	bool Landscape::CreateVertexBufferDefault()
 	{
+		DisplayPtr pDisplay = Display::GetInstance();
 		bool bResult = false;
 		for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 		{
@@ -197,8 +198,8 @@ namespace ElixirEngine
 			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
 			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(LandscapeVertexDefault), sizeof(LandscapeVertexDefault), LandscapeVertexDefault::s_VertexElement };
-			DisplayVertexBufferPtr pVertexBuffer = Display::GetInstance()->CreateVertexBuffer(oVBCreateInfo);
-			bResult = (NULL != pVertexBuffer);
+			Key uVertexBuffer = pDisplay->CreateVertexBufferKey(oVBCreateInfo);
+			bResult = (NULL != uVertexBuffer);
 			if (false != bResult)
 			{
 				const unsigned int uLODIncrement = 0x00000001 << k;
@@ -223,17 +224,17 @@ namespace ElixirEngine
 						++pVertex;
 					}
 				}
-				bResult = pVertexBuffer->Set(pVertexes);
+				pDisplay->SetVertexBufferKeyData(uVertexBuffer, pVertexes);
 				if (false == bResult)
 				{
-					Display::GetInstance()->ReleaseVertexBuffer(pVertexBuffer);
+					pDisplay->ReleaseVertexBufferKey(uVertexBuffer);
 					delete[] pVertexes;
 					break;
 				}
-				m_vVertexBuffers.push_back(pVertexBuffer);
+				m_vVertexBuffers.push_back(uVertexBuffer);
 				m_vVertexes.push_back(pVertexes);
 				m_oGlobalInfo.m_pLODs[k].m_pVertexes = pVertexes;
-				m_oGlobalInfo.m_pLODs[k].m_pVertexBuffer = pVertexBuffer;
+				m_oGlobalInfo.m_pLODs[k].m_uVertexBuffer = uVertexBuffer;
 			}
 			else
 			{
@@ -245,6 +246,7 @@ namespace ElixirEngine
 
 	bool Landscape::CreateVertexBufferLiquid()
 	{
+		DisplayPtr pDisplay = Display::GetInstance();
 		bool bResult = false;
 		for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 		{
@@ -252,8 +254,8 @@ namespace ElixirEngine
 			const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
 			const unsigned int uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(LandscapeVertexLiquid), sizeof(LandscapeVertexLiquid), LandscapeVertexLiquid::s_VertexElement };
-			DisplayVertexBufferPtr pVertexBuffer = Display::GetInstance()->CreateVertexBuffer(oVBCreateInfo);
-			bResult = (NULL != pVertexBuffer);
+			Key uVertexBuffer = pDisplay->CreateVertexBufferKey(oVBCreateInfo);
+			bResult = (NULL != uVertexBuffer);
 			if (false != bResult)
 			{
 				const unsigned int uLODIncrement = 0x00000001 << k;
@@ -276,17 +278,17 @@ namespace ElixirEngine
 						++pVertex;
 					}
 				}
-				bResult = pVertexBuffer->Set(pVertexes);
+				pDisplay->SetVertexBufferKeyData(uVertexBuffer, pVertexes);
 				if (false == bResult)
 				{
-					Display::GetInstance()->ReleaseVertexBuffer(pVertexBuffer);
+					pDisplay->ReleaseVertexBufferKey(uVertexBuffer);
 					delete[] pVertexes;
 					break;
 				}
-				m_vVertexBuffers.push_back(pVertexBuffer);
+				m_vVertexBuffers.push_back(uVertexBuffer);
 				m_vVertexes.push_back(pVertexes);
 				m_oGlobalInfo.m_pLODs[k].m_pVertexes = pVertexes;
-				m_oGlobalInfo.m_pLODs[k].m_pVertexBuffer = pVertexBuffer;
+				m_oGlobalInfo.m_pLODs[k].m_uVertexBuffer = uVertexBuffer;
 			}
 			else
 			{

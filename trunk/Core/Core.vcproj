@@ -283,6 +283,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ObjectCreator.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Octree.h"
 				>
 			</File>

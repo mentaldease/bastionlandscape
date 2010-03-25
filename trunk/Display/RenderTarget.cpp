@@ -8,7 +8,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	const VertexElement	DisplayRenderTargetGeometry::Vertex::s_aDecl[6] =
+	VertexElement	DisplayRenderTargetGeometry::Vertex::s_aDecl[6] =
 	{
 		{ 0, 0,  D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITIONT, 0 },
 		{ 0, 16, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD,  0 },
@@ -22,7 +22,7 @@ namespace ElixirEngine
 	:	DisplayObject(),
 		m_pPreviousVertexBuffer(NULL),
 		m_pPreviousVertexDecl(NULL),
-		m_pVertDeclPP(NULL),
+		m_uVertexDecl(0),
 		m_uPreviousVBOffset(0),
 		m_uPreviousVBStride(0)
 	{
@@ -57,7 +57,8 @@ namespace ElixirEngine
 			};
 			memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
 
-			bResult = SUCCEEDED(Display::GetInstance()->GetDevicePtr()->CreateVertexDeclaration(DisplayRenderTargetGeometry::Vertex::s_aDecl, &m_pVertDeclPP));
+			m_uVertexDecl = Display::GetInstance()->CreateVertexDeclaration(DisplayRenderTargetGeometry::Vertex::s_aDecl);
+			bResult = (0 != m_uVertexDecl);
 		}
 
 		return bResult;
@@ -70,10 +71,10 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetGeometry::Release()
 	{
-		if (NULL != m_pVertDeclPP)
+		if (0 != m_uVertexDecl)
 		{
-			m_pVertDeclPP->Release();
-			m_pVertDeclPP = NULL;
+			Display::GetInstance()->ReleaseVertexDeclaration(m_uVertexDecl);
+			m_uVertexDecl = 0;
 		}
 		m_pPreviousVertexBuffer = NULL;
 		m_pPreviousVertexDecl = NULL;
@@ -83,11 +84,17 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetGeometry::RenderBegin()
 	{
-		Display::GetInstance()->GetDevicePtr()->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
-		Display::GetInstance()->GetDevicePtr()->GetVertexDeclaration(&m_pPreviousVertexDecl);
-		if (m_pPreviousVertexDecl != m_pVertDeclPP)
+		//DevicePtr pDevice = Display::GetInstance()->GetDevicePtr();
+		//pDevice->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
+		//pDevice->GetVertexDeclaration(&m_pPreviousVertexDecl);
+		//if (m_pPreviousVertexDecl != m_uVertexDecl)
+		//{
+		//	pDevice->SetVertexDeclaration(m_uVertexDecl);
+		//}
+		DisplayPtr pDisplay = Display::GetInstance();
+		if (m_uVertexDecl != pDisplay->GetCurrentVertexDeclaration())
 		{
-			Display::GetInstance()->GetDevicePtr()->SetVertexDeclaration(m_pVertDeclPP);
+			pDisplay->SetVertexDeclaration(m_uVertexDecl);
 		}
 	}
 
@@ -128,11 +135,12 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetGeometry::RenderEnd()
 	{
-		if ((m_pPreviousVertexDecl != m_pVertDeclPP) && (NULL != m_pPreviousVertexDecl))
-		{
-			Display::GetInstance()->GetDevicePtr()->SetStreamSource(0, m_pPreviousVertexBuffer, m_uPreviousVBOffset, m_uPreviousVBStride);
-			Display::GetInstance()->GetDevicePtr()->SetVertexDeclaration(m_pPreviousVertexDecl);
-		}
+		//if ((m_pPreviousVertexDecl != m_uVertexDecl) && (NULL != m_pPreviousVertexDecl))
+		//{
+		//	DevicePtr pDevice = Display::GetInstance()->GetDevicePtr();
+		//	pDevice->SetStreamSource(0, m_pPreviousVertexBuffer, m_uPreviousVBOffset, m_uPreviousVBStride);
+		//	pDevice->SetVertexDeclaration(m_pPreviousVertexDecl);
+		//}
 	}
 
 	//-----------------------------------------------------------------------------------------------

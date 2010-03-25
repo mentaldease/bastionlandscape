@@ -498,7 +498,9 @@ namespace BastionGame
 			m_pInput->Update();
 			UpdateSpectatorCamera(m_fElapsedTime);
 			m_pDisplay->UpdateRequest(m_pScene);
-			m_pDisplay->Update();
+			m_pDisplay->UpdateRecord();
+			m_pDisplay->UpdateReplay();
+			//m_pDisplay->Update();
 		}
 	}
 

@@ -208,6 +208,12 @@ namespace ElixirEngine
 		m_vListeners.clear();
 	}
 
+	bool DisplayCamera::UpdateRecord()
+	{
+		Update();
+		return true;
+	}
+
 	ViewportPtr DisplayCamera::GetCurrentViewport()
 	{
 		return m_pCurrentViewport;

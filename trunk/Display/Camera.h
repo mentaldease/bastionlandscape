@@ -102,6 +102,7 @@ namespace ElixirEngine
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
+		virtual bool UpdateRecord();
 
 		ViewportPtr GetCurrentViewport();
 		void SetViewport(const Key& _uNameKey);

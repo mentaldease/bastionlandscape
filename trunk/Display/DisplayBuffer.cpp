@@ -12,7 +12,7 @@ namespace ElixirEngine
 		m_rDisplay(_rDisplay),
 		m_uBufferSize(0),
 		m_uVertexSize(0),
-		m_pVertexDecl(NULL),
+		m_uVertexDecl(0),
 		m_pVertexBuffer(NULL)
 	{
 
@@ -45,8 +45,8 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			HRESULT hResult = m_rDisplay.GetDevicePtr()->CreateVertexDeclaration(pInfo->m_pVertexElement, &m_pVertexDecl);
-			bResult = SUCCEEDED(hResult);
+			m_uVertexDecl = m_rDisplay.CreateVertexDeclaration(pInfo->m_pVertexElement);
+			bResult = (0 != m_uVertexDecl);
 		}
 
 		return bResult;
@@ -59,10 +59,10 @@ namespace ElixirEngine
 
 	void DisplayVertexBuffer::Release()
 	{
-		if (NULL != m_pVertexDecl)
+		if (0 != m_uVertexDecl)
 		{
-			m_pVertexDecl->Release();
-			m_pVertexDecl = NULL;
+			m_rDisplay.ReleaseVertexDeclaration(m_uVertexDecl);
+			m_uVertexDecl = 0;
 		}
 		if (NULL != m_pVertexBuffer)
 		{
@@ -95,14 +95,23 @@ namespace ElixirEngine
 		}
 		if (SUCCEEDED(hResult))
 		{
-			VertexDeclPtr pCurrentVertexDecl;
-			hResult = m_rDisplay.GetDevicePtr()->GetVertexDeclaration(&pCurrentVertexDecl);
-			if ((SUCCEEDED(hResult)) && (pCurrentVertexDecl != m_pVertexDecl))
+			const Key uCurrentVertexDecl = m_rDisplay.GetCurrentVertexDeclaration();
+			if (uCurrentVertexDecl != m_uVertexDecl)
 			{
-				hResult = m_rDisplay.GetDevicePtr()->SetVertexDeclaration(m_pVertexDecl);
+				hResult = m_rDisplay.SetVertexDeclaration(m_uVertexDecl);
 			}
 		}
 		return (SUCCEEDED(hResult));
+	}
+
+	DisplayVertexBufferPtr DisplayVertexBuffer::NewInstance()
+	{
+		return new DisplayVertexBuffer(*Display::GetInstance());
+	}
+
+	void DisplayVertexBuffer::DeleteInstance(DisplayVertexBufferPtr _pObject)
+	{
+		delete _pObject;
 	}
 
 	//-----------------------------------------------------------------------------------------------
@@ -182,5 +191,15 @@ namespace ElixirEngine
 			hResult = m_rDisplay.GetDevicePtr()->SetIndices(m_pIndexBuffer);
 		}
 		return (SUCCEEDED(hResult));
+	}
+
+	DisplayIndexBufferPtr DisplayIndexBuffer::NewInstance()
+	{
+		return new DisplayIndexBuffer(*Display::GetInstance());
+	}
+
+	void DisplayIndexBuffer::DeleteInstance(DisplayIndexBufferPtr _pObject)
+	{
+		delete _pObject;
 	}
 }

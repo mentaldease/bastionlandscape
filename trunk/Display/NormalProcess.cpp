@@ -118,6 +118,17 @@ namespace ElixirEngine
 		m_pRTChain->RenderEnd();
 	}
 
+	bool DisplayNormalProcess::RenderBeginRecord()
+	{
+		m_rDisplay.GetCurrentCamera()->SetViewport(m_uViewportNameKey);
+		return true;
+	}
+
+	bool DisplayNormalProcess::RenderEndRecord()
+	{
+		return true;
+	}
+
 	Key DisplayNormalProcess::GetNameKey()
 	{
 		return m_uNameKey;

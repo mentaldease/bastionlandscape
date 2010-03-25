@@ -164,11 +164,6 @@ namespace ElixirEngine
 
 	void LandscapeChunk::SetRenderStage(const Key& _uRenderPass)
 	{
-		if (0 == _uRenderPass)
-		{
-			UInt a = 0;
-			++a;
-		}
 		DisplayObject::SetRenderStage(_uRenderPass);
 		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
 		{

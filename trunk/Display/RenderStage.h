@@ -18,6 +18,7 @@ namespace ElixirEngine
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
+		virtual bool UpdateRecord();
 
 		void RenderRequest(DisplayObjectPtr _pDisplayObject);
 		DisplayObjectPtrVec& GetRenderList();

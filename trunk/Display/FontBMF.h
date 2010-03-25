@@ -270,7 +270,7 @@ namespace ElixirEngine
 			DisplayFontPtr					m_pFont;
 			VertexFontPtr					m_pVertex;
 			ElixirEngine::VertexBufferPtr	m_pPreviousVertexBuffer;
-			VertexDeclPtr					m_pPreviousVertexDecl;
+			Key								m_uPreviousVertexDecl;
 			unsigned int					m_uPreviousVBOffset;
 			unsigned int					m_uPreviousVBStride;
 			UInt							m_uVertexCount;
@@ -352,12 +352,12 @@ namespace ElixirEngine
 
 			VertexPoolRef GetVertexPool();
 			TextPoolRef GetTextPool();
-			VertexDeclPtr GetVertexDecl();
+			Key GetVertexDecl();
 
 		protected:
 			VertexPoolPtr	m_pVertexPool;
 			TextPoolPtr		m_pTextPool;
-			VertexDeclPtr	m_pVertexDecl;
+			Key				m_uVertexDecl;
 		};
 	}
 }

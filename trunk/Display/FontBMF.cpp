@@ -37,7 +37,7 @@ namespace ElixirEngine
 			m_pFont(NULL),
 			m_pVertex(NULL),
 			m_pPreviousVertexBuffer(NULL),
-			m_pPreviousVertexDecl(NULL),
+			m_uPreviousVertexDecl(0),
 			m_uPreviousVBOffset(0),
 			m_uPreviousVBStride(0),
 			m_uVertexCount(0),
@@ -76,13 +76,13 @@ namespace ElixirEngine
 		void DisplayFontText::RenderBegin()
 		{
 			DisplayPtr pDisplay = Display::GetInstance();
-			//pDisplay->GetDevicePtr()->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
-			pDisplay->GetDevicePtr()->GetVertexDeclaration(&m_pPreviousVertexDecl);
-			if (m_pPreviousVertexDecl != m_pFont->GetLoader().GetVertexDecl())
+			m_uPreviousVertexDecl = pDisplay->GetCurrentVertexDeclaration();
+			if (m_uPreviousVertexDecl != m_pFont->GetLoader().GetVertexDecl())
 			{
-				pDisplay->GetDevicePtr()->SetVertexDeclaration(m_pFont->GetLoader().GetVertexDecl());
+				pDisplay->SetVertexDeclaration(m_pFont->GetLoader().GetVertexDecl());
 			}
-			pDisplay->GetMaterialManager()->SetVector4BySemantic(MakeKey(string("BITMAPFONTDIFFUSE")), &m_f4Color);
+			const static Key uBitmapFontDiffuse = MakeKey(string("BITMAPFONTDIFFUSE"));
+			pDisplay->GetMaterialManager()->SetVector4BySemantic(uBitmapFontDiffuse, &m_f4Color);
 		}
 
 		void DisplayFontText::Render()
@@ -103,10 +103,9 @@ namespace ElixirEngine
 
 		void DisplayFontText::RenderEnd()
 		{
-			if ((m_pPreviousVertexDecl != m_pFont->GetLoader().GetVertexDecl()) && (NULL != m_pPreviousVertexDecl))
+			if ((m_uPreviousVertexDecl != m_pFont->GetLoader().GetVertexDecl()) && (0 != m_uPreviousVertexDecl))
 			{
-				//Display::GetInstance()->GetDevicePtr()->SetStreamSource(0, m_pPreviousVertexBuffer, m_uPreviousVBOffset, m_uPreviousVBStride);
-				Display::GetInstance()->GetDevicePtr()->SetVertexDeclaration(m_pPreviousVertexDecl);
+				Display::GetInstance()->SetVertexDeclaration(m_uPreviousVertexDecl);
 			}
 		}
 
@@ -610,7 +609,7 @@ namespace ElixirEngine
 		:	ElixirEngine::DisplayFontLoader(_rFontManager),
 			m_pVertexPool(NULL),
 			m_pTextPool(NULL),
-			m_pVertexDecl(NULL)
+			m_uVertexDecl(NULL)
 		{
 
 		}
@@ -641,7 +640,8 @@ namespace ElixirEngine
 
 			if (false != bResult)
 			{
-				bResult = SUCCEEDED(Display::GetInstance()->GetDevicePtr()->CreateVertexDeclaration(VertexFont::s_VertexElement, &m_pVertexDecl));
+				m_uVertexDecl = Display::GetInstance()->CreateVertexDeclaration(VertexFont::s_VertexElement);
+				bResult = (0 != m_uVertexDecl);
 			}
 
 			DisplayPtr pDisplay = Display::GetInstance();
@@ -663,10 +663,10 @@ namespace ElixirEngine
 			pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("BITMAPFONTTEX3")));
 			pDisplay->GetMaterialManager()->UnregisterParamCreator(MakeKey(string("BITMAPFONTDIFFUSE")));
 
-			if (NULL != m_pVertexDecl)
+			if (0 != m_uVertexDecl)
 			{
-				m_pVertexDecl->Release();
-				m_pVertexDecl = NULL;
+				pDisplay->ReleaseVertexDeclaration(m_uVertexDecl);
+				m_uVertexDecl = 0;
 			}
 
 			if (NULL != m_pVertexPool)
@@ -705,9 +705,9 @@ namespace ElixirEngine
 			return *m_pTextPool;
 		}
 
-		VertexDeclPtr DisplayFontLoader::GetVertexDecl()
+		Key DisplayFontLoader::GetVertexDecl()
 		{
-			return m_pVertexDecl;
+			return m_uVertexDecl;
 		}
 	}
 }
