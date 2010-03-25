@@ -2,11 +2,37 @@
 #define __DISPLAY_H__
 
 #include "../Core/Core.h"
+#include "../Core/ObjectCreator.h"
 #include "../Core/Profiling.h"
+#include "../Core/Pool.h"
 #include "../Display/DisplayTypes.h"
 
 namespace ElixirEngine
 {
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	typedef ObjectCreator<DisplayVertexBuffer> DisplayVertexBufferCreator;
+	typedef ObjectCreator<DisplayIndexBuffer> DisplayIndexBufferCreator;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	enum EDIsplayCommand
+	{
+		EDIsplayCommand_SETSTAGE,
+		EDIsplayCommand_BEGINNORMALPROCESSES,
+		EDIsplayCommand_ENDNORMALPROCESSES,
+		EDIsplayCommand_BEGINNONORMALPROCESSES,
+		EDIsplayCommand_ENDNONORMALPROCESSES,
+		EDIsplayCommand_BEGINPOSTPROCESSES,
+		EDIsplayCommand_ENDPOSTPROCESSES,
+		EDIsplayCommand_SETMATERIALTECHNIQUE,
+		EDIsplayCommand_SETPARAMSMEMORY,
+	};
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -19,6 +45,8 @@ namespace ElixirEngine
 			pObject->Render();
 		}
 	};
+
+	typedef Pool<CoreCommand> CoreCommandPool;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -45,11 +73,14 @@ namespace ElixirEngine
 		bool Set(const VoidPtr _pData);
 		bool Use();
 
+		static DisplayVertexBufferPtr NewInstance();
+		static void DeleteInstance(DisplayVertexBufferPtr _pObject);
+
 	protected:
 		DisplayRef		m_rDisplay;
 		unsigned int	m_uBufferSize;
 		unsigned int	m_uVertexSize;
-		VertexDeclPtr	m_pVertexDecl;
+		Key				m_uVertexDecl;
 		VertexBufferPtr	m_pVertexBuffer;
 
 	private:
@@ -78,6 +109,9 @@ namespace ElixirEngine
 
 		bool Set(const VoidPtr _pData);
 		bool Use();
+
+		static DisplayIndexBufferPtr NewInstance();
+		static void DeleteInstance(DisplayIndexBufferPtr _pObject);
 
 	protected:
 		DisplayRef		m_rDisplay;
@@ -113,6 +147,10 @@ namespace ElixirEngine
 		virtual void Render() = 0;
 		virtual void RenderEnd() {};
 
+		virtual bool RenderBeginRecord() { return false; };
+		virtual bool RenderRecord() { return false; };
+		virtual bool RenderEndRecord() { return false; };
+
 	protected:
 		Matrix				m_oWorld;
 		DisplayMaterialPtr	m_pMaterial;
@@ -132,6 +170,9 @@ namespace ElixirEngine
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
+		virtual bool UpdateRecord();
+		virtual bool RecordCommand(CoreCommandPtr _pCommand);
+		virtual bool UpdateReplay();
 
 		bool OpenVideo(WindowData& _rWindowData);
 		void CloseVideo();
@@ -139,15 +180,17 @@ namespace ElixirEngine
 		void UpdateRequest(CoreObjectPtr _pCoreObject);
 		void RenderRequest(const Key& _uRenderPassKey, DisplayObjectPtr _pDisplayObject);
 
-		DisplayVertexBufferPtr CreateVertexBuffer(DisplayVertexBuffer::CreateInfo& _rCreateInfo);
-		bool SetCurrentVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
-		DisplayVertexBufferPtr GetCurrentVertexBuffer();
-		void ReleaseVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
+		Key CreateVertexBufferKey(DisplayVertexBuffer::CreateInfo& _rCreateInfo);
+		bool SetCurrentVertexBufferKey(const Key _uVertexBuffer);
+		Key GetCurrentVertexBufferKey();
+		void ReleaseVertexBufferKey(Key _uVertexBuffer);
+		bool SetVertexBufferKeyData(const Key _uVertexBuffer, const VoidPtr _pData);
 
-		DisplayIndexBufferPtr CreateIndexBuffer(DisplayIndexBuffer::CreateInfo& _rCreateInfo);
-		bool SetCurrentIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer);
-		DisplayIndexBufferPtr GetCurrentIndexBuffer();
-		void ReleaseIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer);
+		Key CreateIndexBufferKey(DisplayIndexBuffer::CreateInfo& _rCreateInfo);
+		bool SetCurrentIndexBufferKey(const Key _uIndexBuffer);
+		Key GetCurrentIndexBufferKey();
+		void ReleaseIndexBufferKey(const Key _uIndexBuffer);
+		bool SetIndexBufferKeyData(const Key _uIndexBuffer, const VoidPtr _pData);
 
 		DevicePtr GetDevicePtr() const;
 		void GetResolution(unsigned int& _uWidth, unsigned int& _uHeight) const;
@@ -180,6 +223,13 @@ namespace ElixirEngine
 		void RemoveRenderStages(DisplayRenderStagePtrVec _vRenderPasses);
 		DisplayRenderStagePtr GetCurrentRenderStage();
 
+		Key CreateVertexDeclaration(VertexElementPtr _pVertexElements);
+		bool SetVertexDeclaration(const Key _uVertexDeclaration);
+		Key GetCurrentVertexDeclaration();
+		void ReleaseVertexDeclaration(const Key _uVertexDeclaration);
+
+		CoreCommandPtr NewCommand(const UInt _uCommandID, CoreObjectPtr _pTarget);
+
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
 		static D3DFORMAT StringToDisplayFormat(const string& _strFormatName, const D3DFORMAT& _uDefaultFormat);
@@ -194,6 +244,19 @@ namespace ElixirEngine
 		void RenderStage(DisplayRenderStagePtr _pRP);
 		void Render(DisplayRenderStagePtr _pRP);
 
+		bool RenderStageRecord(DisplayRenderStagePtr _pRP);
+		bool RenderRecord(DisplayRenderStagePtr _pRP);
+
+		DisplayVertexBufferPtr CreateVertexBuffer(DisplayVertexBuffer::CreateInfo& _rCreateInfo);
+		bool SetCurrentVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
+		DisplayVertexBufferPtr GetCurrentVertexBuffer();
+		void ReleaseVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
+
+		DisplayIndexBufferPtr CreateIndexBuffer(DisplayIndexBuffer::CreateInfo& _rCreateInfo);
+		bool SetCurrentIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer);
+		DisplayIndexBufferPtr GetCurrentIndexBuffer();
+		void ReleaseIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer);
+
 		Direct3DPtr						m_pDirect3D;
 		DevicePtr						m_pDevice;
 		DisplayEffectPtrVec				m_vRenderList;
@@ -203,6 +266,9 @@ namespace ElixirEngine
 		DisplayRenderStagePtrVec		m_vRenderStages;
 		DisplayRenderStagePtrMap		m_mRenderStages;
 		DisplayRenderRequestListMap		m_mRenderRequests;
+		DisplayVertexBufferCreator		m_oVertexBuffers;
+		DisplayIndexBufferCreator		m_oIndexBuffer;
+		VertexDeclPtrMap				m_mVertexDecls;
 		DisplayCameraPtr				m_pCurrentCamera;
 		DisplayMaterialManagerPtr		m_pMaterialManager;
 		DisplayTextureManagerPtr		m_pTextureManager;
@@ -219,9 +285,16 @@ namespace ElixirEngine
 		DisplayVertexBufferPtr			m_pCurrentVertexBuffer;
 		DisplayIndexBufferPtr			m_pCurrentIndexBuffer;
 		DisplayRenderStagePtr			m_pCurrentRenderStage;
-		Matrix							m_oWorldInvTransposeMatrix;
+		Matrix							m_m4WorldInvTransposeMatrix;
+		Key								m_uCurrentVertexBuffer;
+		Key								m_uCurrentIndexBuffer;
+		Key								m_uCurrentVertexDecl;
+		Key								m_uVertexDeclID;
 		unsigned int					m_uWidth;
 		unsigned int					m_uHeight;
+
+		CoreCommandPool					m_oCommands;
+		CoreCommandPtrVec				m_vCommands;
 
 	private:
 	};

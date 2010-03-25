@@ -38,6 +38,29 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	CoreCommand::CoreCommand()
+	:	m_pObject(NULL),
+		m_uID(0),
+		m_uCount(0)
+	{
+
+	}
+
+	bool CoreCommand::AddArg(VoidPtr _pArg)
+	{
+		bool bResult = (s_uMaxArgs >  m_uCount);
+		if (false != bResult)
+		{
+			m_pArgs[m_uCount] = _pArg;
+			++m_uCount;
+		}
+		return bResult;
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	CoreObject::CoreObject()
 	:	m_uRefCount(0)
 	{
@@ -67,6 +90,21 @@ namespace ElixirEngine
 	void CoreObject::Release()
 	{
 
+	}
+
+	bool CoreObject::UpdateRecord()
+	{
+		return false;
+	}
+
+	bool CoreObject::RecordCommand(CoreCommandPtr _pCommand)
+	{
+		return false;
+	}
+
+	bool CoreObject::ReplayCommand(CoreCommandRef _pCommand)
+	{
+		return false;
 	}
 
 }

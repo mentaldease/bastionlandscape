@@ -68,12 +68,12 @@ namespace ElixirEngine
 		bool FillIndexBuffer(CreateInfoRef _rInfo);
 
 	protected:
-		DisplayVertexBufferPtr	m_pVertexBuffer;
-		DisplayIndexBufferPtr	m_pIndexBuffer;
-		UInt					m_uVertexCount;
-		UInt					m_uIndexCount;
-		UInt					m_uFanToStripSize;
-		Vector4					m_f4Color;
+		Key		m_uVertexBuffer;
+		Key		m_uIndexBuffer;
+		UInt	m_uVertexCount;
+		UInt	m_uIndexCount;
+		UInt	m_uFanToStripSize;
+		Vector4	m_f4Color;
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -118,9 +118,9 @@ namespace ElixirEngine
 		LineStripInfoRef NewLineStrip();
 
 	protected:
-		LineStripInfoPtrVec			m_vLineStrips;
-		VertexDeclPtr				m_pVertDeclPP;
-		UInt						m_uCurrentLineStripIndex;
+		LineStripInfoPtrVec	m_vLineStrips;
+		Key					m_uVertDecl;
+		UInt				m_uCurrentLineStripIndex;
 	};
 }
 

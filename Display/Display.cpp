@@ -33,6 +33,12 @@ namespace ElixirEngine
 		m_vUpdateList(),
 		m_mViewports(),
 		m_mCameras(),
+		m_vRenderStages(),
+		m_mRenderStages(),
+		m_mRenderRequests(),
+		m_oVertexBuffers(),
+		m_oIndexBuffer(),
+		m_mVertexDecls(),
 		m_pCurrentCamera(NULL),
 		m_pMaterialManager(NULL),
 		m_pTextureManager(NULL),
@@ -49,9 +55,15 @@ namespace ElixirEngine
 		m_pCurrentVertexBuffer(NULL),
 		m_pCurrentIndexBuffer(NULL),
 		m_pCurrentRenderStage(NULL),
-		m_oWorldInvTransposeMatrix(),
+		m_m4WorldInvTransposeMatrix(),
+		m_uCurrentVertexBuffer(0),
+		m_uCurrentIndexBuffer(0),
+		m_uCurrentVertexDecl(0),
+		m_uVertexDeclID(0),
 		m_uWidth(0),
-		m_uHeight(0)
+		m_uHeight(0),
+		m_oCommands(),
+		m_vCommands()
 	{
 		if (NULL == GetInstance())
 		{
@@ -80,6 +92,7 @@ namespace ElixirEngine
 		}
 		if (false != bResult)
 		{
+			m_oCommands.Reserve(10 * 1024);
 			bResult = OpenVideo(*pWindowData);
 		}
 
@@ -146,11 +159,19 @@ namespace ElixirEngine
 	{
 		CloseVideo();
 
+		m_oIndexBuffer.Release();
+		m_oVertexBuffers.Release();
+
 		if (NULL != m_pDirect3D)
 		{
 			m_pDirect3D->Release();
 			m_pDirect3D = NULL;
 		}
+	}
+
+	bool Display::UpdateReplay()
+	{
+		return false;
 	}
 
 	bool Display::OpenVideo(WindowData& _rWindowData)
@@ -339,6 +360,90 @@ namespace ElixirEngine
 		}
 	}
 
+	Key Display::CreateVertexBufferKey(DisplayVertexBuffer::CreateInfo& _rCreateInfo)
+	{
+		return m_oVertexBuffers.New(boost::any(&_rCreateInfo));
+	}
+
+	bool Display::SetCurrentVertexBufferKey(const Key _uVertexBuffer)
+	{
+		bool bResult = true;
+		if (m_uCurrentVertexBuffer != _uVertexBuffer)
+		{
+			m_uCurrentVertexBuffer = _uVertexBuffer;
+			m_pCurrentVertexBuffer = m_oVertexBuffers.Get(_uVertexBuffer);
+			if (NULL != m_pCurrentVertexBuffer)
+			{
+				bResult = m_pCurrentVertexBuffer->Use();
+			}
+		}
+		return bResult;
+	}
+
+	Key Display::GetCurrentVertexBufferKey()
+	{
+		return m_uCurrentVertexBuffer;	
+	}
+
+	void Display::ReleaseVertexBufferKey(Key _uVertexBuffer)
+	{
+		m_oVertexBuffers.Delete(_uVertexBuffer);
+		m_uCurrentVertexBuffer = (m_uCurrentIndexBuffer == _uVertexBuffer) ? 0 : m_uCurrentVertexBuffer;
+	}
+
+	bool Display::SetVertexBufferKeyData(const Key _uVertexBuffer, const VoidPtr _pData)
+	{
+		DisplayVertexBufferPtr pVertexBuffer = m_oVertexBuffers.Get(_uVertexBuffer);
+		bool bResult = (NULL != pVertexBuffer);
+		if (false != bResult)
+		{
+			bResult = pVertexBuffer->Set(_pData);
+		}
+		return bResult;
+	}
+
+	Key Display::CreateIndexBufferKey(DisplayIndexBuffer::CreateInfo& _rCreateInfo)
+	{
+		return m_oIndexBuffer.New(boost::any(&_rCreateInfo));
+	}
+
+	bool Display::SetCurrentIndexBufferKey(const Key _uIndexBuffer)
+	{
+		bool bResult = true;
+		if (m_uCurrentIndexBuffer != _uIndexBuffer)
+		{
+			m_uCurrentIndexBuffer = _uIndexBuffer;
+			m_pCurrentIndexBuffer = m_oIndexBuffer.Get(_uIndexBuffer);
+			if (NULL != m_pCurrentIndexBuffer)
+			{
+				bResult = m_pCurrentIndexBuffer->Use();
+			}
+		}
+		return bResult;
+	}
+
+	Key Display::GetCurrentIndexBufferKey()
+	{
+		return m_uCurrentIndexBuffer;
+	}
+
+	void Display::ReleaseIndexBufferKey(const Key _uIndexBuffer)
+	{
+		m_oIndexBuffer.Delete(_uIndexBuffer);
+		m_uCurrentIndexBuffer = (m_uCurrentIndexBuffer == _uIndexBuffer) ? 0 : m_uCurrentIndexBuffer;
+	}
+
+	bool Display::SetIndexBufferKeyData(const Key _uIndexBuffer, const VoidPtr _pData)
+	{
+		DisplayIndexBufferPtr pIndexBuffer = m_oIndexBuffer.Get(_uIndexBuffer);
+		bool bResult = (NULL != pIndexBuffer);
+		if (false != bResult)
+		{
+			bResult = pIndexBuffer->Set(_pData);
+		}
+		return bResult;
+	}
+
 	DisplayVertexBufferPtr Display::CreateVertexBuffer(DisplayVertexBuffer::CreateInfo& _rCreateInfo)
 	{
 		DisplayVertexBufferPtr pVertexBuffer = new DisplayVertexBuffer(*this);
@@ -353,6 +458,7 @@ namespace ElixirEngine
 	bool Display::SetCurrentVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer)
 	{
 		bool bResult = true;
+		m_uCurrentVertexBuffer = 0;
 		if (m_pCurrentVertexBuffer != _pVertexBuffer)
 		{
 			m_pCurrentVertexBuffer = _pVertexBuffer;
@@ -389,6 +495,7 @@ namespace ElixirEngine
 	bool Display::SetCurrentIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer)
 	{
 		bool bResult = true;
+		m_uCurrentIndexBuffer = 0;
 		if (m_pCurrentIndexBuffer != _pIndexBuffer)
 		{
 			m_pCurrentIndexBuffer = _pIndexBuffer;
@@ -445,8 +552,8 @@ namespace ElixirEngine
 	void Display::SetCurrentWorldMatrix(MatrixPtr _pMatrix)
 	{
 		m_pWorldMatrix = _pMatrix;
-		D3DXMatrixInverse(&m_oWorldInvTransposeMatrix, NULL, m_pWorldMatrix);
-		D3DXMatrixTranspose(&m_oWorldInvTransposeMatrix, &m_oWorldInvTransposeMatrix);
+		D3DXMatrixInverse(&m_m4WorldInvTransposeMatrix, NULL, m_pWorldMatrix);
+		D3DXMatrixTranspose(&m_m4WorldInvTransposeMatrix, &m_m4WorldInvTransposeMatrix);
 	}
 
 	MatrixPtr Display::GetCurrentWorldMatrix()
@@ -456,7 +563,7 @@ namespace ElixirEngine
 
 	MatrixPtr Display::GetCurrentWorldInvTransposeMatrix()
 	{
-		return &m_oWorldInvTransposeMatrix;
+		return &m_m4WorldInvTransposeMatrix;
 	}
 
 	void Display::MRTRenderBeginPass(UIntRef _uIndex)
@@ -631,6 +738,48 @@ namespace ElixirEngine
 		return m_pCurrentRenderStage;
 	}
 
+	Key Display::CreateVertexDeclaration(VertexElementPtr _pVertexElements)
+	{
+		VertexDeclPtr pVertexDecl = NULL;
+		Key uResult = 0;
+		if (SUCCEEDED(m_pDevice->CreateVertexDeclaration(_pVertexElements, &pVertexDecl)))
+		{
+			uResult = ++m_uVertexDeclID;
+			m_mVertexDecls[uResult] = pVertexDecl;
+		}
+		return uResult;
+	}
+
+	bool Display::SetVertexDeclaration(const Key _uVertexDeclaration)
+	{
+		VertexDeclPtrMap::iterator iPair = m_mVertexDecls.find(_uVertexDeclaration);
+		bool bResult = (m_mVertexDecls.end() != iPair);
+		if ((false != bResult) && (m_uCurrentVertexDecl != _uVertexDeclaration))
+		{
+			VertexDeclPtr pVertexDecl = iPair->second;
+			m_pDevice->SetVertexDeclaration(pVertexDecl);
+			m_uCurrentVertexDecl = _uVertexDeclaration;
+		}
+		return bResult;
+	}
+
+	Key Display::GetCurrentVertexDeclaration()
+	{
+		return m_uCurrentVertexDecl;
+	}
+
+	void Display::ReleaseVertexDeclaration(const Key _uVertexDeclaration)
+	{
+		VertexDeclPtrMap::iterator iPair = m_mVertexDecls.find(_uVertexDeclaration);
+		bool bResult = (m_mVertexDecls.end() != iPair);
+		if (false != bResult)
+		{
+			VertexDeclPtr pVertexDecl = iPair->second;
+			pVertexDecl->Release();
+			m_uCurrentVertexDecl = (m_uCurrentVertexDecl == _uVertexDeclaration) ? 0 : m_uCurrentVertexDecl;
+		}
+	}
+
 	void Display::RenderUpdate()
 	{
 		PROFILING(__FUNCTION__);
@@ -744,5 +893,16 @@ namespace ElixirEngine
 			for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderEffectFunction());
 			m_vRenderList.clear();
 		}
+	}
+
+	CoreCommandPtr Display::NewCommand(const UInt _uCommandID, CoreObjectPtr _pTarget)
+	{
+		CoreCommandPtr pResult = m_oCommands.Alloc();
+		if (NULL != pResult)
+		{
+			m_vCommands.push_back(pResult);
+			return pResult;
+		}
+		return NULL;
 	}
 }

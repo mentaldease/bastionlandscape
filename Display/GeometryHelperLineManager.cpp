@@ -55,7 +55,7 @@ namespace ElixirEngine
 	DisplayGeometryLineManager::DisplayGeometryLineManager()
 	:	DisplayObject(),
 		m_vLineStrips(),
-		m_pVertDeclPP(NULL),
+		m_uVertDecl(0),
 		m_uCurrentLineStripIndex(0)
 	{
 
@@ -83,7 +83,8 @@ namespace ElixirEngine
 			D3DXMatrixMultiply(&m4World, &m4Rot, &m4Pos);
 			SetWorldMatrix(m4World);
 
-			bResult = SUCCEEDED(Display::GetInstance()->GetDevicePtr()->CreateVertexDeclaration(GeometryHelperVertexColor::s_VertexElement, &m_pVertDeclPP));
+			m_uVertDecl = Display::GetInstance()->CreateVertexDeclaration(GeometryHelperVertexColor::s_VertexElement);
+			bResult = (0 != m_uVertDecl);
 		}
 
 		return bResult;
@@ -97,10 +98,11 @@ namespace ElixirEngine
 
 	void DisplayGeometryLineManager::Release()
 	{
-		if (NULL != m_pVertDeclPP)
+		if (0 != m_uVertDecl)
 		{
-			m_pVertDeclPP->Release();
-			m_pVertDeclPP = NULL;
+			DisplayPtr pDisplay = Display::GetInstance();
+			pDisplay->ReleaseVertexDeclaration(m_uVertDecl);
+			m_uVertDecl = 0;
 		}
 
 		for (UInt i = 0 ; m_uCurrentLineStripIndex > i ; ++i)
@@ -120,7 +122,7 @@ namespace ElixirEngine
 		static Vector4 f4Color(0.5f, 0.5f, 0.5f, 1.0f);
 		DisplayPtr pDisplay = Display::GetInstance();
 		pDisplay->GetMaterialManager()->SetVector4BySemantic(uDiffuseColorKey, &f4Color);
-		Display::GetInstance()->GetDevicePtr()->SetVertexDeclaration(m_pVertDeclPP);
+		Display::GetInstance()->SetVertexDeclaration(m_uVertDecl);
 	}
 
 	void DisplayGeometryLineManager::Render()

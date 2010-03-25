@@ -32,8 +32,8 @@ namespace ElixirEngine
 
 	DisplayGeometrySphere::DisplayGeometrySphere()
 	:	DisplayObject(),
-		m_pVertexBuffer(NULL),
-		m_pIndexBuffer(NULL),
+		m_uVertexBuffer(0),
+		m_uIndexBuffer(0),
 		m_uVertexCount(0),
 		m_uIndexCount(0),
 		m_f4Color(1.0f, 1.0f, 1.0f, 1.0f)
@@ -88,16 +88,16 @@ namespace ElixirEngine
 
 	void DisplayGeometrySphere::Release()
 	{
-		if (NULL != m_pIndexBuffer)
+		if (0 != m_uIndexBuffer)
 		{
-			Display::GetInstance()->ReleaseIndexBuffer(m_pIndexBuffer);
-			m_pIndexBuffer = NULL;
+			Display::GetInstance()->ReleaseIndexBufferKey(m_uIndexBuffer);
+			m_uIndexBuffer = 0;
 			m_uIndexCount = 0;
 		}
-		if (NULL != m_pVertexBuffer)
+		if (NULL != m_uVertexBuffer)
 		{
-			Display::GetInstance()->ReleaseVertexBuffer(m_pVertexBuffer);
-			m_pVertexBuffer = NULL;
+			Display::GetInstance()->ReleaseVertexBufferKey(m_uVertexBuffer);
+			m_uVertexBuffer = 0;
 			m_uVertexCount = 0;
 		}
 		DisplayObject::Release();
@@ -113,7 +113,7 @@ namespace ElixirEngine
 	void DisplayGeometrySphere::Render()
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
-		if ((false != pDisplay->SetCurrentVertexBuffer(m_pVertexBuffer)) && (false != pDisplay->SetCurrentIndexBuffer(m_pIndexBuffer)))
+		if ((false != pDisplay->SetCurrentVertexBufferKey(m_uVertexBuffer)) && (false != pDisplay->SetCurrentIndexBufferKey(m_uIndexBuffer)))
 		{
 			pDisplay->GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, 0, 0, m_uVertexCount, 0, m_uIndexCount - 2);
 		}
@@ -138,8 +138,8 @@ namespace ElixirEngine
 			oVBCInfo.m_pVertexElement = GeometryHelperVertex::s_VertexElement;
 			oVBCInfo.m_uVertexSize = sizeof(GeometryHelperVertex);
 			oVBCInfo.m_uBufferSize = m_uVertexCount * sizeof(GeometryHelperVertex);
-			m_pVertexBuffer = pDisplay->CreateVertexBuffer(oVBCInfo);
-			bResult = (NULL != m_pVertexBuffer);
+			m_uVertexBuffer = pDisplay->CreateVertexBufferKey(oVBCInfo);
+			bResult = (0 != m_uVertexBuffer);
 		}
 
 		if (false != bResult)
@@ -154,8 +154,8 @@ namespace ElixirEngine
 			DisplayIndexBuffer::CreateInfo oIBCInfo;
 			oIBCInfo.m_b16Bits = (m_uIndexCount <= 0xffff);
 			oIBCInfo.m_uBufferSize = m_uIndexCount;
-			m_pIndexBuffer = pDisplay->CreateIndexBuffer(oIBCInfo);
-			bResult = (NULL != m_pVertexBuffer);
+			m_uIndexBuffer = pDisplay->CreateIndexBufferKey(oIBCInfo);
+			bResult = (0 != m_uVertexBuffer);
 		}
 
 		return bResult;
@@ -163,7 +163,7 @@ namespace ElixirEngine
 
 	bool DisplayGeometrySphere::FillVertexBuffer(CreateInfoRef _rInfo)
 	{
-		bool bResult = (NULL != m_pVertexBuffer);
+		bool bResult = (0 != m_uVertexBuffer);
 
 		if (false != bResult)
 		{
@@ -284,7 +284,7 @@ namespace ElixirEngine
 			}
 
 
-			m_pVertexBuffer->Set(pVertexData);
+			Display::GetInstance()->SetVertexBufferKeyData(m_uVertexBuffer, pVertexData);
 			delete[] pVertexData;
 		}
 
@@ -293,7 +293,7 @@ namespace ElixirEngine
 
 	bool DisplayGeometrySphere::FillIndexBuffer(CreateInfoRef _rInfo)
 	{
-		bool bResult = (NULL != m_pIndexBuffer);
+		bool bResult = (NULL != m_uIndexBuffer);
 
 		if (false != bResult)
 		{
@@ -363,7 +363,7 @@ namespace ElixirEngine
 					pIndex[1] = m_uVertexCount - 1;
 				}
 
-				m_pIndexBuffer->Set(pIndexData);
+				Display::GetInstance()->SetIndexBufferKeyData(m_uIndexBuffer, pIndexData);
 				delete[] pIndexData;
 			}
 			else

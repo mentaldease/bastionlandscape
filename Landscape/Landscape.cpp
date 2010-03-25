@@ -172,8 +172,8 @@ namespace ElixirEngine
 		m_vVertexBuffers(),
 		m_vVertexes(),
 		m_vVertexesIndependent(),
-		m_pCurrentVertexBuffer(NULL),
-		m_pIndexBuffer(NULL),
+		m_uCurrentVertexBuffer(0),
+		m_uIndexBuffer(0),
 		m_pIndexes(NULL),
 		m_pLayering(NULL),
 		m_uRenderStageKey(0)
@@ -248,20 +248,7 @@ namespace ElixirEngine
 
 	void Landscape::Render()
 	{
-		m_pCurrentVertexBuffer = NULL;
-		size_t uCount = m_vRenderList.size();
-		if ((false == m_vRenderList.empty()) && (m_pIndexBuffer->Use()))
-		{
-			struct RenderFunction
-			{
-				void operator() (LandscapeChunkPtr pLandscapeChunk)
-				{
-					pLandscapeChunk->Render();
-				}
-			};
-			for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderFunction());
-			m_vRenderList.clear();
-		}
+
 	}
 
 	bool Landscape::Open(const OpenInfo& _rOpenInfo)
@@ -334,9 +321,10 @@ namespace ElixirEngine
 		for_each(m_vGrid.begin(), m_vGrid.end(), ReleaseAndDeleteFunction());
 		m_vGrid.clear();
 
+		DisplayPtr pDisplay = Display::GetInstance();
 		while (false == m_vVertexBuffers.empty())
 		{
-			Display::GetInstance()->ReleaseVertexBuffer(m_vVertexBuffers.back());
+			pDisplay->ReleaseVertexBufferKey(m_vVertexBuffers.back());
 			m_vVertexBuffers.pop_back();
 		}
 
@@ -352,10 +340,10 @@ namespace ElixirEngine
 			m_vVertexes.pop_back();
 		}
 
-		if (NULL != m_pIndexBuffer)
+		if (0 != m_uIndexBuffer)
 		{
-			Display::GetInstance()->ReleaseIndexBuffer(m_pIndexBuffer);
-			m_pIndexBuffer = NULL;
+			Display::GetInstance()->ReleaseIndexBufferKey(m_uIndexBuffer);
+			m_uIndexBuffer = 0;
 		}
 
 		if (NULL != m_pIndexes)
@@ -394,20 +382,13 @@ namespace ElixirEngine
 
 	bool Landscape::SetIndices()
 	{
-		//return m_pIndexBuffer->Use();
-		return Display::GetInstance()->SetCurrentIndexBuffer(m_pIndexBuffer);
+		return Display::GetInstance()->SetCurrentIndexBufferKey(m_uIndexBuffer);
 	}
 
 	bool Landscape::UseLODVertexBuffer(const unsigned int& _uLOD)
 	{
-		//bool bResult = (m_pCurrentVertexBuffer == m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer);
-		//if (false == bResult)
-		//{
-		//	m_pCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer;
-		//	bResult = m_pCurrentVertexBuffer->Use();
-		//}
-		m_pCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_pVertexBuffer;
-		bool bResult = Display::GetInstance()->SetCurrentVertexBuffer(m_pCurrentVertexBuffer);
+		m_uCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_uVertexBuffer;
+		bool bResult = Display::GetInstance()->SetCurrentVertexBufferKey(m_uCurrentVertexBuffer);
 		return bResult;
 	}
 
@@ -418,6 +399,7 @@ namespace ElixirEngine
 
 	bool Landscape::CreateIndexBuffer()
 	{
+		DisplayPtr pDisplay = Display::GetInstance();
 		bool bResult = false;
 		m_pIndexes = new unsigned int[m_oGlobalInfo.m_uTotalLODStripSize];
 		bResult = (NULL != m_pIndexes);
@@ -450,11 +432,11 @@ namespace ElixirEngine
 			}
 
 			DisplayIndexBuffer::CreateInfo oIBCInfo = { m_oGlobalInfo.m_uTotalLODStripSize, false };
-			m_pIndexBuffer = Display::GetInstance()->CreateIndexBuffer(oIBCInfo);
-			bResult = (NULL != m_pIndexBuffer);
+			m_uIndexBuffer = pDisplay->CreateIndexBufferKey(oIBCInfo);
+			bResult = (0 != m_uIndexBuffer);
 			if (false != bResult)
 			{
-				bResult = m_pIndexBuffer->Set(m_pIndexes);
+				bResult = pDisplay->SetIndexBufferKeyData(m_uIndexBuffer, m_pIndexes);
 			}
 		}
 		return bResult;

@@ -33,6 +33,9 @@ namespace ElixirEngine
 		Key GetNameKey();
 		bool ClearRequired();
 
+		bool RenderBeginRecord();
+		bool RenderEndRecord();
+
 	protected:
 		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
 

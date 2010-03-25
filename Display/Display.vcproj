@@ -167,6 +167,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DisplayRecord.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DisplayScripting.cpp"
 				>
 			</File>

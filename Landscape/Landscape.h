@@ -117,7 +117,7 @@ namespace ElixirEngine
 			unsigned int					m_uVertexCount;
 			unsigned int					m_uNumVertices;
 			unsigned int					m_uIncrement;
-			DisplayVertexBufferPtr			m_pVertexBuffer;
+			Key								m_uVertexBuffer;
 			VoidPtr							m_pVertexes;
 			LandscapeVertexIndependentPtr	m_pVertexesIndependent;
 		};
@@ -194,11 +194,11 @@ namespace ElixirEngine
 		GlobalInfo							m_oGlobalInfo;
 		LandscapeChunkPtrVec				m_vGrid;
 		LandscapeChunkPtrVec				m_vRenderList;
-		DisplayVertexBufferPtrVec			m_vVertexBuffers;
+		KeyVec								m_vVertexBuffers;
 		VoidPtrVec							m_vVertexes;
 		LandscapeVertexIndependentPtrVec	m_vVertexesIndependent;
-		DisplayVertexBufferPtr				m_pCurrentVertexBuffer;
-		DisplayIndexBufferPtr				m_pIndexBuffer;
+		Key									m_uCurrentVertexBuffer;
+		Key									m_uIndexBuffer;
 		UIntPtr								m_pIndexes;
 		LandscapeLayeringPtr				m_pLayering;
 		Key									m_uRenderStageKey;

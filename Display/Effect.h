@@ -10,6 +10,28 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	struct DisplayMemoryBuffer
+	{
+		DisplayMemoryBuffer();
+		~DisplayMemoryBuffer();
+
+		inline bool Reserve(const UInt _uCapacity);
+		inline bool Copy(const VoidPtr _pSrc, const UInt _uSize);
+		inline bool CanCopy(const UInt _uSize);
+		inline VoidPtr Alloc(const UInt _uSize);
+		inline void Clear();
+
+		BytePtr	m_pBuffer;
+		UInt	m_uCapacity;
+		UInt	m_uSize;
+	};
+	typedef DisplayMemoryBuffer* DisplayMemoryBufferPtr;
+	typedef DisplayMemoryBuffer& DisplayMemoryBufferRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class DisplayEffectInclude : public CoreObject, public ID3DXInclude
 	{
 	public:
@@ -58,7 +80,7 @@ namespace ElixirEngine
 
 		virtual void RenderRequest(DisplayMaterialPtr _pDisplayMaterial);
 		virtual void Render();
-
+		virtual bool RenderRecord();
 		virtual EffectPtr GetEffect();
 
 		Handle GetHandleBySemanticKey(const Key& _uKey);
@@ -105,8 +127,28 @@ namespace ElixirEngine
 		virtual void Render();
 		virtual void UseParams();
 
+		virtual bool RenderRecord();
+		virtual bool RecordParams();
+
 		virtual DisplayEffectPtr GetEffect();
 		virtual DisplayMaterialManagerRef GetMaterialManager();
+		virtual UInt GetPassCount();
+
+		bool RecordMatrix(Handle m_hData, MatrixPtr _pValue);
+		bool RecordTexture(Handle m_hData, BaseTexturePtr _pValue);
+		bool RecordFloat(Handle m_hData, const float _pValue);
+		bool RecordVector(Handle m_hData, Vector4Ptr _pValue);
+		bool RecordVectorArray(Handle m_hData, Vector4Ptr _pValue, const UInt _uCount);
+		bool RecordValue(Handle m_hData, VoidPtr m_pData, const UInt _uSize);
+
+	protected:
+		struct FATEntry
+		{
+			Handle	m_hParam;
+			UInt	m_uDataOffset;
+		};
+		typedef FATEntry* FATEntryPtr;
+		typedef FATEntry& FATEntryRef;
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
@@ -117,6 +159,9 @@ namespace ElixirEngine
 		DisplayObjectPtrVec			m_vRenderList;
 		DisplayEffectParamPtrVec	m_vParams;
 		Handle						m_hTechnique;
+		DisplayMemoryBufferPtr		m_pParamsBuffer;
+		FATEntryPtr					m_pParamFAT;
+		UInt						m_uPassCount;
 
 	private:
 	};
@@ -203,6 +248,7 @@ namespace ElixirEngine
 		void UnloadAll();
 
 		DisplayRef GetDisplay();
+		DisplayMemoryBufferPtr GetParamsMemory();
 
 		void SetFloatBySemantic(const Key& _uSemanticKey, FloatPtr _pData);
 		FloatPtr GetFloatBySemantic(const Key& _uSemanticKey);
@@ -247,6 +293,7 @@ namespace ElixirEngine
 		StructDataMap			m_mStructInfo;
 		KeyVec					m_vCurrentParamKeys;
 		KeyVec					m_vDefaultParamKeys;
+		DisplayMemoryBuffer		m_oParamsBuffer;
 		DisplayRef				m_rDisplay;
 		DisplayEffectIncludePtr	m_pIncludeInterface;
 		string					m_strIncludeBasePath;
@@ -268,27 +315,62 @@ namespace ElixirEngine
 
 		void operator() (DisplayObjectPtr _pDisplayObject)
 		{
-			DisplayRef rDisplay = m_pMaterial->GetMaterialManager().GetDisplay();
+			DisplayPtr pDisplay = Display::GetInstance();
 			EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
 			UInt uPassCount;
 			pEffect->Begin(&uPassCount, 0);
 			_pDisplayObject->RenderBegin();
-			rDisplay.SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
+			pDisplay->SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
 			for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
 			{
-				rDisplay.MRTRenderBeginPass(uPass);
+				pDisplay->MRTRenderBeginPass(uPass);
 				pEffect->BeginPass(uPass);
 				m_pMaterial->UseParams();
 				pEffect->CommitChanges();
 				_pDisplayObject->Render();
 				pEffect->EndPass();
-				rDisplay.MRTRenderEndPass();
+				pDisplay->MRTRenderEndPass();
 			}
 			_pDisplayObject->RenderEnd();
 			pEffect->End();
 		}
 
 		DisplayMaterialPtr	m_pMaterial;
+	};
+
+	struct RecordRenderObjectFunction
+	{
+		RecordRenderObjectFunction(DisplayMaterialPtr _pMaterial)
+		:	m_pMaterial(_pMaterial),
+			m_bResult(true)
+		{
+
+		}
+
+		void operator() (DisplayObjectPtr _pDisplayObject)
+		{
+			DisplayPtr pDisplay = Display::GetInstance();
+			//EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
+			const UInt uPassCount = m_pMaterial->GetPassCount();
+			//pEffect->Begin(&uPassCount, 0);
+			m_bResult &= _pDisplayObject->RenderBeginRecord();
+			pDisplay->SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
+			for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
+			{
+				//pDisplay->MRTRenderBeginPass(uPass);
+				//pEffect->BeginPass(uPass);
+				m_bResult &= m_pMaterial->RecordParams();
+				//pEffect->CommitChanges();
+				m_bResult &= _pDisplayObject->RenderRecord();
+				//pEffect->EndPass();
+				//pDisplay->MRTRenderEndPass();
+			}
+			m_bResult &= _pDisplayObject->RenderEndRecord();
+			//pEffect->End();
+		}
+
+		DisplayMaterialPtr	m_pMaterial;
+		bool				m_bResult;
 	};
 }
 

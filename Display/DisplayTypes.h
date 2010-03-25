@@ -39,6 +39,7 @@ namespace ElixirEngine
 	typedef IDirect3DVertexBuffer9			VertexBuffer;
 	typedef VertexBuffer*					VertexBufferPtr;
 	typedef IDirect3DVertexDeclaration9*	VertexDeclPtr;
+	typedef map<Key, VertexDeclPtr>			VertexDeclPtrMap;
 	typedef IDirect3DIndexBuffer9			IndexBuffer;
 	typedef IndexBuffer*					IndexBufferPtr;
 	typedef ID3DXEffect*					EffectPtr;
@@ -90,11 +91,13 @@ namespace ElixirEngine
 	typedef DisplayVertexBuffer* DisplayVertexBufferPtr;
 	typedef DisplayVertexBuffer& DisplayVertexBufferRef;
 	typedef vector<DisplayVertexBufferPtr> DisplayVertexBufferPtrVec;
+	typedef map<Key, DisplayVertexBufferPtr> DisplayVertexBufferPtrMap;
 
 	class DisplayIndexBuffer;
 	typedef DisplayIndexBuffer* DisplayIndexBufferPtr;
 	typedef DisplayIndexBuffer& DisplayIndexBufferRef;
 	typedef vector<DisplayIndexBufferPtr> DisplayIndexBufferPtrVec;
+	typedef map<Key, DisplayIndexBufferPtr> DisplayIndexBufferPtrMap;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
