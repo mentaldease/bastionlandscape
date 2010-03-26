@@ -16,7 +16,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	LandscapeChunk::LandscapeChunk(Landscape& _rLandscape, OctreeRef _rOctree, const unsigned int& _uLOD)
+	LandscapeChunk::LandscapeChunk(Landscape& _rLandscape, OctreeRef _rOctree, const UInt& _uLOD)
 	:	DisplayObject(),
 		OctreeObject(_rOctree),
 		m_rLandscape(_rLandscape),
@@ -50,6 +50,8 @@ namespace ElixirEngine
 		{
 			Release();
 
+			m_pDisplay = Display::GetInstance();
+
 			const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();
 			m_pLODInfo = &rGlobalInfo.m_pLODs[m_uLOD];
 			m_uIndexX = pInfo->m_uX * rGlobalInfo.m_uQuadSize;
@@ -57,15 +59,15 @@ namespace ElixirEngine
 			m_uStartVertexIndex = m_uIndexX + m_uIndexZ * m_pLODInfo->m_uVertexPerRowCount;
 
 			// center and extend
-			const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
-			const unsigned int uStripSize = m_pLODInfo->m_uStripSize;
+			const UInt uStartIndex = m_pLODInfo->m_uStartIndex;
+			const UInt uStripSize = m_pLODInfo->m_uStripSize;
 			Vector3 oAABB[2] =
 			{
 				Vector3( FLT_MAX, FLT_MAX, FLT_MAX ),
 				Vector3( -FLT_MAX, -FLT_MAX, -FLT_MAX )
 			};
 			Vector3 oTemp;
-			for (unsigned int i = 0 ; uStripSize > i ; ++i)
+			for (UInt i = 0 ; uStripSize > i ; ++i)
 			{
 				m_rLandscape.GetVertexPosition(*m_pLODInfo, i, m_uStartVertexIndex, oTemp);
 				if (oAABB[0].x > oTemp.x) oAABB[0].x = oTemp.x;
@@ -81,10 +83,10 @@ namespace ElixirEngine
 			if (0 < m_uLOD)
 			{
 				CreateInfo oLCCInfo;
-				unsigned int uChild = ESubChild_NORTHWEST;
-				for (unsigned int j = 0 ; 2 > j ; ++j)
+				UInt uChild = ESubChild_NORTHWEST;
+				for (UInt j = 0 ; 2 > j ; ++j)
 				{
-					for (unsigned int i = 0 ; 2 > i ; ++i)
+					for (UInt i = 0 ; 2 > i ; ++i)
 					{
 						LandscapeChunkPtr pLandscapeChunk = new LandscapeChunk(m_rLandscape, m_rOctree, m_uLOD - 1);
 						oLCCInfo.m_uX = pInfo->m_uX * 2 + i;
@@ -176,7 +178,7 @@ namespace ElixirEngine
 
 	void LandscapeChunk::RenderBegin()
 	{
-		Display::GetInstance()->GetMaterialManager()->SetFloatBySemantic(s_uMorphFactorKey, &m_fMorphFactor);
+		m_pDisplay->GetMaterialManager()->SetFloatBySemantic(s_uMorphFactorKey, &m_fMorphFactor);
 		m_rLandscape.UseLayering();
 	}
 
@@ -184,11 +186,44 @@ namespace ElixirEngine
 	{
 		if (m_rLandscape.UseLODVertexBuffer(m_uLOD) && m_rLandscape.SetIndices())
 		{
-			const unsigned int uVertexCount = m_pLODInfo->m_uNumVertices;
-			const unsigned int uStartIndex = m_pLODInfo->m_uStartIndex;
-			const unsigned int uStripSize = m_pLODInfo->m_uStripSize - 2;
-			Display::GetInstance()->GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, m_uStartVertexIndex, 0, uVertexCount, uStartIndex, uStripSize);
+			const UInt uVertexCount = m_pLODInfo->m_uNumVertices;
+			const UInt uStartIndex = m_pLODInfo->m_uStartIndex;
+			const UInt uStripSize = m_pLODInfo->m_uStripSize - 2;
+			m_pDisplay->GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, m_uStartVertexIndex, 0, uVertexCount, uStartIndex, uStripSize);
 		}
+	}
+
+	bool LandscapeChunk::RenderBeginRecord()
+	{
+		RenderBegin();
+		return true;
+	}
+
+	bool LandscapeChunk::RenderRecord()
+	{
+		bool bResult = m_rLandscape.RecordLODVertexBuffer(m_uLOD) && m_rLandscape.RecordIndices();
+
+		if (false != bResult)
+		{
+			const UInt uVertexCount = m_pLODInfo->m_uNumVertices;
+			const UInt uStartIndex = m_pLODInfo->m_uStartIndex;
+			const UInt uStripSize = m_pLODInfo->m_uStripSize - 2;
+
+			CoreCommandPtr pCommand = m_pDisplay->NewCommand(EDisplayCommand_DRAWINDEXEDPRIMITIVE, m_pDisplay);
+			bResult &= pCommand->AddArg((VoidPtr)D3DPT_TRIANGLESTRIP);
+			bResult &= pCommand->AddArg((VoidPtr)m_uStartVertexIndex);
+			bResult &= pCommand->AddArg((VoidPtr)0);
+			bResult &= pCommand->AddArg((VoidPtr)uVertexCount);
+			bResult &= pCommand->AddArg((VoidPtr)uStartIndex);
+			bResult &= pCommand->AddArg((VoidPtr)uStripSize);
+		}
+
+		return bResult;
+	}
+
+	bool LandscapeChunk::RenderEndRecord()
+	{
+		return true;
 	}
 
 	void LandscapeChunk::Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize)
@@ -200,7 +235,7 @@ namespace ElixirEngine
 		const Vector3 oDelta = oWorld + m_oCenter - _rCamPos;
 		const float fExtends = D3DXVec3Length(&m_oExtends);
 
-		if (DisplayCamera::ECollision_OUT != Display::GetInstance()->GetCurrentCamera()->CollisionWithSphere(oWorld + m_oCenter, fExtends))
+		if (DisplayCamera::ECollision_OUT != m_pDisplay->GetCurrentCamera()->CollisionWithSphere(oWorld + m_oCenter, fExtends))
 		{
 #if LANDSCAPE_USE_HIGHEST_LOD_ONLY
 			if (0 == m_uLOD)
@@ -216,7 +251,7 @@ namespace ElixirEngine
 			aPoints[6] = oDelta + Vector3(m_oExtends.x, m_oExtends.y, -m_oExtends.z);
 			aPoints[7] = oDelta + Vector3(-m_oExtends.x, -m_oExtends.y, m_oExtends.z);
 			float fDistance = FLT_MAX;
-			for (unsigned int i = 0 ; 8 > i ; ++i)
+			for (UInt i = 0 ; 8 > i ; ++i)
 			{
 				const float fDelta = D3DXVec3Length(&aPoints[i]);
 				fDistance = (fDistance > fDelta) ? fDelta : fDistance;
@@ -242,7 +277,7 @@ namespace ElixirEngine
 			}
 			else if (0 != m_uLOD)
 			{
-				for (unsigned int i = 0 ; ESubChild_COUNT > i ; ++i)
+				for (UInt i = 0 ; ESubChild_COUNT > i ; ++i)
 				{
 					m_pChildren[i]->Traverse(_rRenderList, _rCamPos, _fPixelSize);
 				}
@@ -254,7 +289,7 @@ namespace ElixirEngine
 		}
 	}
 
-	unsigned int LandscapeChunk::GetLODID() const
+	UInt LandscapeChunk::GetLODID() const
 	{
 		return m_uLOD;
 	}

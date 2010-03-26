@@ -22,15 +22,22 @@ namespace ElixirEngine
 
 	enum EDIsplayCommand
 	{
-		EDIsplayCommand_SETSTAGE,
-		EDIsplayCommand_BEGINNORMALPROCESSES,
-		EDIsplayCommand_ENDNORMALPROCESSES,
-		EDIsplayCommand_BEGINNONORMALPROCESSES,
-		EDIsplayCommand_ENDNONORMALPROCESSES,
-		EDIsplayCommand_BEGINPOSTPROCESSES,
-		EDIsplayCommand_ENDPOSTPROCESSES,
-		EDIsplayCommand_SETMATERIALTECHNIQUE,
-		EDIsplayCommand_SETPARAMSMEMORY,
+		EDisplayCommand_SETSTAGE,
+		EDisplayCommand_BEGINNORMALPROCESSES,
+		EDisplayCommand_ENDNORMALPROCESSES,
+		EDisplayCommand_BEGINNONORMALPROCESSES,
+		EDisplayCommand_ENDNONORMALPROCESSES,
+		EDisplayCommand_BEGINPOSTPROCESSES,
+		EDisplayCommand_ENDPOSTPROCESSES,
+		EDisplayCommand_SETMATERIALTECHNIQUE,
+		EDisplayCommand_SETPARAMSMEMORY,
+		EDisplayCommand_DRAWINDEXEDPRIMITIVE,
+		EDisplayCommand_BUILDTEXT,
+		EDisplayCommand_DRAWPRIMITIVEUP,
+		EDisplayCommand_SETVERTEXDECLARATION,
+		EDisplayCommand_SETINDEXBUFFER,
+		EDisplayCommand_SETVERTEXBUFFER,
+		EDisplayCommand_DRAWINDEXEDPRIMITIVEUP
 	};
 
 	//-----------------------------------------------------------------------------------------------

@@ -197,7 +197,6 @@ namespace ElixirEngine
 
 			void Free(TPtr _pT)
 			{
-
 				m_pPool->Free(_pT);
 			}
 
@@ -216,7 +215,7 @@ namespace ElixirEngine
 					m_pPool = new TPool(m_uMax);
 				}
 
-				return ((0 < m_uMax) && (m_uMax == m_pPool->Size()));
+				return ((0 < m_uMax) && (m_uMax == m_pPool->Capacity()));
 			}
 
 		protected:
@@ -257,6 +256,9 @@ namespace ElixirEngine
 			virtual void RenderBegin();
 			virtual void Render();
 			virtual void RenderEnd();
+			virtual bool RenderBeginRecord();
+			virtual bool RenderRecord();
+			virtual bool RenderEndRecord();
 
 			virtual void SetText(const wstring& _wstrText);
 			virtual void SetColor(const Vector4& _f4Color);

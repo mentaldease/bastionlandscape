@@ -16,14 +16,15 @@ namespace ElixirEngine
 		typedef T* TPtr;
 
 	public:
-		Pool(const UInt _uSize = 1024);
+		Pool(const UInt _uCapacity = 1024);
 		virtual ~Pool();
 
-		void Reserve(const UInt _uSize);
+		void Reserve(const UInt _uCapacity);
 		TPtr Alloc(const UInt _uCount = 1);
 		void Free(TPtr _pData);
 		void FreeAll();
-		UInt Size();
+		UInt Capacity() const;
+		UInt Size() const;
 
 	protected:
 		void AddToAvailable(TPtr _pStart, const UInt _uSize);
@@ -38,22 +39,24 @@ namespace ElixirEngine
 		TPtr		m_pBuffer;
 		BlockMap	m_mAvailable;
 		BlockMap	m_mInUse;
+		UInt		m_uCapacity;
 		UInt		m_uSize;
 	};
 
 	template <typename T>
-	Pool<T>::Pool(const UInt _uSize)
+	Pool<T>::Pool(const UInt _uCapacity)
 	:	m_pBuffer(NULL),
 		m_mAvailable(),
 		m_mInUse(),
+		m_uCapacity(0),
 		m_uSize(0)
 
 	{
-		m_pBuffer = new T[_uSize];
-		if ((0 < _uSize) && (NULL != m_pBuffer))
+		m_pBuffer = new T[_uCapacity];
+		if ((0 < _uCapacity) && (NULL != m_pBuffer))
 		{
-			m_uSize = _uSize;
-			AddToAvailable(m_pBuffer, _uSize);
+			m_uCapacity = _uCapacity;
+			AddToAvailable(m_pBuffer, _uCapacity);
 		}
 	}
 
@@ -69,20 +72,23 @@ namespace ElixirEngine
 	}
 
 	template <typename T>
-	void Pool<T>::Reserve(const UInt _uSize)
+	void Pool<T>::Reserve(const UInt _uCapacity)
 	{
 		if (NULL != m_pBuffer)
 		{
 			delete[] m_pBuffer;
 			m_pBuffer = NULL;
+			m_uCapacity = 0;
 			m_uSize = 0;
+			m_mAvailable.clear();
+			m_mInUse.clear();
 		}
 
-		m_pBuffer = new T[_uSize];
-		if ((0 < _uSize) && (NULL != m_pBuffer))
+		m_pBuffer = new T[_uCapacity];
+		if ((0 < _uCapacity) && (NULL != m_pBuffer))
 		{
-			m_uSize = _uSize;
-			AddToAvailable(m_pBuffer, _uSize);
+			m_uCapacity = _uCapacity;
+			AddToAvailable(m_pBuffer, _uCapacity);
 		}
 	}
 
@@ -135,11 +141,18 @@ namespace ElixirEngine
 	{
 		m_mAvailable.clear();
 		m_mInUse.clear();
-		AddToAvailable(m_pBuffer, m_uSize);
+		m_uSize = 0;
+		AddToAvailable(m_pBuffer, m_uCapacity);
 	}
 
 	template <typename T>
-	UInt Pool<T>::Size()
+	UInt Pool<T>::Capacity() const
+	{
+		return m_uCapacity;
+	}
+
+	template <typename T>
+	UInt Pool<T>::Size() const
 	{
 		return m_uSize;
 	}
@@ -168,6 +181,8 @@ namespace ElixirEngine
 		{
 			m_mAvailable[_pStart] = _uSize;
 		}
+
+		m_uSize -= _uSize;
 	}
 
 	template <typename T>
@@ -191,6 +206,7 @@ namespace ElixirEngine
 	void Pool<T>::AddToInUse(TPtr _pStart, const UInt _uSize)
 	{
 		m_mInUse[_pStart] = _uSize;
+		m_uSize += _uSize;
 	}
 
 	template <typename T>

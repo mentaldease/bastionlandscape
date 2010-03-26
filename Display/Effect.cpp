@@ -44,7 +44,7 @@ namespace ElixirEngine
 
 	inline bool DisplayMemoryBuffer::Copy(const VoidPtr _pSrc, const UInt _uSize)
 	{
-		const bool bResult = CanCopy(_uSize);
+		const bool bResult = CanAlloc(_uSize);
 		if (false != bResult)
 		{
 			memcpy_s(m_pBuffer + m_uSize, m_uCapacity - m_uSize, _pSrc, _uSize);
@@ -53,7 +53,7 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	inline bool DisplayMemoryBuffer::CanCopy(const UInt _uSize)
+	inline bool DisplayMemoryBuffer::CanAlloc(const UInt _uSize)
 	{
 		return (m_uCapacity >= (m_uSize + _uSize));
 	}
@@ -61,7 +61,7 @@ namespace ElixirEngine
 	inline VoidPtr DisplayMemoryBuffer::Alloc(const UInt _uSize)
 	{
 		VoidPtr pResult = NULL;
-		const bool bResult = CanCopy(_uSize);
+		const bool bResult = CanAlloc(_uSize);
 		if (false != bResult)
 		{
 			pResult = m_pBuffer + m_uSize;
@@ -437,13 +437,35 @@ namespace ElixirEngine
 
 	void DisplayMaterial::Render()
 	{
-		//DisplayCommandPtr pCommand = Display::GetInstance()->NewCommand();
-		//StoreCommand(EDIsplayCommand_RENDERMATERIAL, pCommand);
 		m_pEffect->GetEffect()->SetTechnique(m_hTechnique);
-		size_t uCount = m_vRenderList.size();
+#if 0
 		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderObjectFunction(this));
+#else
+		DisplayPtr pDisplay = Display::GetInstance();
+		EffectPtr pEffect = GetEffect()->GetEffect();
+		size_t uCount = m_vRenderList.size();
+		UInt uPassCount;
+		pEffect->Begin(&uPassCount, 0);
+		for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
+		{
+			pDisplay->MRTRenderBeginPass(uPass);
+			pEffect->BeginPass(uPass);
+			for (size_t i = 0 ; uCount > i ; ++i)
+			{
+				DisplayObjectPtr pDisplayObject = m_vRenderList[i];
+				pDisplayObject->RenderBegin();
+				pDisplay->SetCurrentWorldMatrix(pDisplayObject->GetWorldMatrix());
+				UseParams();
+				pEffect->CommitChanges();
+				pDisplayObject->Render();
+				pDisplayObject->RenderEnd();
+			}
+			pEffect->EndPass();
+			pDisplay->MRTRenderEndPass();
+		}
+		pEffect->End();
+#endif
 		m_vRenderList.clear();
-
 	}
 
 	void DisplayMaterial::UseParams()
@@ -461,15 +483,33 @@ namespace ElixirEngine
 
 	bool DisplayMaterial::RenderRecord()
 	{
-		CoreCommandPtr pCommand = Display::GetInstance()->NewCommand(EDIsplayCommand_SETMATERIALTECHNIQUE, this);
+		CoreCommandPtr pCommand = Display::GetInstance()->NewCommand(EDisplayCommand_SETMATERIALTECHNIQUE, this);
 		bool bResult = pCommand->AddArg((VoidPtr)m_hTechnique);
 
+#if 0
 		RecordRenderObjectFunction funcRecord(this);
-		size_t uCount = m_vRenderList.size();
 		for_each(m_vRenderList.begin(), m_vRenderList.end(), funcRecord);
+		bResult &= funcRecord.m_bResult;
+#else
+		DisplayPtr pDisplay = Display::GetInstance();
+		size_t uCount = m_vRenderList.size();
+		const UInt uPassCount = m_uPassCount;
+		for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
+		{
+			for (size_t i = 0 ; uCount > i ; ++i)
+			{
+				DisplayObjectPtr pDisplayObject = m_vRenderList[i];
+				pDisplayObject->RenderBeginRecord();
+				pDisplay->SetCurrentWorldMatrix(pDisplayObject->GetWorldMatrix());
+				RecordParams();
+				pDisplayObject->RenderRecord();
+				pDisplayObject->RenderEndRecord();
+			}
+		}
+#endif
 		m_vRenderList.clear();
 
-		return (funcRecord.m_bResult && bResult);
+		return bResult;
 	}
 
 	bool DisplayMaterial::RecordParams()
@@ -477,7 +517,7 @@ namespace ElixirEngine
 		const UInt uFATSize = UInt(m_vParams.size() * sizeof(FATEntry));
 		m_pParamsBuffer = m_rMaterialManager.GetParamsMemory();
 
-		if ((NULL != m_pParamsBuffer) && (m_pParamsBuffer->CanCopy(uFATSize)))
+		if ((NULL != m_pParamsBuffer) && (m_pParamsBuffer->CanAlloc(uFATSize)))
 		{
 			struct RecordParamFunction
 			{
@@ -496,7 +536,14 @@ namespace ElixirEngine
 			};
 
 			m_pParamFAT = (FATEntryPtr)m_pParamsBuffer->Alloc(uFATSize);
-			CoreCommandPtr pCommand = Display::GetInstance()->NewCommand(EDIsplayCommand_SETPARAMSMEMORY, this);
+			for (UInt i = 0 ; m_vParams.size() > i ; ++i)
+			{
+				m_pParamFAT[i].m_hParam = NULL;
+				m_pParamFAT[i].m_pData = NULL;
+				m_pParamFAT[i].m_uSize = 0;
+				m_pParamFAT[i].m_uCount = 0;
+			}
+			CoreCommandPtr pCommand = Display::GetInstance()->NewCommand(EDisplayCommand_SETPARAMSMEMORY, this);
 			pCommand->AddArg(m_pParamsBuffer->m_pBuffer + m_pParamsBuffer->m_uSize);
 
 			RecordParamFunction funcRecordParam;
@@ -523,34 +570,87 @@ namespace ElixirEngine
 		return m_uPassCount;
 	}
 
-	bool DisplayMaterial::RecordMatrix(Handle m_hData, MatrixPtr _pValue)
+	bool DisplayMaterial::RecordMatrix(Handle _hData, MatrixPtr _pValue)
 	{
-		return false;
+		FATEntryPtr pParamEntry = GetOrCreateParamEntry(_hData);
+		bool bResult = (NULL != pParamEntry) && (m_pParamsBuffer->CanAlloc(sizeof(Matrix)));
+		if (false != bResult)
+		{
+			pParamEntry->m_pData = m_pParamsBuffer->Alloc(sizeof(Matrix));
+			memcpy_s(pParamEntry->m_pData, sizeof(Matrix), _pValue, sizeof(Matrix));
+			pParamEntry->m_uSize = sizeof(Matrix);
+			pParamEntry->m_uCount = 1;
+		}
+		return bResult;
 	}
 
-	bool DisplayMaterial::RecordTexture(Handle m_hData, BaseTexturePtr _pValue)
+	bool DisplayMaterial::RecordTexture(Handle _hData, BaseTexturePtr _pValue)
 	{
-		return false;
+		FATEntryPtr pParamEntry = GetOrCreateParamEntry(_hData);
+		bool bResult = (NULL != pParamEntry);
+		if (false != bResult)
+		{
+			pParamEntry->m_pData = _pValue;
+			pParamEntry->m_uSize = sizeof(BaseTexturePtr);
+			pParamEntry->m_uCount = 1;
+		}
+		return bResult;
 	}
 
-	bool DisplayMaterial::RecordFloat(Handle m_hData, const float _pValue)
+	bool DisplayMaterial::RecordFloat(Handle _hData, float _fValue)
 	{
-		return false;
+		FATEntryPtr pParamEntry = GetOrCreateParamEntry(_hData);
+		bool bResult = (NULL != pParamEntry) && (m_pParamsBuffer->CanAlloc(sizeof(float)));
+		if (false != bResult)
+		{
+			pParamEntry->m_pData = m_pParamsBuffer->Alloc(sizeof(float));
+			memcpy_s(pParamEntry->m_pData, sizeof(float), &_fValue, sizeof(float));
+			pParamEntry->m_uSize = sizeof(float);
+			pParamEntry->m_uCount = 1;
+		}
+		return bResult;
 	}
 
-	bool DisplayMaterial::RecordVector(Handle m_hData, Vector4Ptr _pValue)
+	bool DisplayMaterial::RecordVector(Handle _hData, Vector4Ptr _pValue)
 	{
-		return false;
+		FATEntryPtr pParamEntry = GetOrCreateParamEntry(_hData);
+		bool bResult = (NULL != pParamEntry) && (m_pParamsBuffer->CanAlloc(sizeof(Vector4)));
+		if (false != bResult)
+		{
+			pParamEntry->m_pData = m_pParamsBuffer->Alloc(sizeof(Vector4));
+			memcpy_s(pParamEntry->m_pData, sizeof(Vector4), _pValue, sizeof(Vector4));
+			pParamEntry->m_uSize = sizeof(Vector4);
+			pParamEntry->m_uCount = 1;
+		}
+		return bResult;
 	}
 
-	bool DisplayMaterial::RecordVectorArray(Handle m_hData, Vector4Ptr _pValue, const UInt _uCount)
+	bool DisplayMaterial::RecordVectorArray(Handle _hData, Vector4Ptr _pValue, const UInt _uCount)
 	{
-		return false;
+		FATEntryPtr pParamEntry = GetOrCreateParamEntry(_hData);
+		bool bResult = (NULL != pParamEntry) && (m_pParamsBuffer->CanAlloc(_uCount * sizeof(Vector4)));
+		if (false != bResult)
+		{
+			pParamEntry->m_pData = m_pParamsBuffer->Alloc(_uCount * sizeof(Vector4));
+			memcpy_s(pParamEntry->m_pData, _uCount * sizeof(Vector4), _pValue, _uCount * sizeof(Vector4));
+			pParamEntry->m_uSize = sizeof(Vector4);
+			pParamEntry->m_uCount = _uCount;
+		}
+		return bResult;
 	}
 
-	bool DisplayMaterial::RecordValue(Handle m_hData, VoidPtr m_pData, const UInt _uSize)
+	bool DisplayMaterial::RecordValue(Handle _hData, VoidPtr _pValue, const UInt _uSize)
 	{
-		return false;
+		FATEntryPtr pParamEntry = GetOrCreateParamEntry(_hData);
+		bool bResult = (NULL != pParamEntry) && (m_pParamsBuffer->CanAlloc(_uSize));
+		if (false != bResult)
+		{
+			pParamEntry->m_pData = m_pParamsBuffer->Alloc(_uSize);
+			memcpy_s(pParamEntry->m_pData, _uSize, _pValue, _uSize);
+			pParamEntry->m_uSize = _uSize;
+			pParamEntry->m_uCount = 1;
+		}
+		return bResult;
 	}
 
 	bool DisplayMaterial::CreateFromLuaConfig(CreateInfoPtr _pInfo)
@@ -630,6 +730,25 @@ namespace ElixirEngine
 		}
 
 		return bResult;
+	}
+
+	DisplayMaterial::FATEntryPtr DisplayMaterial::GetOrCreateParamEntry(Handle _hData)
+	{
+		FATEntryPtr pPatramEntry = m_pParamFAT;
+		for (UInt i = 0 ; m_vParams.size() > i ; ++i)
+		{
+			if (_hData == pPatramEntry->m_hParam)
+			{
+				return pPatramEntry;
+			}
+			else if (NULL == pPatramEntry->m_hParam)
+			{
+				pPatramEntry->m_hParam = _hData;
+				return pPatramEntry;
+			}
+			++pPatramEntry;
+		}
+		return NULL;
 	}
 
 	//-----------------------------------------------------------------------------------------------

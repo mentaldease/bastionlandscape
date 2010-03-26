@@ -122,22 +122,65 @@ namespace ElixirEngine
 		static Vector4 f4Color(0.5f, 0.5f, 0.5f, 1.0f);
 		DisplayPtr pDisplay = Display::GetInstance();
 		pDisplay->GetMaterialManager()->SetVector4BySemantic(uDiffuseColorKey, &f4Color);
-		Display::GetInstance()->SetVertexDeclaration(m_uVertDecl);
 	}
 
 	void DisplayGeometryLineManager::Render()
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
-		for (UInt i = 0 ; m_uCurrentLineStripIndex > i ; ++i)
+		if (false != pDisplay->SetVertexDeclaration(m_uVertDecl))
 		{
-			LineStripInfoRef rLS = *m_vLineStrips[i];
-			pDisplay->GetDevicePtr()->DrawIndexedPrimitiveUP(D3DPT_LINESTRIP, 0, rLS.m_vVertexBuffer.size(), rLS.m_vIndexBuffer.size() - 1, &rLS.m_vIndexBuffer[0], D3DFMT_INDEX32, &rLS.m_vVertexBuffer[0], sizeof(GeometryHelperVertexColor));
+			for (UInt i = 0 ; m_uCurrentLineStripIndex > i ; ++i)
+			{
+				LineStripInfoRef rLS = *m_vLineStrips[i];
+				pDisplay->GetDevicePtr()->DrawIndexedPrimitiveUP(D3DPT_LINESTRIP, 0, rLS.m_vVertexBuffer.size(), rLS.m_vIndexBuffer.size() - 1, &rLS.m_vIndexBuffer[0], D3DFMT_INDEX32, &rLS.m_vVertexBuffer[0], sizeof(GeometryHelperVertexColor));
+			}
 		}
 	}
 
 	void DisplayGeometryLineManager::RenderEnd()
 	{
 		m_uCurrentLineStripIndex = 0;
+	}
+
+	bool DisplayGeometryLineManager::RenderBeginRecord()
+	{
+		RenderBegin();
+		return true;
+	}
+
+	bool DisplayGeometryLineManager::RenderRecord()
+	{
+		DisplayPtr pDisplay = Display::GetInstance();
+		bool bResult = true;
+		{
+			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_SETVERTEXDECLARATION, pDisplay);
+			bResult &= pCommand->AddArg((VoidPtr)m_uVertDecl);
+		}
+		{
+			for (UInt i = 0 ; m_uCurrentLineStripIndex > i ; ++i)
+			{
+				LineStripInfoRef rLS = *m_vLineStrips[i];
+				CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_DRAWINDEXEDPRIMITIVEUP, pDisplay);
+				bResult &= pCommand->AddArg((VoidPtr)D3DPT_LINESTRIP);
+				bResult &= pCommand->AddArg((VoidPtr)0);
+				bResult &= pCommand->AddArg((VoidPtr)rLS.m_vVertexBuffer.size());
+				bResult &= pCommand->AddArg((VoidPtr)(rLS.m_vIndexBuffer.size() - 1));
+				bResult &= pCommand->AddArg((VoidPtr)&rLS.m_vVertexBuffer[0]);
+				bResult &= pCommand->AddArg((VoidPtr)sizeof(GeometryHelperVertexColor));
+				if (false == bResult)
+				{
+					break;
+				}
+			}
+		}
+
+		return bResult;
+	}
+
+	bool DisplayGeometryLineManager::RenderEndRecord()
+	{
+		RenderEnd();
+		return true;
 	}
 
 	DisplayGeometryLineManager::LineStripInfoRef DisplayGeometryLineManager::NewLineStrip()
