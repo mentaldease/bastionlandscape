@@ -109,6 +109,50 @@ namespace ElixirEngine
 			}
 		}
 
+		bool DisplayFontText::RenderBeginRecord()
+		{
+			DisplayPtr pDisplay = Display::GetInstance();
+			bool bResult = true;
+
+			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_SETVERTEXDECLARATION, pDisplay);
+			bResult &= pCommand->AddArg((VoidPtr)m_pFont->GetLoader().GetVertexDecl());
+
+			const static Key uBitmapFontDiffuse = MakeKey(string("BITMAPFONTDIFFUSE"));
+			pDisplay->GetMaterialManager()->SetVector4BySemantic(uBitmapFontDiffuse, &m_f4Color);
+
+			return bResult;
+		}
+
+		bool DisplayFontText::RenderRecord()
+		{
+			DisplayPtr pDisplay = Display::GetInstance();
+			bool bResult = true;
+
+			if (false != m_bRebuildText)
+			{
+				CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_BUILDTEXT, this);
+				bResult &= pCommand->AddArg((VoidPtr)m_bTextChanged);
+				bResult &= pCommand->AddArg((VoidPtr)m_bSizeChanged);
+				bResult &= pCommand->AddArg((VoidPtr)m_bRebuildText);
+				m_bTextChanged = false;
+				m_bSizeChanged = false;
+				m_bRebuildText = false;
+			}
+
+			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_DRAWPRIMITIVEUP, pDisplay);
+			bResult &= pCommand->AddArg((VoidPtr)D3DPT_TRIANGLESTRIP);
+			bResult &= pCommand->AddArg((VoidPtr)(m_uVertexCount - 2));
+			bResult &= pCommand->AddArg((VoidPtr)m_pVertex);
+			bResult &= pCommand->AddArg((VoidPtr)sizeof(VertexFont));
+
+			return bResult;
+		}
+
+		bool DisplayFontText::RenderEndRecord()
+		{
+			return true;
+		}
+
 		void DisplayFontText::SetText(const wstring& _wstrText)
 		{
 			m_bSizeChanged = (m_wstrText.length() != _wstrText.length());

@@ -44,7 +44,7 @@ namespace ElixirEngine
 			while (iEnd != iRS)
 			{
 				m_pCurrentRenderStage = *iRS;
-				RecordCommand(NewCommand(EDIsplayCommand_SETSTAGE, this));
+				RecordCommand(NewCommand(EDisplayCommand_SETSTAGE, this));
 				RenderStageRecord(m_pCurrentRenderStage);
 				++iRS;
 			}
@@ -98,7 +98,7 @@ namespace ElixirEngine
 		// Render scene to buffers
 		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
 		{
-			RecordCommand(NewCommand(EDIsplayCommand_BEGINNORMALPROCESSES, this));
+			RecordCommand(NewCommand(EDisplayCommand_BEGINNORMALPROCESSES, this));
 			DisplayNormalProcessPtrVec::iterator iNormalProcess = m_pNormalProcesses->begin();
 			DisplayNormalProcessPtrVec::iterator iEnd = m_pNormalProcesses->end();
 			while (iEnd != iNormalProcess)
@@ -110,26 +110,26 @@ namespace ElixirEngine
 
 				++iNormalProcess;
 			}
-			RecordCommand(NewCommand(EDIsplayCommand_ENDNORMALPROCESSES, this));
+			RecordCommand(NewCommand(EDisplayCommand_ENDNORMALPROCESSES, this));
 			m_pCurrentNormalProcess = NULL;
 			m_pNormalProcesses = NULL;
 		}
 		else
 		{
-			RecordCommand(NewCommand(EDIsplayCommand_BEGINNONORMALPROCESSES, this));
+			RecordCommand(NewCommand(EDisplayCommand_BEGINNONORMALPROCESSES, this));
 			//m_pRTChain->EnableAllRenderTargets();
 			//m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 			//m_pRTChain->RenderBeginPass(0);
 			//m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
 			RenderRecord(_pRP);
-			RecordCommand(NewCommand(EDIsplayCommand_ENDNONORMALPROCESSES, this));
+			RecordCommand(NewCommand(EDisplayCommand_ENDNONORMALPROCESSES, this));
 			//m_pRTChain->RenderEndPass();
 			//m_pRTChain->RenderEnd();
 		}
 
 		if ((NULL != m_pPostProcesses) && (false == m_pPostProcesses->empty()))
 		{
-			RecordCommand(NewCommand(EDIsplayCommand_BEGINPOSTPROCESSES, this));
+			RecordCommand(NewCommand(EDisplayCommand_BEGINPOSTPROCESSES, this));
 			// Apply post processes effects
 			//m_pRTChain->EnableAllRenderTargets();
 			//m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_POSTPROCESS);
@@ -143,7 +143,7 @@ namespace ElixirEngine
 				pPostProcess->RenderEndRecord();
 				++iPostProcess;
 			}
-			RecordCommand(NewCommand(EDIsplayCommand_ENDPOSTPROCESSES, this));
+			RecordCommand(NewCommand(EDisplayCommand_ENDPOSTPROCESSES, this));
 			//m_pRTChain->RenderEnd();
 			m_pPostProcesses = NULL;
 		}
@@ -218,32 +218,32 @@ namespace ElixirEngine
 
 		switch (_pCommand->m_uID)
 		{
-			case EDIsplayCommand_SETSTAGE:
+			case EDisplayCommand_SETSTAGE:
 			{
 				bResult = _pCommand->AddArg(m_pCurrentRenderStage);
 				break;
 			}
-			case EDIsplayCommand_BEGINNORMALPROCESSES:
+			case EDisplayCommand_BEGINNORMALPROCESSES:
 			{
 				break;
 			}
-			case EDIsplayCommand_ENDNORMALPROCESSES:
+			case EDisplayCommand_ENDNORMALPROCESSES:
 			{
 				break;
 			}
-			case EDIsplayCommand_BEGINNONORMALPROCESSES:
+			case EDisplayCommand_BEGINNONORMALPROCESSES:
 			{
 				break;
 			}
-			case EDIsplayCommand_ENDNONORMALPROCESSES:
+			case EDisplayCommand_ENDNONORMALPROCESSES:
 			{
 				break;
 			}
-			case EDIsplayCommand_BEGINPOSTPROCESSES:
+			case EDisplayCommand_BEGINPOSTPROCESSES:
 			{
 				break;
 			}
-			case EDIsplayCommand_ENDPOSTPROCESSES:
+			case EDisplayCommand_ENDPOSTPROCESSES:
 			{
 				break;
 			}

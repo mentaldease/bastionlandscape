@@ -37,14 +37,14 @@ namespace ElixirEngine
 
 		LandscapeVertexDefaultRef operator = (LandscapeVertexIndependentRef _rVertexIndependent);
 
-		Vector3	m_oPosition;
+		Vector3	m_f3Position;
 #if LANDSCAPE_USE_MORPHING
-		Vector3	m_oPosition2;
+		Vector3	m_f3Position2;
 #endif // LANDSCAPE_USE_MORPHING
-		Vector3	m_oNormal;
-		Vector4	m_oColor;
-		Vector2	m_oUV;
-		Vector3	m_oUV2; // slope, height, water level
+		Vector3	m_f3Normal;
+		Vector4	m_f4Color;
+		Vector2	m_f2UV;
+		Vector3	m_f3UV2; // slope, height, water level
 	};
 
 	struct LandscapeVertexLiquid
@@ -53,31 +53,31 @@ namespace ElixirEngine
 
 		LandscapeVertexLiquidRef operator = (LandscapeVertexIndependentRef _rVertexIndependent);
 
-		Vector3	m_oPosition;
-		Vector3	m_oNormal;
-		Vector3	m_oBiNormal;
-		Vector3	m_oTangent;
-		Vector2	m_oUV;
+		Vector3	m_f3Position;
+		Vector3	m_f3Normal;
+		Vector3	m_f3BiNormal;
+		Vector3	m_f3Tangent;
+		Vector2	m_f2UV;
 	};
 
 	struct LandscapeVertexIndependent
 	{
 		struct LODVertexLink
 		{
-			unsigned int	m_uLOD;
-			unsigned int	m_uIndex;
+			UInt	m_uLOD;
+			UInt	m_uIndex;
 		};
 		typedef vector<LODVertexLink> LODVertexLinkVec;
 
-		void AddLink(const unsigned int& _uLOD, const unsigned int& _uIndex);
+		void AddLink(const UInt& _uLOD, const UInt& _uIndex);
 
 		LODVertexLinkVec	m_vLinks;
-		Vector3				m_oPosition;
+		Vector3				m_f3Position;
 #if LANDSCAPE_USE_MORPHING
-		Vector3				m_oPosition2;
+		Vector3				m_f3Position2;
 #endif // LANDSCAPE_USE_MORPHING
-		Vector3				m_oNormal;
-		Vector2				m_oUV;
+		Vector3				m_f3Normal;
+		Vector2				m_f2UV;
 		float				m_fNormalizedSlope;
 		float				m_fNormalizedHeight;
 		UInt				m_uWaterLevel;
@@ -94,8 +94,8 @@ namespace ElixirEngine
 		{
 			string					m_strName;
 			OctreePtr				m_pOctree;
-			unsigned int			m_uQuadSize;
-			unsigned int			m_uGridSize;
+			UInt					m_uQuadSize;
+			UInt					m_uGridSize;
 			ELandscapeVertexFormat	m_eFormat;
 			string					m_strHeightmap;
 			string					m_strLayersConfig;
@@ -107,16 +107,16 @@ namespace ElixirEngine
 
 		struct LODInfo
 		{
-			unsigned int					m_uStartIndex;
-			unsigned int					m_uStripSize;
-			unsigned int					m_uGridSize;
-			unsigned int					m_uQuadSize;
-			unsigned int					m_uGeometricError;
-			unsigned int					m_uVertexPerRowCount;
-			unsigned int					m_uRowCount;
-			unsigned int					m_uVertexCount;
-			unsigned int					m_uNumVertices;
-			unsigned int					m_uIncrement;
+			UInt							m_uStartIndex;
+			UInt							m_uStripSize;
+			UInt							m_uGridSize;
+			UInt							m_uQuadSize;
+			UInt							m_uGeometricError;
+			UInt							m_uVertexPerRowCount;
+			UInt							m_uRowCount;
+			UInt							m_uVertexCount;
+			UInt							m_uNumVertices;
+			UInt							m_uIncrement;
 			Key								m_uVertexBuffer;
 			VoidPtr							m_pVertexes;
 			LandscapeVertexIndependentPtr	m_pVertexesIndependent;
@@ -136,15 +136,15 @@ namespace ElixirEngine
 			LODInfoPtr				m_pLODs;
 			OctreePtr				m_pOctree;
 			Key						m_uRenderStageKey;
-			unsigned int			m_uQuadSize;
-			unsigned int			m_uGridSize;
-			unsigned int			m_uChunkCount;
-			unsigned int			m_uVertexCount;
-			unsigned int			m_uVertexPerRowCount;
-			unsigned int			m_uRowCount;
-			unsigned int			m_uStripSize;
-			unsigned int			m_uLODCount;
-			unsigned int			m_uTotalLODStripSize;
+			UInt					m_uQuadSize;
+			UInt					m_uGridSize;
+			UInt					m_uChunkCount;
+			UInt					m_uVertexCount;
+			UInt					m_uVertexPerRowCount;
+			UInt					m_uRowCount;
+			UInt					m_uStripSize;
+			UInt					m_uLODCount;
+			UInt					m_uTotalLODStripSize;
 			float					m_fPixelErrorMax;
 			float					m_fFloorScale;
 			float					m_fHeightScale;
@@ -171,12 +171,14 @@ namespace ElixirEngine
 		void Close();
 
 		const GlobalInfo& GetGlobalInfo() const;
-		void GetVertexPosition(const LODInfo& _rLODInfo, const unsigned int& _uIndexBufferIndex, const unsigned int& _uVertexStartIndex, Vector3& _rPosition);
+		void GetVertexPosition(const LODInfo& _rLODInfo, const UInt& _uIndexBufferIndex, const UInt& _uVertexStartIndex, Vector3& _rPosition);
 		bool SetIndices();
-		bool UseLODVertexBuffer(const unsigned int& _uLOD);
+		bool UseLODVertexBuffer(const UInt& _uLOD);
+		bool RecordIndices();
+		bool RecordLODVertexBuffer(const UInt& _uLOD);
 		void UseLayering();
 
-		unsigned int m_uOutOfFrustum;
+		UInt m_uOutOfFrustum;
 
 	protected:
 		bool CreateVertexBufferIndependent();
@@ -201,6 +203,7 @@ namespace ElixirEngine
 		Key									m_uIndexBuffer;
 		UIntPtr								m_pIndexes;
 		LandscapeLayeringPtr				m_pLayering;
+		DisplayPtr							m_pDisplay;
 		Key									m_uRenderStageKey;
 
 	private:
@@ -224,12 +227,12 @@ namespace ElixirEngine
 
 		struct CreateInfo
 		{
-			unsigned int	m_uX;
-			unsigned int	m_uZ;
+			UInt	m_uX;
+			UInt	m_uZ;
 		};
 
 	public:
-		LandscapeChunk(LandscapeRef _rLandscape, OctreeRef _rOctree, const unsigned int& _uLOD);
+		LandscapeChunk(LandscapeRef _rLandscape, OctreeRef _rOctree, const UInt& _uLOD);
 		virtual ~LandscapeChunk();
 
 		virtual bool Create(const boost::any& _rConfig);
@@ -241,24 +244,28 @@ namespace ElixirEngine
 		virtual void SetRenderStage(const Key& _uRenderPass);
 		virtual void RenderBegin();
 		virtual void Render();
+		virtual bool RenderBeginRecord();
+		virtual bool RenderRecord();
+		virtual bool RenderEndRecord();
 
 		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
-		unsigned int GetLODID() const;
+		UInt GetLODID() const;
 
 	protected:
 		static Key				s_uMorphFactorKey;
 
 		LandscapeRef			m_rLandscape;
-		unsigned int			m_uStartVertexIndex;
-		unsigned int			m_uLOD;
+		UInt					m_uStartVertexIndex;
+		UInt					m_uLOD;
 		LandscapeChunkPtr		m_pParent;
 		LandscapeChunkPtr		m_pChildren[ESubChild_COUNT];
 		Vector3					m_oCenter;
 		Vector3					m_oExtends;
 		Landscape::LODInfoPtr	m_pLODInfo;
+		DisplayPtr				m_pDisplay;
 		float					m_fMorphFactor;
-		unsigned int			m_uIndexX;
-		unsigned int			m_uIndexZ;
+		UInt					m_uIndexX;
+		UInt					m_uIndexZ;
 
 	private:
 	};
@@ -281,11 +288,11 @@ namespace ElixirEngine
 		{
 			bool Evaluate(const float& _fSlope, const float& _fHeight);
 
-			unsigned int	m_uAtlasIndex;
-			float			m_fMinHeight;
-			float			m_fMaxHeight;
-			float			m_fMinSlope;
-			float			m_fMaxSlope;
+			UInt	m_uAtlasIndex;
+			float	m_fMinHeight;
+			float	m_fMaxHeight;
+			float	m_fMinSlope;
+			float	m_fMaxSlope;
 		};
 		typedef Layer*			LayerPtr;
 		typedef Layer&			LayerRef;

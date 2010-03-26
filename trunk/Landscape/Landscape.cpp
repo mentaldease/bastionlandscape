@@ -176,6 +176,7 @@ namespace ElixirEngine
 		m_uIndexBuffer(0),
 		m_pIndexes(NULL),
 		m_pLayering(NULL),
+		m_pDisplay(NULL),
 		m_uRenderStageKey(0)
 	{
 
@@ -205,6 +206,7 @@ namespace ElixirEngine
 	bool Landscape::Create(const boost::any& _rConfig)
 	{
 		Release();
+		m_pDisplay = Display::GetInstance();
 		return true;
 	}
 
@@ -216,6 +218,7 @@ namespace ElixirEngine
 	void Landscape::Release()
 	{
 		Close();
+		m_pDisplay = NULL;
 		DisplayObject::Release();
 	}
 
@@ -321,10 +324,9 @@ namespace ElixirEngine
 		for_each(m_vGrid.begin(), m_vGrid.end(), ReleaseAndDeleteFunction());
 		m_vGrid.clear();
 
-		DisplayPtr pDisplay = Display::GetInstance();
 		while (false == m_vVertexBuffers.empty())
 		{
-			pDisplay->ReleaseVertexBufferKey(m_vVertexBuffers.back());
+			m_pDisplay->ReleaseVertexBufferKey(m_vVertexBuffers.back());
 			m_vVertexBuffers.pop_back();
 		}
 
@@ -342,7 +344,7 @@ namespace ElixirEngine
 
 		if (0 != m_uIndexBuffer)
 		{
-			Display::GetInstance()->ReleaseIndexBufferKey(m_uIndexBuffer);
+			m_pDisplay->ReleaseIndexBufferKey(m_uIndexBuffer);
 			m_uIndexBuffer = 0;
 		}
 
@@ -368,13 +370,13 @@ namespace ElixirEngine
 			case ELandscapeVertexFormat_DEFAULT:
 			{
 				LandscapeVertexDefaultPtr pBuffer = static_cast<LandscapeVertexDefaultPtr>(_rLODInfo.m_pVertexes);
-				_rPosition = pBuffer[uVertexIndex].m_oPosition;
+				_rPosition = pBuffer[uVertexIndex].m_f3Position;
 				break;
 			}
 			case ELandscapeVertexFormat_LIQUID:
 			{
 				LandscapeVertexLiquidPtr pBuffer = static_cast<LandscapeVertexLiquidPtr>(_rLODInfo.m_pVertexes);
-				_rPosition = pBuffer[uVertexIndex].m_oPosition;
+				_rPosition = pBuffer[uVertexIndex].m_f3Position;
 				break;
 			}
 		}
@@ -382,13 +384,28 @@ namespace ElixirEngine
 
 	bool Landscape::SetIndices()
 	{
-		return Display::GetInstance()->SetCurrentIndexBufferKey(m_uIndexBuffer);
+		return m_pDisplay->SetCurrentIndexBufferKey(m_uIndexBuffer);
 	}
 
 	bool Landscape::UseLODVertexBuffer(const unsigned int& _uLOD)
 	{
 		m_uCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_uVertexBuffer;
-		bool bResult = Display::GetInstance()->SetCurrentVertexBufferKey(m_uCurrentVertexBuffer);
+		bool bResult = m_pDisplay->SetCurrentVertexBufferKey(m_uCurrentVertexBuffer);
+		return bResult;
+	}
+
+	bool Landscape::RecordIndices()
+	{
+		CoreCommandPtr pCommand = m_pDisplay->NewCommand(EDisplayCommand_SETINDEXBUFFER, m_pDisplay);
+		bool bResult = pCommand->AddArg((VoidPtr)m_uIndexBuffer);
+		return bResult;
+	}
+
+	bool Landscape::RecordLODVertexBuffer(const UInt& _uLOD)
+	{
+		m_uCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_uVertexBuffer;
+		CoreCommandPtr pCommand = m_pDisplay->NewCommand(EDisplayCommand_SETVERTEXBUFFER, m_pDisplay);
+		bool bResult = pCommand->AddArg((VoidPtr)m_uCurrentVertexBuffer);
 		return bResult;
 	}
 
@@ -399,7 +416,6 @@ namespace ElixirEngine
 
 	bool Landscape::CreateIndexBuffer()
 	{
-		DisplayPtr pDisplay = Display::GetInstance();
 		bool bResult = false;
 		m_pIndexes = new unsigned int[m_oGlobalInfo.m_uTotalLODStripSize];
 		bResult = (NULL != m_pIndexes);
@@ -432,11 +448,11 @@ namespace ElixirEngine
 			}
 
 			DisplayIndexBuffer::CreateInfo oIBCInfo = { m_oGlobalInfo.m_uTotalLODStripSize, false };
-			m_uIndexBuffer = pDisplay->CreateIndexBufferKey(oIBCInfo);
+			m_uIndexBuffer = m_pDisplay->CreateIndexBufferKey(oIBCInfo);
 			bResult = (0 != m_uIndexBuffer);
 			if (false != bResult)
 			{
-				bResult = pDisplay->SetIndexBufferKeyData(m_uIndexBuffer, m_pIndexes);
+				bResult = m_pDisplay->SetIndexBufferKeyData(m_uIndexBuffer, m_pIndexes);
 			}
 		}
 		return bResult;
@@ -475,8 +491,8 @@ namespace ElixirEngine
 
 	bool Landscape::LoadHeightmap(const string& _strFileName)
 	{
-		bool bResult = Display::GetInstance()->GetSurfaceManager()->Load(_strFileName, _strFileName);
-		DisplaySurfacePtr pSurface = Display::GetInstance()->GetSurfaceManager()->Get(_strFileName);
+		bool bResult = m_pDisplay->GetSurfaceManager()->Load(_strFileName, _strFileName);
+		DisplaySurfacePtr pSurface = m_pDisplay->GetSurfaceManager()->Get(_strFileName);
 
 		// load heightmap through a surface
 		if ((false != bResult) && (NULL != pSurface) && (pSurface->Lock(false)))
@@ -524,14 +540,14 @@ namespace ElixirEngine
 						const float fRowHeight = float(aRGBA[0]);
 						const UInt uWaterLevel = aRGBA[3];
 						pVertex->m_fNormalizedHeight = fRowHeight / 255.0f;
-						pVertex->m_oPosition.y = fRowHeight * m_oGlobalInfo.m_fHeightScale;
-						if (m_oGlobalInfo.m_fMinHeight > pVertex->m_oPosition.y)
+						pVertex->m_f3Position.y = fRowHeight * m_oGlobalInfo.m_fHeightScale;
+						if (m_oGlobalInfo.m_fMinHeight > pVertex->m_f3Position.y)
 						{
-							m_oGlobalInfo.m_fMinHeight = pVertex->m_oPosition.y;
+							m_oGlobalInfo.m_fMinHeight = pVertex->m_f3Position.y;
 						}
-						if (m_oGlobalInfo.m_fMaxHeight < pVertex->m_oPosition.y)
+						if (m_oGlobalInfo.m_fMaxHeight < pVertex->m_f3Position.y)
 						{
-							m_oGlobalInfo.m_fMaxHeight = pVertex->m_oPosition.y;
+							m_oGlobalInfo.m_fMaxHeight = pVertex->m_f3Position.y;
 						}
 						pVertex->m_uWaterLevel = uWaterLevel;
 						++pVertex;
@@ -552,7 +568,7 @@ namespace ElixirEngine
 			}
 			// release heightmap surface
 			pSurface->Unlock();
-			Display::GetInstance()->GetSurfaceManager()->Unload(_strFileName);
+			m_pDisplay->GetSurfaceManager()->Unload(_strFileName);
 		}
 
 		return bResult;

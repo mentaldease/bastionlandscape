@@ -17,7 +17,7 @@ namespace ElixirEngine
 
 		inline bool Reserve(const UInt _uCapacity);
 		inline bool Copy(const VoidPtr _pSrc, const UInt _uSize);
-		inline bool CanCopy(const UInt _uSize);
+		inline bool CanAlloc(const UInt _uSize);
 		inline VoidPtr Alloc(const UInt _uSize);
 		inline void Clear();
 
@@ -134,24 +134,27 @@ namespace ElixirEngine
 		virtual DisplayMaterialManagerRef GetMaterialManager();
 		virtual UInt GetPassCount();
 
-		bool RecordMatrix(Handle m_hData, MatrixPtr _pValue);
-		bool RecordTexture(Handle m_hData, BaseTexturePtr _pValue);
-		bool RecordFloat(Handle m_hData, const float _pValue);
-		bool RecordVector(Handle m_hData, Vector4Ptr _pValue);
-		bool RecordVectorArray(Handle m_hData, Vector4Ptr _pValue, const UInt _uCount);
-		bool RecordValue(Handle m_hData, VoidPtr m_pData, const UInt _uSize);
+		bool RecordMatrix(Handle _hData, MatrixPtr _pValue);
+		bool RecordTexture(Handle _hData, BaseTexturePtr _pValue);
+		bool RecordFloat(Handle _hData, float _fValue);
+		bool RecordVector(Handle _hData, Vector4Ptr _pValue);
+		bool RecordVectorArray(Handle _hData, Vector4Ptr _pValue, const UInt _uCount);
+		bool RecordValue(Handle _hData, VoidPtr _pValue, const UInt _uSize);
 
 	protected:
 		struct FATEntry
 		{
 			Handle	m_hParam;
-			UInt	m_uDataOffset;
+			VoidPtr	m_pData;
+			UInt	m_uSize;
+			UInt	m_uCount;
 		};
 		typedef FATEntry* FATEntryPtr;
 		typedef FATEntry& FATEntryRef;
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
+		FATEntryPtr GetOrCreateParamEntry(Handle _hData);
 
 	protected:
 		DisplayMaterialManagerRef	m_rMaterialManager;
