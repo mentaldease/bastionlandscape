@@ -1,6 +1,7 @@
 TODO :
-* faire en sorte que s se scale automatiquement par rapport à la taille du terrain (TerrainScattering.fx)
-* faire en sorte que s se scale automatiquement par rapport à la taille de la sphere (scattering.fxh)
-* faire en sorte que le radius sz la sphere se scale automatiquement par rapport à la taille du terrain (SceneTest00.lua)
-* mettre en place un system de jobs/tasks afin de tirer profit des cpu multicore
-* utiliser au maximum les asserts au lieu de simple test (surtout pour accès read/write de container (vector, map, custom))
+* faire en sorte que s se scale automatiquement par rapport à la taille du terrain (TerrainScattering.fx).
+* faire en sorte que s se scale automatiquement par rapport à la taille de la sphere (scattering.fxh).
+* faire en sorte que le radius sz la sphere se scale automatiquement par rapport à la taille du terrain (SceneTest00.lua).
+* mettre en place un system de jobs/tasks afin de tirer profit des cpu multicore.
+* utiliser au maximum les asserts au lieu de simple test (surtout pour accès read/write des conteneurs (vector, map, custom)).
+* utiliser des allocateurs spécifiques pour les conteneurs afin d'viter la fragmentation et tracker les memory leaks.
