@@ -28,6 +28,60 @@ namespace ElixirEngine
 	typedef DisplayMemoryBuffer* DisplayMemoryBufferPtr;
 	typedef DisplayMemoryBuffer& DisplayMemoryBufferRef;
 
+	inline bool DisplayMemoryBuffer::Reserve(const UInt _uCapacity)
+	{
+		if (NULL != m_pBuffer)
+		{
+			delete[] m_pBuffer;
+			m_pBuffer = NULL;
+		}
+
+		m_pBuffer = new Byte[_uCapacity];
+		m_uCapacity = _uCapacity;
+		m_uSize = 0;
+
+		return (NULL != m_pBuffer);
+	}
+
+	inline bool DisplayMemoryBuffer::Copy(const VoidPtr _pSrc, const UInt _uSize)
+	{
+		const bool bResult = CanAlloc(_uSize);
+		if (false != bResult)
+		{
+			memcpy_s(m_pBuffer + m_uSize, m_uCapacity - m_uSize, _pSrc, _uSize);
+			m_uSize += _uSize;
+		}
+		return bResult;
+	}
+
+	inline bool DisplayMemoryBuffer::CanAlloc(const UInt _uSize)
+	{
+		const bool bResult = (m_uCapacity >= (m_uSize + _uSize));
+		if (false == bResult)
+		{
+			UInt a = 0;
+			++a;
+		}
+		return bResult;
+	}
+
+	inline VoidPtr DisplayMemoryBuffer::Alloc(const UInt _uSize)
+	{
+		VoidPtr pResult = NULL;
+		const bool bResult = CanAlloc(_uSize);
+		if (false != bResult)
+		{
+			pResult = m_pBuffer + m_uSize;
+			m_uSize += _uSize;
+		}
+		return pResult;
+	}
+
+	inline void DisplayMemoryBuffer::Clear()
+	{
+		m_uSize = 0;
+	}
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -80,7 +134,6 @@ namespace ElixirEngine
 
 		virtual void RenderRequest(DisplayMaterialPtr _pDisplayMaterial);
 		virtual void Render();
-		virtual bool RenderRecord();
 		virtual EffectPtr GetEffect();
 
 		Handle GetHandleBySemanticKey(const Key& _uKey);
@@ -91,6 +144,7 @@ namespace ElixirEngine
 		bool GetParameters();
 
 	protected:
+		string					m_strName;
 		map<Key, string>		m_mSemantics;
 		DisplayRef				m_rDisplay;
 		EffectPtr				m_pEffect;
@@ -127,19 +181,9 @@ namespace ElixirEngine
 		virtual void Render();
 		virtual void UseParams();
 
-		virtual bool RenderRecord();
-		virtual bool RecordParams();
-
 		virtual DisplayEffectPtr GetEffect();
 		virtual DisplayMaterialManagerRef GetMaterialManager();
 		virtual UInt GetPassCount();
-
-		bool RecordMatrix(Handle _hData, MatrixPtr _pValue);
-		bool RecordTexture(Handle _hData, BaseTexturePtr _pValue);
-		bool RecordFloat(Handle _hData, float _fValue);
-		bool RecordVector(Handle _hData, Vector4Ptr _pValue);
-		bool RecordVectorArray(Handle _hData, Vector4Ptr _pValue, const UInt _uCount);
-		bool RecordValue(Handle _hData, VoidPtr _pValue, const UInt _uSize);
 
 	protected:
 		struct FATEntry
@@ -154,7 +198,8 @@ namespace ElixirEngine
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
-		FATEntryPtr GetOrCreateParamEntry(Handle _hData);
+		FATEntryPtr GetOrCreateParamEntry(Handle _hData, FATEntryPtr _pFAT);
+		FATEntryPtr GetParamEntry(Handle _hData, FATEntryPtr _pFAT);
 
 	protected:
 		DisplayMaterialManagerRef	m_rMaterialManager;
@@ -162,8 +207,6 @@ namespace ElixirEngine
 		DisplayObjectPtrVec			m_vRenderList;
 		DisplayEffectParamPtrVec	m_vParams;
 		Handle						m_hTechnique;
-		DisplayMemoryBufferPtr		m_pParamsBuffer;
-		FATEntryPtr					m_pParamFAT;
 		UInt						m_uPassCount;
 
 	private:
@@ -339,41 +382,6 @@ namespace ElixirEngine
 		}
 
 		DisplayMaterialPtr	m_pMaterial;
-	};
-
-	struct RecordRenderObjectFunction
-	{
-		RecordRenderObjectFunction(DisplayMaterialPtr _pMaterial)
-		:	m_pMaterial(_pMaterial),
-			m_bResult(true)
-		{
-
-		}
-
-		void operator() (DisplayObjectPtr _pDisplayObject)
-		{
-			DisplayPtr pDisplay = Display::GetInstance();
-			//EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
-			const UInt uPassCount = m_pMaterial->GetPassCount();
-			//pEffect->Begin(&uPassCount, 0);
-			m_bResult &= _pDisplayObject->RenderBeginRecord();
-			pDisplay->SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
-			for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
-			{
-				//pDisplay->MRTRenderBeginPass(uPass);
-				//pEffect->BeginPass(uPass);
-				m_bResult &= m_pMaterial->RecordParams();
-				//pEffect->CommitChanges();
-				m_bResult &= _pDisplayObject->RenderRecord();
-				//pEffect->EndPass();
-				//pDisplay->MRTRenderEndPass();
-			}
-			m_bResult &= _pDisplayObject->RenderEndRecord();
-			//pEffect->End();
-		}
-
-		DisplayMaterialPtr	m_pMaterial;
-		bool				m_bResult;
 	};
 }
 

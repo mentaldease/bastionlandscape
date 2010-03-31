@@ -193,39 +193,6 @@ namespace ElixirEngine
 		}
 	}
 
-	bool LandscapeChunk::RenderBeginRecord()
-	{
-		RenderBegin();
-		return true;
-	}
-
-	bool LandscapeChunk::RenderRecord()
-	{
-		bool bResult = m_rLandscape.RecordLODVertexBuffer(m_uLOD) && m_rLandscape.RecordIndices();
-
-		if (false != bResult)
-		{
-			const UInt uVertexCount = m_pLODInfo->m_uNumVertices;
-			const UInt uStartIndex = m_pLODInfo->m_uStartIndex;
-			const UInt uStripSize = m_pLODInfo->m_uStripSize - 2;
-
-			CoreCommandPtr pCommand = m_pDisplay->NewCommand(EDisplayCommand_DRAWINDEXEDPRIMITIVE, m_pDisplay);
-			bResult &= pCommand->AddArg((VoidPtr)D3DPT_TRIANGLESTRIP);
-			bResult &= pCommand->AddArg((VoidPtr)m_uStartVertexIndex);
-			bResult &= pCommand->AddArg((VoidPtr)0);
-			bResult &= pCommand->AddArg((VoidPtr)uVertexCount);
-			bResult &= pCommand->AddArg((VoidPtr)uStartIndex);
-			bResult &= pCommand->AddArg((VoidPtr)uStripSize);
-		}
-
-		return bResult;
-	}
-
-	bool LandscapeChunk::RenderEndRecord()
-	{
-		return true;
-	}
-
 	void LandscapeChunk::Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize)
 	{
 		const Landscape::GlobalInfo& rGlobalInfo = m_rLandscape.GetGlobalInfo();

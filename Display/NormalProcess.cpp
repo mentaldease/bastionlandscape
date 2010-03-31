@@ -70,63 +70,12 @@ namespace ElixirEngine
 
 	void DisplayNormalProcess::RenderBegin()
 	{
-		// prepare render targets
-		m_pRTChain->DisableAllRenderTargets();
-		const UInt uCount = UInt(m_vRTNames.size());
-		for (UInt i = 0 ; uCount > i ; ++i)
-		{
-			const Key uRTTypeKey = m_vRTTypes[i];
-			if (s_uTypeTex2DKey == uRTTypeKey)
-			{
-				const Key uRTIndex = m_vRTIndexes[i];
-				const Key uRTName = m_vRTNames[i];
-				DisplayRenderTargetPtr pRT = m_pRTChain->GetRenderTarget(UInt(uRTIndex));
-				pRT->SetEnabled(true);
-				pRT->SetIndex(i);
-				pRT->SetRTOverride(m_rDisplay.GetTextureManager()->Get(uRTName));
-			}
-			else if (s_uTypeGBufferKey == uRTTypeKey)
-			{
-				const Key uRTIndex = m_vRTIndexes[i];
-				DisplayRenderTargetPtr pRT = m_pRTChain->GetRenderTarget(UInt(uRTIndex));
-				pRT->SetEnabled(true);
-				pRT->SetIndex(i);
-				pRT->SetRTOverride(NULL);
-			}
-		}
-
-		// set view port
-		m_rDisplay.GetCurrentCamera()->SetViewport(m_uViewportNameKey);
-
-		// start scene render
-		m_pRTChain->SetImmediateWrite(0 == uCount);
-		m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
-		if (false != ClearRequired())
-		{
-			const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
-			const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
-			const UInt uClearColor = uBlack;
-
-			m_pRTChain->RenderBeginPass(0);
-			m_rDisplay.GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
-			m_pRTChain->RenderEndPass();
-		}
+		RenderBegin(true);
 	}
 
 	void DisplayNormalProcess::RenderEnd()
 	{
 		m_pRTChain->RenderEnd();
-	}
-
-	bool DisplayNormalProcess::RenderBeginRecord()
-	{
-		m_rDisplay.GetCurrentCamera()->SetViewport(m_uViewportNameKey);
-		return true;
-	}
-
-	bool DisplayNormalProcess::RenderEndRecord()
-	{
-		return true;
 	}
 
 	Key DisplayNormalProcess::GetNameKey()
@@ -195,5 +144,53 @@ namespace ElixirEngine
 		}
 
 		return bResult;
+	}
+
+	void DisplayNormalProcess::RenderBegin(const bool _bSetViewport)
+	{
+		// prepare render targets
+		m_pRTChain->DisableAllRenderTargets();
+		const UInt uCount = UInt(m_vRTNames.size());
+		for (UInt i = 0 ; uCount > i ; ++i)
+		{
+			const Key uRTTypeKey = m_vRTTypes[i];
+			if (s_uTypeTex2DKey == uRTTypeKey)
+			{
+				const Key uRTIndex = m_vRTIndexes[i];
+				const Key uRTName = m_vRTNames[i];
+				DisplayRenderTargetPtr pRT = m_pRTChain->GetRenderTarget(UInt(uRTIndex));
+				pRT->SetEnabled(true);
+				pRT->SetIndex(i);
+				pRT->SetRTOverride(m_rDisplay.GetTextureManager()->Get(uRTName));
+			}
+			else if (s_uTypeGBufferKey == uRTTypeKey)
+			{
+				const Key uRTIndex = m_vRTIndexes[i];
+				DisplayRenderTargetPtr pRT = m_pRTChain->GetRenderTarget(UInt(uRTIndex));
+				pRT->SetEnabled(true);
+				pRT->SetIndex(i);
+				pRT->SetRTOverride(NULL);
+			}
+		}
+
+		if (false != _bSetViewport)
+		{
+			// set view port
+			m_rDisplay.GetCurrentCamera()->SetViewport(m_uViewportNameKey);
+		}
+
+		// start scene render
+		m_pRTChain->SetImmediateWrite(0 == uCount);
+		m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
+		if (false != ClearRequired())
+		{
+			const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
+			const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
+			const UInt uClearColor = uBlack;
+
+			m_pRTChain->RenderBeginPass(0);
+			m_rDisplay.GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
+			m_pRTChain->RenderEndPass();
+		}
 	}
 }

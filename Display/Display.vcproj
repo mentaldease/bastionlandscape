@@ -167,10 +167,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DisplayRecord.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\DisplayScripting.cpp"
 				>
 			</File>
@@ -196,6 +192,14 @@
 			</File>
 			<File
 				RelativePath=".\GeometryHelperSphere.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Material.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MaterialManager.cpp"
 				>
 			</File>
 			<File

@@ -110,16 +110,6 @@ namespace ElixirEngine
 
 	}
 
-	bool DisplayPostProcess::RenderBeginRecord()
-	{
-		return true;
-	}
-
-	bool DisplayPostProcess::RenderEndRecord()
-	{
-		return true;
-	}
-
 	bool DisplayPostProcess::CreateFromLuaConfig(CreateInfoRef _rInfo)
 	{
 		LuaObjectRef rLuaObject = *_rInfo.m_pLuaObject;

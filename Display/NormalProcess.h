@@ -33,11 +33,9 @@ namespace ElixirEngine
 		Key GetNameKey();
 		bool ClearRequired();
 
-		bool RenderBeginRecord();
-		bool RenderEndRecord();
-
 	protected:
 		bool CreateFromLuaConfig(CreateInfoRef _rInfo);
+		void RenderBegin(const bool _bSetViewport);
 
 	protected:
 		static Key s_uTypeTex2DKey;

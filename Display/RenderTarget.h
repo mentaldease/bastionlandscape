@@ -47,6 +47,7 @@ namespace ElixirEngine
 
 	protected:
 		Vertex			m_aQuad[4];
+		DisplayRef		m_rDisplay; 
 		VertexBufferPtr	m_pPreviousVertexBuffer;
 		VertexDeclPtr	m_pPreviousVertexDecl;
 		Key				m_uVertexDecl;

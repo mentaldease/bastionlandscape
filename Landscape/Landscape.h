@@ -174,8 +174,6 @@ namespace ElixirEngine
 		void GetVertexPosition(const LODInfo& _rLODInfo, const UInt& _uIndexBufferIndex, const UInt& _uVertexStartIndex, Vector3& _rPosition);
 		bool SetIndices();
 		bool UseLODVertexBuffer(const UInt& _uLOD);
-		bool RecordIndices();
-		bool RecordLODVertexBuffer(const UInt& _uLOD);
 		void UseLayering();
 
 		UInt m_uOutOfFrustum;
@@ -244,9 +242,6 @@ namespace ElixirEngine
 		virtual void SetRenderStage(const Key& _uRenderPass);
 		virtual void RenderBegin();
 		virtual void Render();
-		virtual bool RenderBeginRecord();
-		virtual bool RenderRecord();
-		virtual bool RenderEndRecord();
 
 		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
 		UInt GetLODID() const;

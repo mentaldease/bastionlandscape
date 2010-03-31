@@ -119,42 +119,6 @@ namespace ElixirEngine
 		}
 	}
 
-	bool DisplayGeometrySphere::RenderBeginRecord()
-	{
-		RenderBegin();
-		return true;
-	}
-
-	bool DisplayGeometrySphere::RenderRecord()
-	{
-		DisplayPtr pDisplay = Display::GetInstance();
-		bool bResult = true;
-		{
-			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_SETVERTEXBUFFER, pDisplay);
-			bResult &= pCommand->AddArg((VoidPtr)m_uVertexBuffer);
-		}
-		{
-			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_SETINDEXBUFFER, pDisplay);
-			bResult &= pCommand->AddArg((VoidPtr)m_uIndexBuffer);
-		}
-		{
-			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_DRAWINDEXEDPRIMITIVE, pDisplay);
-			bResult &= pCommand->AddArg((VoidPtr)D3DPT_TRIANGLESTRIP);
-			bResult &= pCommand->AddArg((VoidPtr)0);
-			bResult &= pCommand->AddArg((VoidPtr)0);
-			bResult &= pCommand->AddArg((VoidPtr)m_uVertexCount);
-			bResult &= pCommand->AddArg((VoidPtr)0);
-			bResult &= pCommand->AddArg((VoidPtr)(m_uIndexCount - 2));
-		}
-
-		return bResult;
-	}
-
-	bool DisplayGeometrySphere::RenderEndRecord()
-	{
-		return true;
-	}
-
 	bool DisplayGeometrySphere::CreateBuffers(CreateInfoRef _rInfo)
 	{
 		DisplayPtr pDisplay = Display::GetInstance();

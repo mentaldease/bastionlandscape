@@ -91,12 +91,6 @@ namespace ElixirEngine
 		m_vNormalProcesses.clear();
 	}
 
-	bool DisplayRenderStage::UpdateRecord()
-	{
-		Update();
-		return true;
-	}
-
 	void DisplayRenderStage::RenderRequest(DisplayObjectPtr _pDisplayObject)
 	{
 		if (m_vRenderList.end() == find(m_vRenderList.begin(), m_vRenderList.end(), _pDisplayObject))

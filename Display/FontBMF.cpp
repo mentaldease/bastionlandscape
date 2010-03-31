@@ -89,7 +89,7 @@ namespace ElixirEngine
 		{
 			if (false != m_bRebuildText)
 			{
-				BuildText();
+				BuildText(m_bTextChanged, m_bSizeChanged, m_bRebuildText);
 				m_bTextChanged = false;
 				m_bSizeChanged = false;
 				m_bRebuildText = false;
@@ -109,50 +109,6 @@ namespace ElixirEngine
 			}
 		}
 
-		bool DisplayFontText::RenderBeginRecord()
-		{
-			DisplayPtr pDisplay = Display::GetInstance();
-			bool bResult = true;
-
-			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_SETVERTEXDECLARATION, pDisplay);
-			bResult &= pCommand->AddArg((VoidPtr)m_pFont->GetLoader().GetVertexDecl());
-
-			const static Key uBitmapFontDiffuse = MakeKey(string("BITMAPFONTDIFFUSE"));
-			pDisplay->GetMaterialManager()->SetVector4BySemantic(uBitmapFontDiffuse, &m_f4Color);
-
-			return bResult;
-		}
-
-		bool DisplayFontText::RenderRecord()
-		{
-			DisplayPtr pDisplay = Display::GetInstance();
-			bool bResult = true;
-
-			if (false != m_bRebuildText)
-			{
-				CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_BUILDTEXT, this);
-				bResult &= pCommand->AddArg((VoidPtr)m_bTextChanged);
-				bResult &= pCommand->AddArg((VoidPtr)m_bSizeChanged);
-				bResult &= pCommand->AddArg((VoidPtr)m_bRebuildText);
-				m_bTextChanged = false;
-				m_bSizeChanged = false;
-				m_bRebuildText = false;
-			}
-
-			CoreCommandPtr pCommand = pDisplay->NewCommand(EDisplayCommand_DRAWPRIMITIVEUP, pDisplay);
-			bResult &= pCommand->AddArg((VoidPtr)D3DPT_TRIANGLESTRIP);
-			bResult &= pCommand->AddArg((VoidPtr)(m_uVertexCount - 2));
-			bResult &= pCommand->AddArg((VoidPtr)m_pVertex);
-			bResult &= pCommand->AddArg((VoidPtr)sizeof(VertexFont));
-
-			return bResult;
-		}
-
-		bool DisplayFontText::RenderEndRecord()
-		{
-			return true;
-		}
-
 		void DisplayFontText::SetText(const wstring& _wstrText)
 		{
 			m_bSizeChanged = (m_wstrText.length() != _wstrText.length());
@@ -166,7 +122,7 @@ namespace ElixirEngine
 			m_f4Color = _f4Color;
 		}
 
-		void DisplayFontText::BuildText()
+		void DisplayFontText::BuildText(const bool _bTextChanged, const bool _bSizeChanged, const bool _bRebuildText)
 		{
 			// +4 vertex for each char
 			// +2 vertex to link to next char
@@ -174,7 +130,7 @@ namespace ElixirEngine
 			const UInt uCharCount = UInt(m_wstrText.length());
 			const UInt uVertexCount = uCharCount * (4 + 2) - 2;
 
-			if ((NULL != m_pVertex) && (false != m_bSizeChanged))
+			if ((NULL != m_pVertex) && (false != _bSizeChanged))
 			{
 				m_pFont->m_rFontLoader.GetVertexPool().Free(m_pVertex);
 				m_pVertex = NULL;

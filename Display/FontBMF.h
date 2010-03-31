@@ -256,15 +256,12 @@ namespace ElixirEngine
 			virtual void RenderBegin();
 			virtual void Render();
 			virtual void RenderEnd();
-			virtual bool RenderBeginRecord();
-			virtual bool RenderRecord();
-			virtual bool RenderEndRecord();
 
 			virtual void SetText(const wstring& _wstrText);
 			virtual void SetColor(const Vector4& _f4Color);
 
 		protected:
-			void BuildText();
+			void BuildText(const bool _bTextChanged, const bool _bSizeChanged, const bool _bRebuildText);
 
 		protected:
 			wstring							m_wstrText;

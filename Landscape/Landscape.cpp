@@ -394,21 +394,6 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	bool Landscape::RecordIndices()
-	{
-		CoreCommandPtr pCommand = m_pDisplay->NewCommand(EDisplayCommand_SETINDEXBUFFER, m_pDisplay);
-		bool bResult = pCommand->AddArg((VoidPtr)m_uIndexBuffer);
-		return bResult;
-	}
-
-	bool Landscape::RecordLODVertexBuffer(const UInt& _uLOD)
-	{
-		m_uCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_uVertexBuffer;
-		CoreCommandPtr pCommand = m_pDisplay->NewCommand(EDisplayCommand_SETVERTEXBUFFER, m_pDisplay);
-		bool bResult = pCommand->AddArg((VoidPtr)m_uCurrentVertexBuffer);
-		return bResult;
-	}
-
 	void Landscape::UseLayering()
 	{
 		LandscapeLayerManager::GetInstance()->SetCurrentLayering(m_pLayering);
