@@ -150,14 +150,14 @@ namespace ElixirEngine
 
 	void Time::Release()
 	{
-		struct TimerReleaseFunction
-		{
-			void operator() (TimerRef _rTimer)
-			{
-				_rTimer.Release();
-			}
-		};
-		for_each(m_vTimers.begin(), m_vTimers.end(), TimerReleaseFunction());
+		//struct TimerReleaseFunction
+		//{
+		//	void operator() (TimerRef _rTimer)
+		//	{
+		//		_rTimer.Release();
+		//	}
+		//};
+		//for_each(m_vTimers.begin(), m_vTimers.end(), TimerReleaseFunction());
 		m_vTimers.clear();
 	}
 
