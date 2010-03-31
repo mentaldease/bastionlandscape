@@ -22,7 +22,7 @@ namespace ElixirEngine
 		void Reserve(const UInt _uCapacity);
 		TPtr Alloc(const UInt _uCount = 1);
 		void Free(TPtr _pData);
-		void FreeAll();
+		void Clear();
 		UInt Capacity() const;
 		UInt Size() const;
 
@@ -137,12 +137,12 @@ namespace ElixirEngine
 	}
 
 	template <typename T>
-	void Pool<T>::FreeAll()
+	void Pool<T>::Clear()
 	{
 		m_mAvailable.clear();
 		m_mInUse.clear();
-		m_uSize = 0;
 		AddToAvailable(m_pBuffer, m_uCapacity);
+		m_uSize = 0;
 	}
 
 	template <typename T>

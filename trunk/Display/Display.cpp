@@ -52,6 +52,7 @@ namespace ElixirEngine
 		m_pRTChain(NULL),
 		m_pNormalProcesses(NULL),
 		m_pCurrentNormalProcess(NULL),
+		m_pCurrentPostProcess(NULL),
 		m_pCurrentVertexBuffer(NULL),
 		m_pCurrentIndexBuffer(NULL),
 		m_pCurrentRenderStage(NULL),
@@ -61,9 +62,7 @@ namespace ElixirEngine
 		m_uCurrentVertexDecl(0),
 		m_uVertexDeclID(0),
 		m_uWidth(0),
-		m_uHeight(0),
-		m_oCommands(),
-		m_vCommands()
+		m_uHeight(0)
 	{
 		if (NULL == GetInstance())
 		{
@@ -92,7 +91,6 @@ namespace ElixirEngine
 		}
 		if (false != bResult)
 		{
-			m_oCommands.Reserve(10 * 1024);
 			bResult = OpenVideo(*pWindowData);
 		}
 
@@ -167,11 +165,6 @@ namespace ElixirEngine
 			m_pDirect3D->Release();
 			m_pDirect3D = NULL;
 		}
-	}
-
-	bool Display::UpdateReplay()
-	{
-		return false;
 	}
 
 	bool Display::OpenVideo(WindowData& _rWindowData)
@@ -792,16 +785,16 @@ namespace ElixirEngine
 		}
 	}
 
-	void Display::RenderStage(DisplayRenderStagePtr _pRP)
+	void Display::RenderStage(DisplayRenderStagePtr _pRS)
 	{
 		PROFILING(__FUNCTION__);
 		const UInt uBlack = D3DCOLOR_XRGB(0, 0, 0);
 		const UInt uBlue = D3DCOLOR_XRGB(16, 32, 64);
 		const UInt uClearColor = uBlack;
 
-		//vsoutput(__FUNCTION__" : render stage %x\n", _pRP->GetNameKey());
+		//vsoutput(__FUNCTION__" : render stage %x\n", _pRS->GetNameKey());
 
-		_pRP->Update();
+		_pRS->Update();
 
 		// Render scene to buffers
 		if ((NULL != m_pNormalProcesses) && (false == m_pNormalProcesses->empty()))
@@ -812,7 +805,7 @@ namespace ElixirEngine
 			{
 				m_pCurrentNormalProcess = *iNormalProcess;
 				m_pCurrentNormalProcess->RenderBegin();
-				Render(_pRP);
+				Render(_pRS);
 				m_pCurrentNormalProcess->RenderEnd();
 
 				++iNormalProcess;
@@ -826,7 +819,7 @@ namespace ElixirEngine
 			m_pRTChain->RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 			m_pRTChain->RenderBeginPass(0);
 			m_pDevice->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, uClearColor, 1.0f, 0L);
-			Render(_pRP);
+			Render(_pRS);
 			m_pRTChain->RenderEndPass();
 			m_pRTChain->RenderEnd();
 		}
@@ -840,20 +833,21 @@ namespace ElixirEngine
 			DisplayPostProcessPtrVec::iterator iEnd = m_pPostProcesses->end();
 			while (iEnd != iPostProcess)
 			{
-				DisplayPostProcessPtr pPostProcess = *iPostProcess;
-				pPostProcess->RenderBegin();
-				pPostProcess->Update();
-				pPostProcess->RenderEnd();
+				m_pCurrentPostProcess = *iPostProcess;
+				m_pCurrentPostProcess->RenderBegin();
+				m_pCurrentPostProcess->Update();
+				m_pCurrentPostProcess->RenderEnd();
 				++iPostProcess;
 			}
 			m_pRTChain->RenderEnd();
+			m_pCurrentPostProcess = NULL;
 			m_pPostProcesses = NULL;
 		}
 
-		_pRP->GetRenderList().clear();
+		_pRS->GetRenderList().clear();
 	}
 
-	void Display::Render(DisplayRenderStagePtr _pRP)
+	void Display::Render(DisplayRenderStagePtr _pRS)
 	{
 		PROFILING(__FUNCTION__);
 		m_pCurrentCamera->Update();
@@ -863,7 +857,7 @@ namespace ElixirEngine
 		{
 			PROFILING(__FUNCTION__" [REQUESTS]");
 			// only use registered objects for this pass
-			DisplayObjectPtrVec& vDisplayObjects = _pRP->GetRenderList();
+			DisplayObjectPtrVec& vDisplayObjects = _pRS->GetRenderList();
 			DisplayObjectPtrVec::iterator iDisplayObject = vDisplayObjects.begin();
 			DisplayObjectPtrVec::iterator iEnd = vDisplayObjects.end();
 			while (iEnd != iDisplayObject)
@@ -893,16 +887,5 @@ namespace ElixirEngine
 			for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderEffectFunction());
 			m_vRenderList.clear();
 		}
-	}
-
-	CoreCommandPtr Display::NewCommand(const UInt _uCommandID, CoreObjectPtr _pTarget)
-	{
-		CoreCommandPtr pResult = m_oCommands.Alloc();
-		if (NULL != pResult)
-		{
-			m_vCommands.push_back(pResult);
-			return pResult;
-		}
-		return NULL;
 	}
 }

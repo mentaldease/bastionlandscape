@@ -22,22 +22,33 @@ namespace ElixirEngine
 
 	enum EDIsplayCommand
 	{
-		EDisplayCommand_SETSTAGE,
-		EDisplayCommand_BEGINNORMALPROCESSES,
-		EDisplayCommand_ENDNORMALPROCESSES,
-		EDisplayCommand_BEGINNONORMALPROCESSES,
-		EDisplayCommand_ENDNONORMALPROCESSES,
-		EDisplayCommand_BEGINPOSTPROCESSES,
-		EDisplayCommand_ENDPOSTPROCESSES,
-		EDisplayCommand_SETMATERIALTECHNIQUE,
-		EDisplayCommand_SETPARAMSMEMORY,
-		EDisplayCommand_DRAWINDEXEDPRIMITIVE,
-		EDisplayCommand_BUILDTEXT,
-		EDisplayCommand_DRAWPRIMITIVEUP,
-		EDisplayCommand_SETVERTEXDECLARATION,
-		EDisplayCommand_SETINDEXBUFFER,
-		EDisplayCommand_SETVERTEXBUFFER,
-		EDisplayCommand_DRAWINDEXEDPRIMITIVEUP
+		EDisplayCommand_UNKNOWN,				// 0
+		EDisplayCommand_SETSTAGE,				// 1
+		EDisplayCommand_BEGINNORMALPROCESS,		// 2
+		EDisplayCommand_ENDNORMALPROCESS,		// 3
+		EDisplayCommand_BEGINNONORMALPROCESSES,	// 4
+		EDisplayCommand_ENDNONORMALPROCESSES,	// 5
+		EDisplayCommand_BEGINNORMALPROCESSES,	// 6
+		EDisplayCommand_ENDNORMALPROCESSES,		// 7
+		EDisplayCommand_BEGINPOSTPROCESSES,		// 8
+		EDisplayCommand_ENDPOSTPROCESSES,		// 9
+		EDisplayCommand_BEGINPOSTPROCESS,		// 10
+		EDisplayCommand_ENDPOSTPROCESS,			// 11
+		EDisplayCommand_EFFECTUSEPARAMS,		// 12
+		EDisplayCommand_DRAWINDEXEDPRIMITIVE,	// 13
+		EDisplayCommand_BUILDTEXT,				// 14
+		EDisplayCommand_DRAWPRIMITIVEUP,		// 15
+		EDisplayCommand_SETVERTEXDECLARATION,	// 16
+		EDisplayCommand_SETINDEXBUFFER,			// 17
+		EDisplayCommand_SETVERTEXBUFFER,		// 18
+		EDisplayCommand_DRAWINDEXEDPRIMITIVEUP,	// 19
+		EDisplayCommand_SETNORMALPROCESS,		// 20
+		EDisplayCommand_SETPOSTPROCESS,			// 21
+		EDisplayCommand_EFFECTBEGIN,			// 22
+		EDisplayCommand_EFFECTEND,				// 23
+		EDisplayCommand_EFFECTBEGINPASS,		// 24
+		EDisplayCommand_EFFECTENDPASS,			// 25
+		EDisplayCommand_EFFECTCOMMITCHANGE		// 26
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -52,8 +63,6 @@ namespace ElixirEngine
 			pObject->Render();
 		}
 	};
-
-	typedef Pool<CoreCommand> CoreCommandPool;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -154,10 +163,6 @@ namespace ElixirEngine
 		virtual void Render() = 0;
 		virtual void RenderEnd() {};
 
-		virtual bool RenderBeginRecord() { return false; };
-		virtual bool RenderRecord() { return false; };
-		virtual bool RenderEndRecord() { return false; };
-
 	protected:
 		Matrix				m_oWorld;
 		DisplayMaterialPtr	m_pMaterial;
@@ -177,9 +182,6 @@ namespace ElixirEngine
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
-		virtual bool UpdateRecord();
-		virtual bool RecordCommand(CoreCommandPtr _pCommand);
-		virtual bool UpdateReplay();
 
 		bool OpenVideo(WindowData& _rWindowData);
 		void CloseVideo();
@@ -235,8 +237,6 @@ namespace ElixirEngine
 		Key GetCurrentVertexDeclaration();
 		void ReleaseVertexDeclaration(const Key _uVertexDeclaration);
 
-		CoreCommandPtr NewCommand(const UInt _uCommandID, CoreObjectPtr _pTarget);
-
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
 		static D3DFORMAT StringToDisplayFormat(const string& _strFormatName, const D3DFORMAT& _uDefaultFormat);
@@ -248,11 +248,8 @@ namespace ElixirEngine
 		static void InitDisplayFormatMap();
 
 		void RenderUpdate();
-		void RenderStage(DisplayRenderStagePtr _pRP);
-		void Render(DisplayRenderStagePtr _pRP);
-
-		bool RenderStageRecord(DisplayRenderStagePtr _pRP);
-		bool RenderRecord(DisplayRenderStagePtr _pRP);
+		void RenderStage(DisplayRenderStagePtr _pRS);
+		void Render(DisplayRenderStagePtr _pRS);
 
 		DisplayVertexBufferPtr CreateVertexBuffer(DisplayVertexBuffer::CreateInfo& _rCreateInfo);
 		bool SetCurrentVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer);
@@ -289,6 +286,7 @@ namespace ElixirEngine
 		DisplayRenderTargetChainPtr		m_pRTChain;
 		DisplayNormalProcessPtrVecPtr	m_pNormalProcesses;
 		DisplayNormalProcessPtr			m_pCurrentNormalProcess;
+		DisplayPostProcessPtr			m_pCurrentPostProcess;
 		DisplayVertexBufferPtr			m_pCurrentVertexBuffer;
 		DisplayIndexBufferPtr			m_pCurrentIndexBuffer;
 		DisplayRenderStagePtr			m_pCurrentRenderStage;
@@ -299,9 +297,6 @@ namespace ElixirEngine
 		Key								m_uVertexDeclID;
 		unsigned int					m_uWidth;
 		unsigned int					m_uHeight;
-
-		CoreCommandPool					m_oCommands;
-		CoreCommandPtrVec				m_vCommands;
 
 	private:
 	};

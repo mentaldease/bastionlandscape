@@ -20,6 +20,7 @@ namespace ElixirEngine
 
 	DisplayRenderTargetGeometry::DisplayRenderTargetGeometry(DisplayRef _rDisplay)
 	:	DisplayObject(),
+		m_rDisplay(*Display::GetInstance()),
 		m_pPreviousVertexBuffer(NULL),
 		m_pPreviousVertexDecl(NULL),
 		m_uVertexDecl(0),
@@ -57,7 +58,7 @@ namespace ElixirEngine
 			};
 			memcpy(m_aQuad, aQuad, 4 * sizeof(Vertex));
 
-			m_uVertexDecl = Display::GetInstance()->CreateVertexDeclaration(DisplayRenderTargetGeometry::Vertex::s_aDecl);
+			m_uVertexDecl = m_rDisplay.CreateVertexDeclaration(DisplayRenderTargetGeometry::Vertex::s_aDecl);
 			bResult = (0 != m_uVertexDecl);
 		}
 
@@ -73,7 +74,7 @@ namespace ElixirEngine
 	{
 		if (0 != m_uVertexDecl)
 		{
-			Display::GetInstance()->ReleaseVertexDeclaration(m_uVertexDecl);
+			m_rDisplay.ReleaseVertexDeclaration(m_uVertexDecl);
 			m_uVertexDecl = 0;
 		}
 		m_pPreviousVertexBuffer = NULL;
@@ -84,7 +85,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetGeometry::RenderBegin()
 	{
-		//DevicePtr pDevice = Display::GetInstance()->GetDevicePtr();
+		//DevicePtr pDevice = m_rDisplay.GetDevicePtr();
 		//pDevice->GetStreamSource(0, &m_pPreviousVertexBuffer, &m_uPreviousVBOffset, &m_uPreviousVBStride);
 		//pDevice->GetVertexDeclaration(&m_pPreviousVertexDecl);
 		//if (m_pPreviousVertexDecl != m_uVertexDecl)
@@ -101,7 +102,7 @@ namespace ElixirEngine
 	void DisplayRenderTargetGeometry::Render()
 	{
 		// use current view port to map geometry size and texture coordinates.
-		ViewportPtr pViewport = Display::GetInstance()->GetCurrentCamera()->GetCurrentViewport();
+		ViewportPtr pViewport = m_rDisplay.GetCurrentCamera()->GetCurrentViewport();
 		const float fWidth = float(pViewport->Width);
 		const float fHeight = float(pViewport->Height);
 		const float fX = float(pViewport->X);
@@ -116,7 +117,7 @@ namespace ElixirEngine
 		m_aQuad[3].tu = fWidth / m_fFullWidth;	m_aQuad[3].tv = fHeight / m_fFullHeight;
 
 		// update frustum corners values.
-		Vector3Ptr pFrustumCorners = Display::GetInstance()->GetCurrentCamera()->GetFrustumCorners();
+		Vector3Ptr pFrustumCorners = m_rDisplay.GetCurrentCamera()->GetFrustumCorners();
 		for (UInt i = 0 ; 4 > i ; ++i)
 		{
 			Vertex& rVertex = m_aQuad[i];
@@ -130,14 +131,14 @@ namespace ElixirEngine
 			rVertex.tw4 = pNearCorner->z;
 		}
 
-		Display::GetInstance()->GetDevicePtr()->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, m_aQuad, sizeof(Vertex));
+		m_rDisplay.GetDevicePtr()->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, m_aQuad, sizeof(Vertex));
 	}
 
 	void DisplayRenderTargetGeometry::RenderEnd()
 	{
 		//if ((m_pPreviousVertexDecl != m_uVertexDecl) && (NULL != m_pPreviousVertexDecl))
 		//{
-		//	DevicePtr pDevice = Display::GetInstance()->GetDevicePtr();
+		//	DevicePtr pDevice = m_rDisplay.GetDevicePtr();
 		//	pDevice->SetStreamSource(0, m_pPreviousVertexBuffer, m_uPreviousVBOffset, m_uPreviousVBStride);
 		//	pDevice->SetVertexDeclaration(m_pPreviousVertexDecl);
 		//}
@@ -204,12 +205,12 @@ namespace ElixirEngine
 			for (UInt i = 0 ; c_uBufferCount > i ; ++i)
 			{
 				string strTexName = boost::str(boost::format("%1%_%2%") % m_strName % i);
-				bResult = Display::GetInstance()->GetTextureManager()->New(strTexName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, false, DisplayTexture::EType_2D, DisplayTexture::EUsage_RENDERTARGET);
+				bResult = m_rDisplay.GetTextureManager()->New(strTexName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, false, DisplayTexture::EType_2D, DisplayTexture::EUsage_RENDERTARGET);
 				if (false == bResult)
 				{
 					break;
 				}
-				m_pDoubleBufferTex[i] = Display::GetInstance()->GetTextureManager()->Get(strTexName);
+				m_pDoubleBufferTex[i] = m_rDisplay.GetTextureManager()->Get(strTexName);
 				TexturePtr pTexture = static_cast<TexturePtr>(m_pDoubleBufferTex[i]->GetBase());
 				pTexture->GetSurfaceLevel(0, &m_pDoubleBufferSurf[i]);
 			}
@@ -236,7 +237,7 @@ namespace ElixirEngine
 			if (NULL != m_pDoubleBufferTex[i])
 			{
 				string strTexName = boost::str(boost::format("%1%_%2%") % m_strName % i);
-				Display::GetInstance()->GetTextureManager()->Unload(strTexName);
+				m_rDisplay.GetTextureManager()->Unload(strTexName);
 				m_pDoubleBufferTex[i] = NULL;
 			}
 		}
@@ -250,7 +251,7 @@ namespace ElixirEngine
 			m_eRenderState = ERenderState_RENDERBEGIN;
 			//if (false == m_bImmediateWrite)
 			{
-				Display::GetInstance()->GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
+				m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
 			}
 			m_eMode = _eMode;
 			if (ERenderMode_NORMALPROCESS == m_eMode)
@@ -273,8 +274,8 @@ namespace ElixirEngine
 			{
 				if (ERenderMode_POSTPROCESS == m_eMode)
 				{
-					Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, m_pCurrentBufferTex);
-					Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, m_pDoubleBufferTex[c_uOriginalBuffer]);
+					m_rDisplay.GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, m_pCurrentBufferTex);
+					m_rDisplay.GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, m_pDoubleBufferTex[c_uOriginalBuffer]);
 				}
 				if (false == m_bImmediateWrite)
 				{
@@ -284,14 +285,14 @@ namespace ElixirEngine
 						if (m_pDoubleBufferTex[uNewIndex] != m_pCurrentBufferTex)
 						{
 							m_pCurrentBufferTex = m_pDoubleBufferTex[uNewIndex];
-							Display::GetInstance()->GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pDoubleBufferSurf[uNewIndex]);
+							m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pDoubleBufferSurf[uNewIndex]);
 							m_bSwap = true;
 						}
 					}
 					else if (m_pCurrentBufferTex != m_pRTOverrideTex)
 					{
 						m_pCurrentBufferTex = m_pRTOverrideTex;
-						Display::GetInstance()->GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pRTOverrideSurf);
+						m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pRTOverrideSurf);
 						m_bSwap = true;
 					}
 				}
@@ -307,8 +308,8 @@ namespace ElixirEngine
 			m_eRenderState = ERenderState_RENDERENDPASS;
 			if (ERenderMode_POSTPROCESS == m_eMode)
 			{
-				Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, NULL);
-				Display::GetInstance()->GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, NULL);
+				m_rDisplay.GetTextureManager()->SetBySemantic(m_uRTSemanticNameKey, NULL);
+				m_rDisplay.GetTextureManager()->SetBySemantic(m_uORTSemanticNameKey, NULL);
 			}
 			if (false == m_bImmediateWrite)
 			{
@@ -326,7 +327,7 @@ namespace ElixirEngine
 			m_bFirstRender = false;
 			if (NULL != m_pPreviousBufferSurf)
 			{
-				Display::GetInstance()->GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
+				m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
 				m_pPreviousBufferSurf->Release();
 				m_pPreviousBufferSurf = NULL;
 			}
@@ -389,13 +390,13 @@ namespace ElixirEngine
 			m_bImmediateWrite = _bState;
 			if ((false != m_bImmediateWrite) && (NULL != m_pPreviousBufferSurf))
 			{
-				Display::GetInstance()->GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
+				m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
 				m_pPreviousBufferSurf->Release();
 				m_pPreviousBufferSurf = NULL;
 			}
 			else if ((false == m_bImmediateWrite) && (NULL == m_pPreviousBufferSurf))
 			{
-				Display::GetInstance()->GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
+				m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
 			}
 		}
 	}
@@ -467,7 +468,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetChain::RenderBegin(const DisplayRenderTarget::ERenderMode& _eMode)
 	{
-		Display::GetInstance()->GetDevicePtr()->BeginScene();
+		m_rDisplay.GetDevicePtr()->BeginScene();
 
 		DisplayRenderTargetPtrVec::iterator iRT = m_vGBuffer.begin();
 		DisplayRenderTargetPtrVec::iterator iEnd = m_vGBuffer.end();
@@ -500,7 +501,7 @@ namespace ElixirEngine
 		// Since SetRenderViewport reset the view port to full screen size we need to force back previously requested view port.
 		if (false != bSwap)
 		{
-			Display::GetInstance()->GetDevicePtr()->SetViewport(Display::GetInstance()->GetCurrentCamera()->GetCurrentViewport());
+			m_rDisplay.GetDevicePtr()->SetViewport(m_rDisplay.GetCurrentCamera()->GetCurrentViewport());
 		}
 	}
 
@@ -533,7 +534,7 @@ namespace ElixirEngine
 			++iRT;
 		}
 
-		Display::GetInstance()->GetDevicePtr()->EndScene();
+		m_rDisplay.GetDevicePtr()->EndScene();
 	}
 
 	DisplayTexturePtr DisplayRenderTargetChain::GetTexture(const UInt _uRTIndex)
@@ -580,7 +581,7 @@ namespace ElixirEngine
 		//EnableAllRenderTargets();
 		RenderBegin(DisplayRenderTarget::ERenderMode_NORMALPROCESS);
 		RenderBeginPass(0);
-		Display::GetInstance()->GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, _uClearColor, 1.0f, 0L);
+		m_rDisplay.GetDevicePtr()->Clear(0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, _uClearColor, 1.0f, 0L);
 		RenderEndPass();
 		RenderEnd();
    	}

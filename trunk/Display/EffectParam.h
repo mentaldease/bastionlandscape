@@ -78,7 +78,6 @@ namespace ElixirEngine
 		}
 
 		virtual bool Use() = 0;
-		virtual bool Record() { return false; };
 
 	protected:
 		virtual bool CreateFromLuaConfig(CreateInfoRef _rInfo)
@@ -137,18 +136,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pViewProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
-			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
-			if ((NULL != m_pWorld) && (NULL != m_pViewProj))
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, D3DXMatrixMultiply(&m_oWVP, m_pWorld, m_pViewProj));
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -200,17 +187,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
-			if (NULL != m_pWorld)
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pWorld);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -256,17 +232,6 @@ namespace ElixirEngine
 			{
 				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pView);
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			m_pView = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
-			if (NULL != m_pView)
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pView);
-				return bResult;
 			}
 			return false;
 		}
@@ -324,19 +289,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pView = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEW);
-			m_pWorld = Display::GetInstance()->GetCurrentWorldMatrix();
-			if ((NULL != m_pWorld) && (NULL != m_pView))
-			{
-				D3DXMatrixMultiply(&m_m4WorldView, m_pWorld, m_pView);
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, &m_m4WorldView);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -384,17 +336,6 @@ namespace ElixirEngine
 			{
 				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pViewInv);
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			m_pViewInv = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWINV);
-			if (NULL != m_pViewInv)
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pViewInv);
-				return bResult;
 			}
 			return false;
 		}
@@ -448,17 +389,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pViewProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_VIEWPROJ);
-			if (NULL != m_pViewProj)
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pViewProj);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -508,17 +438,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pProj = Display::GetInstance()->GetCurrentCamera()->GetMatrix(DisplayCamera::EMatrix_PROJ);
-			if (NULL != m_pProj)
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pProj);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -564,17 +483,6 @@ namespace ElixirEngine
 			{
 				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pWorld);
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			m_pWorld = Display::GetInstance()->GetCurrentWorldInvTransposeMatrix();
-			if (NULL != m_pWorld)
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pWorld);
-				return bResult;
 			}
 			return false;
 		}
@@ -644,24 +552,6 @@ namespace ElixirEngine
 			{
 				HRESULT hResult = m_pEffect->SetTexture(m_hData, m_pTexture->GetBase());
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			if (NULL == m_pTexture)
-			{
-				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
-				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_CUBE))
-				{
-					m_pTexture = pTextureManager->Get(m_strName);
-				}
-			}
-			if (NULL != m_pTexture)
-			{
-				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
-				return bResult;
 			}
 			return false;
 		}
@@ -772,24 +662,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			if (NULL == m_pTexture)
-			{
-				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
-				if (false != pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D))
-				{
-					m_pTexture = pTextureManager->Get(m_strName);
-				}
-			}
-			if (NULL != m_pTexture)
-			{
-				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -875,17 +747,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pData = m_rMaterial.GetMaterialManager().GetFloatBySemantic(m_uSemanticKey);
-			if (NULL != m_pData)
-			{
-				bool bResult = m_rMaterial.RecordFloat(m_hData, *m_pData);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -932,19 +793,6 @@ namespace ElixirEngine
 				m_oData.y = m_pData->y;
 				HRESULT hResult = m_pEffect->SetVector(m_hData, &m_oData);
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			m_pData = m_rMaterial.GetMaterialManager().GetVector2BySemantic(m_uSemanticKey);
-			if (NULL != m_pData)
-			{
-				m_oData.x = m_pData->x;
-				m_oData.y = m_pData->y;
-				bool bResult = m_rMaterial.RecordVector(m_hData, &m_oData);
-				return bResult;
 			}
 			return false;
 		}
@@ -1001,20 +849,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pData = m_rMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
-			if (NULL != m_pData)
-			{
-				m_oData.x = m_pData->x;
-				m_oData.y = m_pData->y;
-				m_oData.z = m_pData->z;
-				bool bResult = m_rMaterial.RecordVector(m_hData, &m_oData);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -1064,17 +898,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			m_pData = m_rMaterial.GetMaterialManager().GetVector4BySemantic(m_uSemanticKey);
-			if (NULL != m_pData)
-			{
-				bool bResult = m_rMaterial.RecordVector(m_hData, m_pData);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -1119,17 +942,6 @@ namespace ElixirEngine
 			{
 				HRESULT hResult = m_pEffect->SetMatrix(m_hData, m_pData);
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			m_pData = m_rMaterial.GetMaterialManager().GetMatrixBySemantic(m_uSemanticKey);
-			if (NULL != m_pData)
-			{
-				bool bResult = m_rMaterial.RecordMatrix(m_hData, m_pData);
-				return bResult;
 			}
 			return false;
 		}
@@ -1197,22 +1009,6 @@ namespace ElixirEngine
 			{
 				HRESULT hResult = m_pEffect->SetTexture(m_hData, m_pTexture->GetBase());
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			if (NULL == m_pTexture)
-			{
-				DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
-				pTextureManager->Load(m_strName, m_strPath, DisplayTexture::EType_2D);
-				m_pTexture = pTextureManager->Get(m_strName);
-			}
-			if (NULL != m_pTexture)
-			{
-				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
-				return bResult;
 			}
 			return false;
 		}
@@ -1304,18 +1100,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			DisplayTextureManagerPtr pTextureManager = Display::GetInstance()->GetTextureManager();
-			m_pTexture = pTextureManager->GetBySemantic(m_uSemanticKey);
-			if (NULL != m_pTexture)
-			{
-				bool bResult = m_rMaterial.RecordTexture(m_hData, m_pTexture->GetBase());
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -1368,21 +1152,6 @@ namespace ElixirEngine
 			return false;
 		}
 
-		virtual bool Record()
-		{
-			Vector3* pData = m_rMaterial.GetMaterialManager().GetVector3BySemantic(m_uSemanticKey);
-			if (NULL != pData)
-			{
-				for (UInt i = 0 ; DisplayCamera::EFrustumCorner_COUNT > i ; ++i)
-				{
-					m_aData[i] = Vector4(pData[i].x, pData[i].y, pData[i].z, 0.0f);
-				}
-				bool bResult = m_rMaterial.RecordVectorArray(m_hData, m_aData, DisplayCamera::EFrustumCorner_COUNT);
-				return bResult;
-			}
-			return false;
-		}
-
 		static DisplayEffectParamPtr CreateParam(const boost::any& _rConfig)
 		{
 			DisplayEffectParam::CreateInfo* pDEPCInfo = boost::any_cast<DisplayEffectParam::CreateInfo*>(_rConfig);
@@ -1429,17 +1198,6 @@ namespace ElixirEngine
 			{
 				HRESULT hResult = m_pEffect->SetValue(m_hData, m_pData, m_uSize);
 				return SUCCEEDED(hResult);
-			}
-			return false;
-		}
-
-		virtual bool Record()
-		{
-			m_pData = m_rMaterial.GetMaterialManager().GetStructBySemantic(m_uSemanticKey, m_uSize);
-			if (NULL != m_pData)
-			{
-				bool bResult = m_rMaterial.RecordValue(m_hData, m_pData, m_uSize);
-				return bResult;
 			}
 			return false;
 		}

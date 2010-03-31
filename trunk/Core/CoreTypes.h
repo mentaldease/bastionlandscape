@@ -43,12 +43,6 @@ namespace ElixirEngine
 	typedef map<CoreObjectPtr, int>	CoreObjectPtrCounterMap;
 	typedef map<Key, CoreObjectPtr>	CoreObjectPtrMap;
 
-	struct CoreCommand;
-	typedef CoreCommand*			CoreCommandPtr;
-	typedef CoreCommand&			CoreCommandRef;
-	typedef vector<CoreCommand>		CoreCommandVec;
-	typedef vector<CoreCommandPtr>	CoreCommandPtrVec;
-
 	typedef void*				VoidPtr;
 	typedef vector<VoidPtr>		VoidPtrVec;
 

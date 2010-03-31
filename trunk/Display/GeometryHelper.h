@@ -61,9 +61,6 @@ namespace ElixirEngine
 
 		virtual void RenderBegin();
 		virtual void Render();
-		virtual bool RenderBeginRecord();
-		virtual bool RenderRecord();
-		virtual bool RenderEndRecord();
 
 	protected:
 		bool CreateBuffers(CreateInfoRef _rInfo);
@@ -117,9 +114,6 @@ namespace ElixirEngine
 		virtual void RenderBegin();
 		virtual void Render();
 		virtual void RenderEnd();
-		virtual bool RenderBeginRecord();
-		virtual bool RenderRecord();
-		virtual bool RenderEndRecord();
 
 		LineStripInfoRef NewLineStrip();
 

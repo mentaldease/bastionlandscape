@@ -41,23 +41,6 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	struct CoreCommand
-	{
-		CoreCommand();
-
-		bool AddArg(VoidPtr _pArg);
-
-		static const UInt s_uMaxArgs = 13;
-		VoidPtr			m_pArgs[s_uMaxArgs];
-		CoreObjectPtr	m_pObject;
-		UInt			m_uID;
-		UInt			m_uCount;
-	};
-
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-
 	class CoreObject
 	{
 	public:
@@ -67,10 +50,6 @@ namespace ElixirEngine
 		virtual bool Create(const boost::any& _rConfig);
 		virtual void Update();
 		virtual void Release();
-
-		virtual bool UpdateRecord();
-		virtual bool RecordCommand(CoreCommandPtr _pCommand);
-		virtual bool ReplayCommand(CoreCommandRef _pCommand);
 
 		inline void IncRef() { ++m_uRefCount; };
 		inline void DecRef() { --m_uRefCount; };
