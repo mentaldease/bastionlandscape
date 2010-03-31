@@ -873,6 +873,7 @@ namespace ElixirEngine
 				pMaterial->RenderRequest(pDisplayObject);
 				++iDisplayObject;
 			}
+			vDisplayObjects.clear();
 		}
 
 		{

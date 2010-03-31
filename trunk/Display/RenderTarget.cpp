@@ -250,6 +250,7 @@ namespace ElixirEngine
 		{
 			m_eRenderState = ERenderState_RENDERBEGIN;
 			//if (false == m_bImmediateWrite)
+			if (0 == m_uRTIndex)
 			{
 				m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
 			}
@@ -325,9 +326,12 @@ namespace ElixirEngine
 		{
 			m_eRenderState = ERenderState_RENDEREND;
 			m_bFirstRender = false;
-			if (NULL != m_pPreviousBufferSurf)
+			if ((0 != m_uRTIndex) || (NULL != m_pPreviousBufferSurf))
 			{
 				m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
+			}
+			if (NULL != m_pPreviousBufferSurf)
+			{
 				m_pPreviousBufferSurf->Release();
 				m_pPreviousBufferSurf = NULL;
 			}
@@ -388,13 +392,14 @@ namespace ElixirEngine
 		if (m_bImmediateWrite != _bState)
 		{
 			m_bImmediateWrite = _bState;
-			if ((false != m_bImmediateWrite) && (NULL != m_pPreviousBufferSurf))
+			if ((false != m_bImmediateWrite)
+				&& (NULL != m_pPreviousBufferSurf))
 			{
 				m_rDisplay.GetDevicePtr()->SetRenderTarget(m_uRTIndex, m_pPreviousBufferSurf);
 				m_pPreviousBufferSurf->Release();
 				m_pPreviousBufferSurf = NULL;
 			}
-			else if ((false == m_bImmediateWrite) && (NULL == m_pPreviousBufferSurf))
+			else if ((false == m_bImmediateWrite) && (NULL == m_pPreviousBufferSurf) && ( 0 == m_uRTIndex))
 			{
 				m_rDisplay.GetDevicePtr()->GetRenderTarget(m_uRTIndex, &m_pPreviousBufferSurf);
 			}

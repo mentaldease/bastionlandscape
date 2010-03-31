@@ -89,6 +89,7 @@ namespace ElixirEngine
 			m_mNormalProcesses.erase(m_mNormalProcesses.begin());
 		}
 		m_vNormalProcesses.clear();
+		m_vRenderList.clear();
 	}
 
 	void DisplayRenderStage::RenderRequest(DisplayObjectPtr _pDisplayObject)
