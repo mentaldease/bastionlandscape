@@ -2,13 +2,16 @@
 //
 
 #include "stdafx.h"
-#include "Bastion.h"
 
-#ifdef _DEBUG
-#include <crtdbg.h>
-#endif
+#include <vld.h>
 
+//#ifdef _DEBUG
+//#include <crtdbg.h>
+//#endif
+
+#include "../Bastion/Bastion.h"
 #include "../Application/Application.h"
+
 using namespace BastionGame;
 
 #define MAX_LOADSTRING 100
@@ -35,10 +38,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-#ifdef _DEBUG
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-	_CrtSetBreakAlloc(211);
-#endif
+//#ifdef _DEBUG
+//	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+//	//_CrtSetBreakAlloc(227);
+//#endif
 
 	WindowData m_oWindow;
 	Application* pApp = new Application;

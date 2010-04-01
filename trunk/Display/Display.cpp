@@ -277,6 +277,7 @@ namespace ElixirEngine
 		if (NULL != m_pRTChain)
 		{
 			m_pRTChain->Release();
+			delete m_pRTChain;
 			m_pRTChain = NULL;
 		}
 
