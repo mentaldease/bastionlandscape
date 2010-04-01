@@ -22,18 +22,19 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		unsigned int CreateTimer(const bool _bStart);
-		bool ReleaseTimer(const unsigned int& _uTimerID, float& _fElapsedMilliseconds);
-		bool ResetTimer(const unsigned int& _uTimerID, float& _fElapsedMilliseconds);
-		bool PauseTimer(const unsigned int& _uTimerID);
-		bool ResumeTimer(const unsigned int& _uTimerID);
-		bool GetElapsedTime(const unsigned int& _uTimerID, float& _fElapsedMilliseconds);
+		UInt CreateTimer(const bool _bStart);
+		bool ReleaseTimer(const UInt& _uTimerID, float& _fElapsedMilliseconds);
+		bool ResetTimer(const UInt& _uTimerID, float& _fElapsedMilliseconds);
+		bool PauseTimer(const UInt& _uTimerID);
+		bool ResumeTimer(const UInt& _uTimerID);
+		bool GetElapsedTime(const UInt& _uTimerID, float& _fElapsedMilliseconds);
 
 	protected:
 		struct Timer;
 		typedef Timer* TimerPtr;
 		typedef Timer& TimerRef;
 		typedef vector<Timer> TimerVec;
+		typedef vector<TimerPtr> TimerPtrVec;
 
 		struct Timer
 		{
@@ -56,12 +57,12 @@ namespace ElixirEngine
 			bool			m_bIsActive;
 		};
 
-		TimerPtr GetTimer(const unsigned int& _uTimerID);
+		TimerPtr GetTimer(const UInt& _uTimerID);
 
 	protected:
 		static TimePtr	s_pTime;
 
-		TimerVec		m_vTimers;
+		TimerPtrVec		m_vpTimers;
 		LARGE_INTEGER	m_lTicksPerSeconds;
 	};
 }

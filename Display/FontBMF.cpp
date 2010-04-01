@@ -669,6 +669,13 @@ namespace ElixirEngine
 				m_uVertexDecl = 0;
 			}
 
+			if (NULL != m_pTextPool)
+			{
+				m_pTextPool->Release();
+				delete m_pTextPool;
+				m_pTextPool = NULL;
+			}
+
 			if (NULL != m_pVertexPool)
 			{
 				m_pVertexPool->Release();

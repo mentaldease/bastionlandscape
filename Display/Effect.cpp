@@ -162,6 +162,8 @@ namespace ElixirEngine
 				&m_pEffect,
 				&pCompilErrors);
 
+			delete[] pSourceCode;
+
 			bResult = SUCCEEDED(hResult);
 			if (false == bResult)
 			{

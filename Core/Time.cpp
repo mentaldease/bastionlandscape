@@ -117,7 +117,7 @@ namespace ElixirEngine
 
 	Time::Time()
 	:	CoreObject(),
-		m_vTimers()
+		m_vpTimers()
 	{
 
 	}
@@ -150,31 +150,32 @@ namespace ElixirEngine
 
 	void Time::Release()
 	{
-		//struct TimerReleaseFunction
-		//{
-		//	void operator() (TimerRef _rTimer)
-		//	{
-		//		_rTimer.Release();
-		//	}
-		//};
-		//for_each(m_vTimers.begin(), m_vTimers.end(), TimerReleaseFunction());
-		m_vTimers.clear();
+		struct TimerReleaseAndDeleteFunction
+		{
+			void operator() (TimerPtr _pTimer)
+			{
+				_pTimer->Release();
+				delete _pTimer;
+			}
+		};
+		for_each(m_vpTimers.begin(), m_vpTimers.end(), TimerReleaseAndDeleteFunction());
+		m_vpTimers.clear();
 	}
 
-	unsigned int Time::CreateTimer(const bool _bStart)
+	UInt Time::CreateTimer(const bool _bStart)
 	{
 		bool bResult = true;
 
-		TimerVec::iterator iTimer = m_vTimers.begin();
-		TimerVec::iterator iEnd = m_vTimers.end();
+		TimerPtrVec::iterator iTimer = m_vpTimers.begin();
+		TimerPtrVec::iterator iEnd = m_vpTimers.end();
 		TimerPtr pTimer = NULL;
-		unsigned int uResult = 0;
+		UInt uResult = 0;
 
 		while (iEnd != iTimer)
 		{
-			if (false == (*iTimer).m_bIsActive)
+			if (false == (*iTimer)->m_bIsActive)
 			{
-				pTimer = &(*iTimer);
+				pTimer = *iTimer;
 				break;
 			}
 			++iTimer;
@@ -183,10 +184,8 @@ namespace ElixirEngine
 
 		if (NULL == pTimer)
 		{
-			uResult = m_vTimers.size();
-			Timer oTimer(m_lTicksPerSeconds);
-			m_vTimers.push_back(oTimer);
-			pTimer = &(m_vTimers.back());
+			pTimer = new Timer(m_lTicksPerSeconds);
+			m_vpTimers.push_back(pTimer);
 		}
 
 		if (false == _bStart)
@@ -204,7 +203,7 @@ namespace ElixirEngine
 		return uResult;
 	}
 
-	bool Time::ReleaseTimer(const unsigned int& _uTimerID, float& _fElapsedMilliseconds)
+	bool Time::ReleaseTimer(const UInt& _uTimerID, float& _fElapsedMilliseconds)
 	{
 		TimerPtr pTimer = GetTimer(_uTimerID);
 		bool bResult = (NULL != pTimer);
@@ -218,7 +217,7 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	bool Time::ResetTimer(const unsigned int& _uTimerID, float& _fElapsedMilliseconds)
+	bool Time::ResetTimer(const UInt& _uTimerID, float& _fElapsedMilliseconds)
 	{
 		TimerPtr pTimer = GetTimer(_uTimerID);
 		bool bResult = (NULL != pTimer);
@@ -231,7 +230,7 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	bool Time::PauseTimer(const unsigned int& _uTimerID)
+	bool Time::PauseTimer(const UInt& _uTimerID)
 	{
 		TimerPtr pTimer = GetTimer(_uTimerID);
 		bool bResult = (NULL != pTimer);
@@ -244,7 +243,7 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	bool Time::ResumeTimer(const unsigned int& _uTimerID)
+	bool Time::ResumeTimer(const UInt& _uTimerID)
 	{
 		TimerPtr pTimer = GetTimer(_uTimerID);
 		bool bResult = (NULL != pTimer);
@@ -257,16 +256,16 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	bool Time::GetElapsedTime(const unsigned int& _uTimerID, float& _fElapsedMilliseconds)
+	bool Time::GetElapsedTime(const UInt& _uTimerID, float& _fElapsedMilliseconds)
 	{
 		TimerPtr pTimer = GetTimer(_uTimerID);
 		bool bResult = (NULL != pTimer) && (false != pTimer->GetElapsedTime(_fElapsedMilliseconds));
 		return bResult;
 	}
 
-	Time::TimerPtr Time::GetTimer(const unsigned int& _uTimerID)
+	Time::TimerPtr Time::GetTimer(const UInt& _uTimerID)
 	{
-		TimerPtr pResult = (_uTimerID < m_vTimers.size()) ? &(m_vTimers[_uTimerID]) : NULL;
+		TimerPtr pResult = (_uTimerID < m_vpTimers.size()) ? m_vpTimers[_uTimerID] : NULL;
 		return pResult;
 	}
 }

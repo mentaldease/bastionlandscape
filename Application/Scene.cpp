@@ -265,10 +265,18 @@ namespace BastionGame
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 
+		// render stages
 		m_rApplication.GetDisplay()->RemoveRenderStages(m_vRenderStages);
+		while (false == m_vRenderStages.empty())
+		{
+			DisplayRenderStagePtr pRS = *m_vRenderStages.begin();
+			pRS->Release();
+			delete pRS;
+			m_vRenderStages.erase(m_vRenderStages.begin());
+		}
 
 		// camera
-		while (m_mCameras.end() != m_mCameras.begin())
+		while (false == m_mCameras.empty())
 		{
 			m_rApplication.GetDisplay()->ReleaseCamera(m_mCameras.begin()->first);
 			m_mCameras.erase(m_mCameras.begin());
@@ -290,7 +298,7 @@ namespace BastionGame
 			m_uWaterDataCount = 0;
 		}
 		// hierarchy
-		while (m_mHierarchy.end() != m_mHierarchy.begin())
+		while (false == m_mHierarchy.empty())
 		{
 			CoreObjectPtr pObject = m_mHierarchy.begin()->second;
 			pObject->Release();

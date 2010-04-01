@@ -462,7 +462,7 @@ namespace ElixirEngine
 
 	void DisplayRenderTargetChain::Release()
 	{
-		while (m_vGBuffer.end() != m_vGBuffer.begin())
+		while (false == m_vGBuffer.empty())
 		{
 			DisplayRenderTargetPtr pRT = m_vGBuffer.back();
 			m_vGBuffer.pop_back();

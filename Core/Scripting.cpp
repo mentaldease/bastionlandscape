@@ -64,6 +64,7 @@ namespace ElixirEngine
 				pSourceCode[sSize] = '\0';
 				_pState = (NULL == _pState) ? s_pState : _pState;
 				bResult = (0 == _pState->DoString(pSourceCode));
+				delete[] pSourceCode;
 			}
 			return bResult;
 		}
