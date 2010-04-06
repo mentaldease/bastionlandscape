@@ -73,7 +73,7 @@ namespace ElixirEngine
 		)
 	{
 		string strFileName;
-		FS::ComposePath(strFileName, Display::GetInstance()->GetMaterialManager()->GetIncludeBasePath(), string(pFileName));
+		FS::ComposePath(strFileName, Display::GetInstance()->GetMaterialManager()->GetEffectIncludeBasePath(), string(pFileName));
 		FilePtr pFile = NULL;
 
 		HRESULT hResult = (false == strFileName.empty()) ? S_OK : E_FAIL;
@@ -119,9 +119,13 @@ namespace ElixirEngine
 
 	DisplayEffect::DisplayEffect(DisplayRef _rDisplay)
 	:	CoreObject(),
+		m_strName(),
+		m_mSemantics(),
 		m_rDisplay(_rDisplay),
 		m_pEffect(NULL),
-		m_vRenderList()
+		m_vRenderList(),
+		m_mHandles(),
+		m_hCurrentTechnique(NULL)
 	{
 
 	}
@@ -156,7 +160,7 @@ namespace ElixirEngine
 				pSourceCode,
 				sSize,
 				NULL, // D3DXMACRO Defines,
-				m_rDisplay.GetMaterialManager()->GetIncludeInterface(), // LPD3DXINCLUDE Includes,
+				m_rDisplay.GetMaterialManager()->GetEffectIncludeInterface(), // LPD3DXINCLUDE Includes,
 				/*D3DXSHADER_SKIPOPTIMIZATION | */D3DXSHADER_DEBUG | D3DXSHADER_ENABLE_BACKWARDS_COMPATIBILITY,
 				NULL, // LPD3DXEFFECTPOOL Pool,
 				&m_pEffect,
@@ -173,6 +177,8 @@ namespace ElixirEngine
 			}
 			else
 			{
+				m_pEffect->SetStateManager((LPD3DXEFFECTSTATEMANAGER)m_rDisplay.GetStateManagerInterface());
+				m_hCurrentTechnique = NULL;
 				m_strName = pInfo->m_strPath;
 				m_mSemantics[0] = string("");
 				bResult = GetParameters();
@@ -213,6 +219,7 @@ namespace ElixirEngine
 
 	void DisplayEffect::Render()
 	{
+#if 0
 		struct RenderMaterialFunction
 		{
 			void operator() (DisplayMaterialPtr _pDisplayMaterial)
@@ -220,9 +227,16 @@ namespace ElixirEngine
 				_pDisplayMaterial->Render();
 			}
 		};
-
-		static RenderMaterialFunction oRMF;
 		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderMaterialFunction());
+#else
+		DisplayMaterialPtrVec::iterator iMaterial = m_vRenderList.begin();
+		DisplayMaterialPtrVec::iterator iEnd = m_vRenderList.end();
+		while (iEnd != iMaterial)
+		{
+			(*iMaterial)->Render();
+			++iMaterial;
+		}
+#endif
 		m_vRenderList.clear();
 	}
 
@@ -250,6 +264,25 @@ namespace ElixirEngine
 			return iPair->second;
 		}
 		return m_mSemantics[0];
+	}
+
+	Handle DisplayEffect::GetTechniqueByName(const char* _pszName)
+	{
+		return m_pEffect->GetTechniqueByName(_pszName);
+	}
+
+	void DisplayEffect::SetTechnique(Handle _hTechnique)
+	{
+		if (m_hCurrentTechnique != _hTechnique)
+		{
+			m_pEffect->SetTechnique(_hTechnique);
+			m_hCurrentTechnique = _hTechnique;
+		}
+	}
+
+	bool DisplayEffect::GetTechniqueDesc(Handle _hTechnique, D3DXTECHNIQUE_DESC* _pDesc)
+	{
+		return SUCCEEDED(m_pEffect->GetTechniqueDesc(_hTechnique, _pDesc));
 	}
 
 	bool DisplayEffect::GetParameters()

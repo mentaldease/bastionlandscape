@@ -2,10 +2,18 @@
 #define __EFFECT_H__
 
 #include "../Display/Display.h"
+#include "../Display/EffectStateManager.h"
 #include "../Core/CoreTypes.h"
 
 namespace ElixirEngine
 {
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	#define EFFECT_RENDER_FLAGS (D3DXFX_DONOTSAVESTATE | D3DXFX_DONOTSAVESHADERSTATE | D3DXFX_DONOTSAVESAMPLERSTATE)
+	//#define EFFECT_RENDER_FLAGS (0)
+
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -139,6 +147,9 @@ namespace ElixirEngine
 		Handle GetHandleBySemanticKey(const Key& _uKey);
 		HandleMapRef GetHandles();
 		const string& GetNameBySemanticKey(const Key& _uKey);
+		Handle GetTechniqueByName(const char* _pszName);
+		void SetTechnique(Handle _hTechnique);
+		bool GetTechniqueDesc(Handle _hTechnique, D3DXTECHNIQUE_DESC* _pDesc);
 
 	protected:
 		bool GetParameters();
@@ -150,6 +161,7 @@ namespace ElixirEngine
 		EffectPtr				m_pEffect;
 		DisplayMaterialPtrVec	m_vRenderList;
 		HandleMap				m_mHandles;
+		Handle					m_hCurrentTechnique;
 
 	private:
 	};
@@ -312,9 +324,10 @@ namespace ElixirEngine
 		bool OverrideCommonParamSemantic(const ECommonParamSemantic _uCommonParam, const Key _uNewParamKey);
 		bool ResetCommonParamSemantic(const ECommonParamSemantic _uCommonParam);
 
-		void SetIncludeBasePath(const string& _strPath);
-		const string& GetIncludeBasePath();
-		DisplayEffectIncludePtr GetIncludeInterface();
+		void SetEffectIncludeBasePath(const string& _strPath);
+		const string& GetEffectIncludeBasePath();
+		DisplayEffectIncludePtr GetEffectIncludeInterface();
+		DisplayStateManagerPtr GetStateManagerInterface();
 
 	protected:
 		struct StructData
@@ -328,21 +341,21 @@ namespace ElixirEngine
 		typedef map<Key, StructData> StructDataMap;
 
 	protected:
-		DisplayEffectPtrMap		m_mEffects;
-		DisplayMaterialPtrMap	m_mMaterials;
-		CreateParamFuncMap		m_mParamCreators;
-		FloatPtrMap				m_mFloatInfo;
-		Vector2PtrMap			m_mVector2Info;
-		Vector3PtrMap			m_mVector3Info;
-		Vector4PtrMap			m_mVector4Info;
-		MatrixPtrMap			m_mMatrixInfo;
-		StructDataMap			m_mStructInfo;
-		KeyVec					m_vCurrentParamKeys;
-		KeyVec					m_vDefaultParamKeys;
-		DisplayMemoryBuffer		m_oParamsBuffer;
-		DisplayRef				m_rDisplay;
-		DisplayEffectIncludePtr	m_pIncludeInterface;
-		string					m_strIncludeBasePath;
+		DisplayEffectPtrMap				m_mEffects;
+		DisplayMaterialPtrMap			m_mMaterials;
+		CreateParamFuncMap				m_mParamCreators;
+		FloatPtrMap						m_mFloatInfo;
+		Vector2PtrMap					m_mVector2Info;
+		Vector3PtrMap					m_mVector3Info;
+		Vector4PtrMap					m_mVector4Info;
+		MatrixPtrMap					m_mMatrixInfo;
+		StructDataMap					m_mStructInfo;
+		KeyVec							m_vCurrentParamKeys;
+		KeyVec							m_vDefaultParamKeys;
+		DisplayMemoryBuffer				m_oParamsBuffer;
+		DisplayRef						m_rDisplay;
+		DisplayEffectIncludePtr			m_pIncludeInterface;
+		string							m_strIncludeBasePath;
 
 	private:
 	};
@@ -362,19 +375,22 @@ namespace ElixirEngine
 		void operator() (DisplayObjectPtr _pDisplayObject)
 		{
 			DisplayPtr pDisplay = Display::GetInstance();
+			DisplayStateManagerPtr pStateManager = pDisplay->GetStateManagerInterface();
 			EffectPtr pEffect = m_pMaterial->GetEffect()->GetEffect();
 			UInt uPassCount;
-			pEffect->Begin(&uPassCount, 0);
+			pEffect->Begin(&uPassCount, EFFECT_RENDER_FLAGS);
 			_pDisplayObject->RenderBegin();
 			pDisplay->SetCurrentWorldMatrix(_pDisplayObject->GetWorldMatrix());
 			for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
 			{
 				pDisplay->MRTRenderBeginPass(uPass);
+				pStateManager->BeginPass(uPass);
 				pEffect->BeginPass(uPass);
 				m_pMaterial->UseParams();
 				pEffect->CommitChanges();
 				_pDisplayObject->Render();
 				pEffect->EndPass();
+				pStateManager->EndPass();
 				pDisplay->MRTRenderEndPass();
 			}
 			_pDisplayObject->RenderEnd();

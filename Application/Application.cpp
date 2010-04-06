@@ -202,7 +202,7 @@ namespace BastionGame
 			m_eStateMode = EStateMode_INITIALING_SHADERS;
 			DisplayMaterialManagerPtr pMaterialManager = m_pDisplay->GetMaterialManager();
 
-			pMaterialManager->SetIncludeBasePath("Data/Effects");
+			pMaterialManager->SetEffectIncludeBasePath("Data/Effects");
 			//pMaterialManager->OverrideCommonParamSemantic(DisplayMaterialManager::ECommonParamSemantic_WORLDVIEWPROJ, MakeKey(string("WVP")));
 
 			//

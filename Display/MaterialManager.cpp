@@ -3,6 +3,7 @@
 #include "../Display/Camera.h"
 #include "../Display/Effect.h"
 #include "../Display/EffectParam.h"
+#include "../Display/EffectStateManager.h"
 #include "../Core/File.h"
 
 namespace ElixirEngine
@@ -12,7 +13,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	DisplayMaterialManager::DisplayMaterialManager(DisplayRef _rDisplay)
-		:	CoreObject(),
+	:	CoreObject(),
 		m_mEffects(),
 		m_mMaterials(),
 		m_mParamCreators(),
@@ -22,7 +23,8 @@ namespace ElixirEngine
 		m_mVector4Info(),
 		m_mMatrixInfo(),
 		m_rDisplay(_rDisplay),
-		m_pIncludeInterface(NULL)
+		m_pIncludeInterface(NULL),
+		m_strIncludeBasePath()
 	{
 
 	}
@@ -425,17 +427,17 @@ namespace ElixirEngine
 		return bResult;
 	}
 
-	void DisplayMaterialManager::SetIncludeBasePath(const string& _strPath)
+	void DisplayMaterialManager::SetEffectIncludeBasePath(const string& _strPath)
 	{
 		m_strIncludeBasePath = _strPath;
 	}
 
-	const string& DisplayMaterialManager::GetIncludeBasePath()
+	const string& DisplayMaterialManager::GetEffectIncludeBasePath()
 	{
 		return m_strIncludeBasePath;
 	}
 
-	DisplayEffectIncludePtr DisplayMaterialManager::GetIncludeInterface()
+	DisplayEffectIncludePtr DisplayMaterialManager::GetEffectIncludeInterface()
 	{
 		return m_pIncludeInterface;
 	}
