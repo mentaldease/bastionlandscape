@@ -237,6 +237,8 @@ namespace ElixirEngine
 		Key GetCurrentVertexDeclaration();
 		void ReleaseVertexDeclaration(const Key _uVertexDeclaration);
 
+		DisplayStateManagerPtr GetStateManagerInterface();
+
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
 		static D3DFORMAT StringToDisplayFormat(const string& _strFormatName, const D3DFORMAT& _uDefaultFormat);
@@ -290,6 +292,7 @@ namespace ElixirEngine
 		DisplayVertexBufferPtr			m_pCurrentVertexBuffer;
 		DisplayIndexBufferPtr			m_pCurrentIndexBuffer;
 		DisplayRenderStagePtr			m_pCurrentRenderStage;
+		DisplayStateManagerPtr			m_pStateManagerInterface;
 		Matrix							m_m4WorldInvTransposeMatrix;
 		Key								m_uCurrentVertexBuffer;
 		Key								m_uCurrentIndexBuffer;

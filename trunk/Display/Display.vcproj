@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EffectStateManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Font.cpp"
 				>
 			</File>
@@ -274,6 +278,10 @@
 			</File>
 			<File
 				RelativePath=".\EffectParam.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EffectStateManager.h"
 				>
 			</File>
 			<File

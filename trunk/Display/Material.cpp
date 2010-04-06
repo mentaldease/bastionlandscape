@@ -81,18 +81,20 @@ namespace ElixirEngine
 
 	void DisplayMaterial::Render()
 	{
-		m_pEffect->GetEffect()->SetTechnique(m_hTechnique);
+		m_pEffect->SetTechnique(m_hTechnique);
 #if 0
 		for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderObjectFunction(this));
 #else
 		DisplayPtr pDisplay = Display::GetInstance();
+		DisplayStateManagerPtr pStateManager = pDisplay->GetStateManagerInterface();
 		EffectPtr pEffect = GetEffect()->GetEffect();
 		size_t uCount = m_vRenderList.size();
 		UInt uPassCount;
-		pEffect->Begin(&uPassCount, 0);
+		pEffect->Begin(&uPassCount, EFFECT_RENDER_FLAGS);
 		for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
 		{
 			pDisplay->MRTRenderBeginPass(uPass);
+			pStateManager->BeginPass(uPass);
 			pEffect->BeginPass(uPass);
 			for (size_t i = 0 ; uCount > i ; ++i)
 			{
@@ -105,6 +107,7 @@ namespace ElixirEngine
 				pDisplayObject->RenderEnd();
 			}
 			pEffect->EndPass();
+			pStateManager->EndPass();
 			pDisplay->MRTRenderEndPass();
 		}
 		pEffect->End();
@@ -203,12 +206,12 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			const char* pszTechniqueValue = (*_pInfo->m_pLuaObject)["technique"].GetString();
-			m_hTechnique = m_pEffect->GetEffect()->GetTechniqueByName(pszTechniqueValue);
+			m_hTechnique = m_pEffect->GetTechniqueByName(pszTechniqueValue);
 			bResult = (NULL != m_hTechnique);
 			if (false != bResult)
 			{
 				D3DXTECHNIQUE_DESC oTechDesc;
-				bResult = SUCCEEDED(m_pEffect->GetEffect()->GetTechniqueDesc(m_hTechnique, &oTechDesc));
+				bResult = m_pEffect->GetTechniqueDesc(m_hTechnique, &oTechDesc);
 				if (false != bResult)
 				{
 					m_uPassCount = oTechDesc.Passes;

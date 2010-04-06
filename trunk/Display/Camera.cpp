@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Display/Camera.h"
 #include "../Display/Effect.h"
+#include "../Display/EffectStateManager.h"
 #include "../Core/Scripting.h"
 
 namespace ElixirEngine
@@ -151,11 +152,11 @@ namespace ElixirEngine
 			Matrix oMReflect;
 			D3DXMatrixReflect(&oMReflect, m_pReflectionPlane);
 			D3DXMatrixMultiply(&m_oMView, &m_oMView, &oMReflect);
-			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+			m_rDisplay.GetStateManagerInterface()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 		}
 		else
 		{
-			m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+			m_rDisplay.GetStateManagerInterface()->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 		}
 
 		D3DXMatrixInverse(&m_oMViewInv, NULL, &m_oMView);
@@ -181,7 +182,7 @@ namespace ElixirEngine
 				m_rDisplay.GetDevicePtr()->SetClipPlane(i, (FloatPtr)&oClipPlane);
 			}
 		}
-		m_rDisplay.GetDevicePtr()->SetRenderState(D3DRS_CLIPPLANEENABLE, uFlags);
+		m_rDisplay.GetStateManagerInterface()->SetRenderState(D3DRS_CLIPPLANEENABLE, uFlags);
 
 		ExtractFrustumPlanes();
 		ExtractFrustumCorners();

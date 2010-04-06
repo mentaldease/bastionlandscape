@@ -9,6 +9,7 @@
 #include "../Display/NormalProcess.h"
 #include "../Display/Font.h"
 #include "../Display/RenderStage.h"
+#include "../Display/EffectStateManager.h"
 #include "../Core/Scripting.h"
 #include "../Core/Util.h"
 #include "../Core/Octree.h"
@@ -56,6 +57,7 @@ namespace ElixirEngine
 		m_pCurrentVertexBuffer(NULL),
 		m_pCurrentIndexBuffer(NULL),
 		m_pCurrentRenderStage(NULL),
+		m_pStateManagerInterface(NULL),
 		m_m4WorldInvTransposeMatrix(),
 		m_uCurrentVertexBuffer(0),
 		m_uCurrentIndexBuffer(0),
@@ -133,7 +135,7 @@ namespace ElixirEngine
 				m_pEffectPP->SetTechnique("RenderScene");
 				m_pEffectPP->SetTexture("g_ColorTex", pFinalRenderTex);
 				UINT cPasses;
-				m_pEffectPP->Begin(&cPasses, 0);
+				m_pEffectPP->Begin(&cPasses, EFFECT_RENDER_FLAGS);
 				m_pPostProcessGeometry->RenderBegin();
 				for(UINT p = 0; p < cPasses; ++p)
 				{
@@ -224,8 +226,10 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			m_pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
-			m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+			// DisplayStateManager is NOT a CoreObject derived class, no Create call
+			m_pStateManagerInterface = new DisplayStateManager;
+			m_pStateManagerInterface->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
+			m_pStateManagerInterface->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 		}
 
 		if (false != bResult)
@@ -265,6 +269,11 @@ namespace ElixirEngine
 				&& (m_pEffectPP = m_pDispFXPP->GetEffect());
 			m_pPostProcesses = NULL;
 			m_pNormalProcesses = NULL;
+		}
+
+		if (false != bResult)
+		{
+			m_pStateManagerInterface->Reset();
 		}
 
 		return bResult;
@@ -320,6 +329,13 @@ namespace ElixirEngine
 			m_pMaterialManager->Release();
 			delete m_pMaterialManager;
 			m_pMaterialManager = NULL;
+		}
+
+		// DisplayStateManager is NOT a CoreObject derived class, no Release call
+		if (NULL != m_pStateManagerInterface)
+		{
+			delete m_pStateManagerInterface;
+			m_pStateManagerInterface = NULL;
 		}
 
 		if (NULL != m_pDevice)
@@ -774,6 +790,11 @@ namespace ElixirEngine
 		}
 	}
 
+	DisplayStateManagerPtr Display::GetStateManagerInterface()
+	{
+		return m_pStateManagerInterface;
+	}
+
 	void Display::RenderUpdate()
 	{
 		PROFILING(__FUNCTION__);
@@ -879,6 +900,7 @@ namespace ElixirEngine
 
 		{
 			PROFILING(__FUNCTION__" [RENDER]");
+#if 0
 			struct RenderEffectFunction
 			{
 				void operator()(DisplayEffectPtr _pDisplayEffect)
@@ -887,6 +909,15 @@ namespace ElixirEngine
 				}
 			};
 			for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderEffectFunction());
+#else
+			DisplayEffectPtrVec::iterator iEffect = m_vRenderList.begin();
+			DisplayEffectPtrVec::iterator iEnd = m_vRenderList.end();
+			while (iEnd != iEffect)
+			{
+				(*iEffect)->Render();
+				++iEffect;
+			}
+#endif
 			m_vRenderList.clear();
 		}
 	}

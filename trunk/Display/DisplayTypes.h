@@ -276,6 +276,14 @@ namespace ElixirEngine
 	class OctreeTraverseFuncFrustum;
 	typedef OctreeTraverseFuncFrustum* OctreeTraverseFuncFrustumPtr;
 	typedef OctreeTraverseFuncFrustum& OctreeTraverseFuncFrustumRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayStateManager;
+	typedef DisplayStateManager* DisplayStateManagerPtr;
+	typedef DisplayStateManager& DisplayStateManagerRef;
 }
 
 #endif // __DISPLAYTYPES_H__
