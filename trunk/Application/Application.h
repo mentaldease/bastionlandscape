@@ -52,6 +52,7 @@ namespace BastionGame
 	protected:
 		void LoadScene();
 		void RenderScene();
+		void UpdateInput();
 		void UpdateSpectatorCamera(const float& _fElapsedTime);
 		void GetLuaConfigParameters();
 		bool AddViewportFromLua(LuaObjectRef _rLuaObject);

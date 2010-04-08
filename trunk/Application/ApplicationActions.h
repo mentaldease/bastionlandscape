@@ -1,5 +1,5 @@
-#ifndef __APPACTIONS_H__
-#define __APPACTIONS_H__
+#ifndef __APPLICATIONACTIONS_H__
+#define __APPLICATIONACTIONS_H__
 
 namespace BastionGame
 {
@@ -19,8 +19,9 @@ namespace BastionGame
 		EAppAction_CAMERA_MOVE_RIGHT,
 		EAppAction_CAMERA_MOVE_LEFT,
 		EAppAction_CAMERA_MOVE_UP,
+		EAppAction_PATH_CREATE,
 		EAppAction_COUNT // Always last enum member
 	};
 }
 
-#endif // __APPACTIONS_H__
+#endif // __APPLICATIONACTIONS_H__

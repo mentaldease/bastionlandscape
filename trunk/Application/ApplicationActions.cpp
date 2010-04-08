@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../Application/AppActions.h"
+#include "../Application/ApplicationActions.h"
 #include "../Application/Application.h"
 #include "../Application/ActionKeybinding.h"
 
@@ -43,10 +43,11 @@ namespace BastionGame
 			REGISTER_ACTION(CAMERA_MOVE_RIGHT);
 			REGISTER_ACTION(CAMERA_MOVE_LEFT);
 			REGISTER_ACTION(CAMERA_MOVE_UP);
+			REGISTER_ACTION(PATH_CREATE);
 
 			#undef REGISTER_ACTION
 
-			m_pKeybinds->LoadBindings("Data/keybinds.lua");
+			m_pKeybinds->LoadBindings(MakeKey(string("default")), "Data/keybinds.lua", true);
 		}
 
 		return bResult;

@@ -26,8 +26,12 @@ namespace BastionGame
 		virtual void Update();
 		virtual void Release();
 
-		bool LoadBindings(const string& _strFileName);
+		bool LoadBindings(const Key _uContextID, const string& _strFileName, const bool _bSetCurrentContext = false);
+		bool SetCurrentContext(const Key _uContextID);
+
 		bool TestAction(const UInt _uAction);
+		void DisableAction(const UInt _uAction);
+		void EnableAction(const UInt _uAction);
 
 		static bool InitScripting();
 
@@ -40,9 +44,21 @@ namespace BastionGame
 		static const UInt s_uAltModifier = (1 << 18);
 		static const UInt s_uOnceModifier = (1 << 19);
 
+		struct Context
+		{
+			void Clear();
+
+			KeyActionMap	m_mKeyActions;
+			ActionMap		m_mActions;
+			ActionMap		m_mActionRights;
+		};
+		typedef Context* ContextPtr;
+		typedef Context& ContextRef;
+		typedef map<Key, ContextPtr> ContextPtrMap;
+
 	protected:
-		KeyActionMap	m_mKeyActions;
-		ActionMap		m_mActions;
+		ContextPtrMap	m_mContextes;
+		ContextPtr		m_pCurrentContext;
 		BytePtr			m_pKeysInfo;
 		BytePtr			m_pKeysInfoOld;
 	};
