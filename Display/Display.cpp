@@ -139,9 +139,11 @@ namespace ElixirEngine
 				m_pPostProcessGeometry->RenderBegin();
 				for(UINT p = 0; p < cPasses; ++p)
 				{
+					m_pStateManagerInterface->BeginPass(p);
 					m_pEffectPP->BeginPass(p);
 					m_pPostProcessGeometry->Render();
 					m_pEffectPP->EndPass();
+					m_pStateManagerInterface->EndPass();
 				}
 				m_pPostProcessGeometry->RenderEnd();
 				m_pEffectPP->End();

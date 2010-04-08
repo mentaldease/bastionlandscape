@@ -3,19 +3,6 @@ scenetest00 =
 	name = "SceneTest00",
 	render_targets =
 	{
-		--[[
-		gbuffers =
-		{
-			count = 4,
-			formats =
-			{
-				"D3DFMT_A8R8G8B8",
-				"D3DFMT_R32F",
-				"D3DFMT_A8R8G8B8",
-				"D3DFMT_A8R8G8B8",
-			},
-		},
-		]]
 		additionals =
 		{
 			{

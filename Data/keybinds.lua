@@ -1,0 +1,22 @@
+keybinds =
+{
+	[Keys.DIK_MULTIPLY + Keys.ONCE] = Actions.CAMERA_INC_SPEED,
+	[Keys.DIK_DIVIDE + Keys.ONCE] = Actions.CAMERA_DEC_SPEED,
+	[Keys.DIK_UP + Keys.SHIFT] = Actions.CAMERA_STRAFE_FRONT,
+	[Keys.DIK_W + Keys.SHIFT] = Actions.CAMERA_STRAFE_FRONT,
+	[Keys.DIK_DOWN + Keys.SHIFT] = Actions.CAMERA_STRAFE_BACK,
+	[Keys.DIK_S + Keys.SHIFT] = Actions.CAMERA_STRAFE_BACK,
+	[Keys.DIK_UP] = Actions.CAMERA_MOVE_FRONT,
+	[Keys.DIK_W] = Actions.CAMERA_MOVE_FRONT,
+	[Keys.DIK_DOWN] = Actions.CAMERA_MOVE_BACK,
+	[Keys.DIK_S] = Actions.CAMERA_MOVE_BACK,
+	[Keys.DIK_RIGHT] = Actions.CAMERA_MOVE_RIGHT,
+	[Keys.DIK_D] = Actions.CAMERA_MOVE_RIGHT,
+	[Keys.DIK_LEFT] = Actions.CAMERA_MOVE_LEFT,
+	[Keys.DIK_A] = Actions.CAMERA_MOVE_LEFT,
+	[Keys.DIK_RIGHT + Keys.SHIFT] = Actions.CAMERA_MOVE_RIGHT,
+	[Keys.DIK_D + Keys.SHIFT] = Actions.CAMERA_MOVE_RIGHT,
+	[Keys.DIK_LEFT + Keys.SHIFT] = Actions.CAMERA_MOVE_LEFT,
+	[Keys.DIK_A + Keys.SHIFT] = Actions.CAMERA_MOVE_LEFT,
+	[Keys.DIK_SPACE] = Actions.CAMERA_MOVE_UP,
+}

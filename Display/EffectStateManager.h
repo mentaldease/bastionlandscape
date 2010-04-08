@@ -42,6 +42,7 @@ namespace ElixirEngine
 		void Reset();
 		void BeginPass(const UInt _uPass);
 		void EndPass();
+		void EndPass(UIntRef _uChangeCount, UIntRef _uDuplicateCount);
 
 	protected:
 		typedef map<D3DRENDERSTATETYPE, DWORD> RenderStateMap;
@@ -53,14 +54,32 @@ namespace ElixirEngine
 		typedef TextureStateMap& TextureStateMapRef;
 		typedef map<DWORD, TextureStateMap> TextureStageStateMap;
 
+		struct States;
+		typedef States* StatesPtr;
+		typedef States& StatesRef;
 		struct States
 		{
+			States(DeviceRef _rDevice);
+
 			void Clear();
+
+			HRESULT SetRenderState(StatesRef _rSave, D3DRENDERSTATETYPE State, DWORD Value);
+			HRESULT SetTexture(StatesRef _rSave, DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture);
+			HRESULT SetTextureStageState(StatesRef _rSave, DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
+			HRESULT SetSamplerState(StatesRef _rSave, DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
+
+			void RestoreRenderState(StatesRef _rSave);
+			void RestoreTexture(StatesRef _rSave);
+			void RestoreTextureStageState(StatesRef _rSave);
+			void RestoreSamplerState(StatesRef _rSave);
 
 			RenderStateMap			m_mRenderStates;
 			MultiSamplerStateMap	m_mSamplerStates;
 			TextureStageMap			m_mTextures;
 			TextureStageStateMap	m_mTextureStates;
+			DeviceRef				m_rDevice;
+			UInt					m_uChangeCount;
+			UInt					m_uDuplicateCount;
 		};
 
 	protected:
@@ -68,8 +87,6 @@ namespace ElixirEngine
 		States		m_oCurrentStates;
 		ULONG		ulRefCount;
 		DeviceRef	m_rDevice;
-		UInt		m_uStateChanges;
-		UInt		m_uRedundantStateChanges;
 	};
 }
 
