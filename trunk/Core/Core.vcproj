@@ -275,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Job.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Noise.h"
 				>
 			</File>

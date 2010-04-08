@@ -26,6 +26,8 @@ namespace ElixirEngine
 			static LuaStatePtr GetStateInstance();
 			static bool Loadfile(const string& _strFileName, LuaStatePtr _pState = NULL);
 
+			static LuaObject GetGlobalTable(const string& _strTableName, const bool _bCreate = false, LuaStatePtr _pState = NULL);
+
 			template<typename T>
 			static bool Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const T _tDefault, T& _tResult);
 

@@ -90,6 +90,8 @@ namespace ElixirEngine
 		EffectPtr pEffect = GetEffect()->GetEffect();
 		size_t uCount = m_vRenderList.size();
 		UInt uPassCount;
+		UInt uChangeCount;
+		UInt uDuplicateCount;
 		pEffect->Begin(&uPassCount, EFFECT_RENDER_FLAGS);
 		for (UInt uPass = 0 ; uPass < uPassCount ; ++uPass)
 		{
@@ -107,7 +109,7 @@ namespace ElixirEngine
 				pDisplayObject->RenderEnd();
 			}
 			pEffect->EndPass();
-			pStateManager->EndPass();
+			pStateManager->EndPass(uChangeCount, uDuplicateCount);
 			pDisplay->MRTRenderEndPass();
 		}
 		pEffect->End();

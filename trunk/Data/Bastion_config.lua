@@ -3,8 +3,6 @@ bastion_config =
 	graphics =
 	{
 		fullscreen = false,
-		-- width = 640,
-		-- height = 480,
 		width = 1280,
 		height = 720,
 		color_format = "D3DFMT_A8R8G8B8",

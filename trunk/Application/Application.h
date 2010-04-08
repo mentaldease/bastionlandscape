@@ -56,6 +56,7 @@ namespace BastionGame
 		void GetLuaConfigParameters();
 		bool AddViewportFromLua(LuaObjectRef _rLuaObject);
 		void Log(const string& _strFormat, ...);
+		bool InitActions();
 
 	protected:
 		WindowData					m_oWindow;
@@ -77,13 +78,14 @@ namespace BastionGame
 		float						m_fRelativeTime;
 		float						m_fElapsedTime;
 		float						m_fCameraMoveSpeed;
-		unsigned char				m_aKeysInfo[256];
-		unsigned char				m_aKeysInfoOld[256];
+		Byte						m_aKeysInfo[256];
+		Byte						m_aKeysInfoOld[256];
 		DIMouseState				m_oMouseInfo;
 		DIMouseState				m_oMouseInfoOld;
 		CameraListenerPtr			m_pCameraListener;
 		LuaStatePtr					m_pLuaState;
 		DisplayCameraPtr			m_pCamera;
+		ActionKeybindingManagerPtr	m_pKeybinds;
 		FilePtr						m_pLog;
 
 	private:

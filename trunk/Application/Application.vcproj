@@ -149,6 +149,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\ActionKeybinding.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AppActions.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Application.cpp"
 				>
 			</File>
@@ -199,6 +207,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\ActionKeybinding.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AppActions.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Application.h"
 				>
 			</File>
@@ -236,54 +252,6 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-		</Filter>
-		<Filter
-			Name="Effect Files"
-			>
-			<File
-				RelativePath="..\Data\Effects\Basic.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\BasicBlurPost.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\DofCombinePost.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\InversePost.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\MonochromePost.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\Ocean.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\SimplePost.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\Terrain.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\Terrain2.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\Terrain3.fx"
-				>
-			</File>
-			<File
-				RelativePath="..\Data\Effects\WaterPost.fx"
-				>
-			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"

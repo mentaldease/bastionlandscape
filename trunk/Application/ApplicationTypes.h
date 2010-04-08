@@ -33,6 +33,10 @@ namespace BastionGame
 
 	typedef boost::function<CoreObjectPtr (LuaObjectRef _rLuaObject, ScenePtr _pScene)> CreateClassFunc;
 	typedef map<Key, CreateClassFunc> CreateClassFuncMap;
+
+	class ActionKeybindingManager;
+	typedef ActionKeybindingManager* ActionKeybindingManagerPtr;
+	typedef ActionKeybindingManager& ActionKeybindingManagerRef;
 }
 
 #endif // __APPLICATIONTYPES_H__

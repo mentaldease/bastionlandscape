@@ -69,6 +69,18 @@ namespace ElixirEngine
 			return bResult;
 		}
 
+
+		LuaObject Lua::GetGlobalTable(const string& _strTableName, const bool _bCreate, LuaStatePtr _pState)
+		{
+			_pState = (NULL == _pState) ? s_pState : _pState;
+			LuaObject lTable = _pState->GetGlobal(_strTableName.c_str());
+			if ((false != lTable.IsNil()) && (false != _bCreate))
+			{
+				lTable = _pState->GetGlobals().CreateTable(_strTableName.c_str());
+			}
+			return lTable;
+		}
+
 		template<typename T>
 		bool Lua::Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const T _tDefault, T& _tResult)
 		{
