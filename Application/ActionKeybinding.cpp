@@ -8,10 +8,21 @@ namespace BastionGame
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	void ActionKeybindingManager::Context::Clear()
+	{
+		m_mKeyActions.clear();
+		m_mActions.clear();
+		m_mActionRights.clear();
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	ActionKeybindingManager::ActionKeybindingManager()
 	:	CoreObject(),
-		m_mKeyActions(),
-		m_mActions(),
+		m_mContextes(),
+		m_pCurrentContext(NULL),
 		m_pKeysInfo(NULL),
 		m_pKeysInfoOld(NULL)
 	{
@@ -43,17 +54,18 @@ namespace BastionGame
 			+ (((0 != m_pKeysInfo[DIK_RCONTROL]) || (0 != m_pKeysInfo[DIK_LCONTROL])) ? s_uControlModifier : 0)
 			+ (((0 != m_pKeysInfo[DIK_RALT]) || (0 != m_pKeysInfo[DIK_LALT])) ? s_uAltModifier : 0);
 
-		m_mActions.clear();
+		m_pCurrentContext->m_mActions.clear();
 
 		for (int i = 0 ; 256 > i ; ++i)
 		{
 			if (((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i])) || (0 != m_pKeysInfo[i]))
 			{
 				const UINT uKey = i + uBaseModifiers + (((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i])) ? s_uOnceModifier : 0);
-				KeyActionMap::iterator iPair = m_mKeyActions.find(uKey);
-				if (m_mKeyActions.end() != iPair)
+				KeyActionMap::iterator iPair = m_pCurrentContext->m_mKeyActions.find(uKey);
+				if (m_pCurrentContext->m_mKeyActions.end() != iPair)
 				{
-					m_mActions[iPair->second] = true;
+					const UInt uAction = iPair->second;
+					m_pCurrentContext->m_mActions[uAction] = m_pCurrentContext->m_mActionRights[uAction];
 				}
 			}
 		}
@@ -61,10 +73,16 @@ namespace BastionGame
 
 	void ActionKeybindingManager::Release()
 	{
-
+		ContextPtrMap::iterator iPair = m_mContextes.begin();
+		ContextPtrMap::iterator iEnd = m_mContextes.end();
+		while (iEnd != iPair)
+		{
+			delete iPair->second;
+			++iPair;
+		}
 	}
 
-	bool ActionKeybindingManager::LoadBindings(const string& _strFileName)
+	bool ActionKeybindingManager::LoadBindings(const Key _uContextID, const string& _strFileName, const bool _bSetCurrentContext)
 	{
 		bool bResult = Scripting::Lua::Loadfile(_strFileName);
 		LuaObject lBindinds;
@@ -80,17 +98,47 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
+			ContextPtr pContext = m_mContextes[_uContextID];
+			if (NULL == pContext)
+			{
+				pContext = new Context;
+				m_mContextes[_uContextID] = pContext;
+			}
+			else
+			{
+				pContext->Clear();
+			}
 			for (LuaTableIterator it(lBindinds) ; it ; it.Next())
 			{
 				const UInt uKey = it.GetKey().GetInteger();
 				const UInt uAction = it.GetValue().GetInteger();
-				bResult = (m_mKeyActions.end() == m_mKeyActions.find(uKey));
+				bResult = (pContext->m_mKeyActions.end() == pContext->m_mKeyActions.find(uKey));
 				if (false == bResult)
 				{
 					break;
 				}
-				m_mKeyActions[uKey] = uAction;
+				pContext->m_mKeyActions[uKey] = uAction;
+				pContext->m_mActionRights[uAction] = true;
 			}
+
+			if (false != bResult)
+			{
+				m_pCurrentContext = (false != _bSetCurrentContext) ? pContext : m_pCurrentContext;
+			}
+		}
+
+		return bResult;
+	}
+
+	bool ActionKeybindingManager::SetCurrentContext(const Key _uContextID)
+	{
+		ContextPtrMap::iterator iPair = m_mContextes.find(_uContextID);
+		bool bResult = (m_mContextes.end() != iPair);
+
+		if (false != bResult)
+		{
+			m_pCurrentContext = iPair->second;
+			bResult = (NULL != m_pCurrentContext);
 		}
 
 		return bResult;
@@ -98,7 +146,17 @@ namespace BastionGame
 
 	bool ActionKeybindingManager::TestAction(const UInt _uAction)
 	{
-		return m_mActions[_uAction];
+		return m_pCurrentContext->m_mActions[_uAction];
+	}
+
+	void ActionKeybindingManager::DisableAction(const UInt _uAction)
+	{
+		m_pCurrentContext->m_mActionRights[_uAction] = false;
+	}
+
+	void ActionKeybindingManager::EnableAction(const UInt _uAction)
+	{
+		m_pCurrentContext->m_mActionRights[_uAction] = true;
 	}
 
 	bool ActionKeybindingManager::InitScripting()

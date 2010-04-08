@@ -2,7 +2,7 @@
 #include "../Application/Application.h"
 #include "../Application/Scene.h"
 #include "../Application/ActionKeybinding.h"
-#include "../Application/AppActions.h"
+#include "../Application/ApplicationActions.h"
 #include <stdarg.h>
 
 namespace BastionGame
@@ -136,6 +136,13 @@ namespace BastionGame
 			m_uProfileTimerID = m_pTime->CreateTimer(true);
 			Profiling::SetTimer(m_uProfileTimerID);
 		}
+
+		//if (false != bResult)
+		//{
+		//	JobManager::CreateInfo oJMCInfo;
+		//	m_pJobManager = new JobManager;
+		//	bResult = m_pJobManager->Create(boost::any(&oJMCInfo));
+		//}
 
 		if (false != bResult)
 		{
@@ -448,6 +455,13 @@ namespace BastionGame
 			m_pFSRoot = NULL;
 		}
 
+		//if (NULL != m_pJobManager)
+		//{
+		//	m_pJobManager->Release();
+		//	delete m_pJobManager;
+		//	m_pJobManager = NULL;
+		//}
+
 		if (NULL != m_pTime)
 		{
 			Time::SetRoot(NULL);
@@ -519,21 +533,29 @@ namespace BastionGame
 		{
 			m_fElapsedTime /= 1000.0f;
 			m_fRelativeTime += m_fElapsedTime;
-			m_pInput->Update();
-			UpdateSpectatorCamera(m_fElapsedTime);
+			UpdateInput();
 			m_pDisplay->UpdateRequest(m_pScene);
 			m_pDisplay->Update();
 		}
 	}
 
-	void Application::UpdateSpectatorCamera(const float& _fElapsedTime)
+	void Application::UpdateInput()
 	{
-		PROFILING(__FUNCTION__);
+		m_pInput->Update();
+
 		memcpy(m_aKeysInfoOld, m_aKeysInfo, sizeof(Byte) * 256);
 		m_pKeyboard->GetInfo(m_aKeysInfo);
 		memcpy(&m_oMouseInfoOld, &m_oMouseInfo, sizeof(DIMouseState));
 		m_pMouse->GetInfo(&m_oMouseInfo);
+
 		m_pKeybinds->Update();
+
+		UpdateSpectatorCamera(m_fElapsedTime);
+	}
+
+	void Application::UpdateSpectatorCamera(const float& _fElapsedTime)
+	{
+		PROFILING(__FUNCTION__);
 
 		// hack : if mouse movement delta if too hight then reset
 		if ((-1000 >= m_oMouseInfo.lX) || (1000 <= m_oMouseInfo.lX) || (-1000 >= m_oMouseInfo.lY) || (1000 <= m_oMouseInfo.lY))
@@ -573,27 +595,12 @@ namespace BastionGame
 		}
 
 		m_pCamera->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
-#if 0
-		if (false == ((m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_FRONT)) || (m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_BACK))))
-		{
-			rCamPos += oCamFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_FRONT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-			rCamPos -= oCamFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_BACK) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		}
-		else
-		{
-			Vector3 oFrontDir(oCamFrontDir.x, 0.0f, oCamFrontDir.z);
-			D3DXVec3Normalize(&oFrontDir, &oFrontDir);
-			rCamPos += oFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_FRONT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-			rCamPos -= oFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_BACK) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		}
-#else
 		Vector3 oFrontDir(oCamFrontDir.x, 0.0f, oCamFrontDir.z);
 		D3DXVec3Normalize(&oFrontDir, &oFrontDir);
 		rCamPos += oFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_FRONT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
 		rCamPos -= oFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_BACK) ? 1.0f : 0.0f) * fCameraMoveSpeed;
 		rCamPos += oCamFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_FRONT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
 		rCamPos -= oCamFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_BACK) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-#endif
 		rCamPos += oCamRightDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_RIGHT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
 		rCamPos -= oCamRightDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_LEFT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
 		rCamPos.y += (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_UP) ? 1.0f : 0.0f) * fCameraMoveSpeed;

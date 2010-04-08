@@ -153,11 +153,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\AppActions.cpp"
+				RelativePath=".\Application.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Application.cpp"
+				RelativePath=".\ApplicationActions.cpp"
 				>
 			</File>
 			<File
@@ -211,11 +211,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\AppActions.h"
+				RelativePath=".\Application.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Application.h"
+				RelativePath=".\ApplicationActions.h"
 				>
 			</File>
 			<File
