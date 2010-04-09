@@ -198,7 +198,7 @@ namespace ElixirEngine
 			const UInt uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(LandscapeVertexDefault), sizeof(LandscapeVertexDefault), LandscapeVertexDefault::s_VertexElement };
 			Key uVertexBuffer = m_pDisplay->CreateVertexBufferKey(oVBCreateInfo);
-			bResult = (NULL != uVertexBuffer);
+			bResult = (0 != uVertexBuffer);
 			if (false != bResult)
 			{
 				const UInt uLODIncrement = 0x00000001 << k;
@@ -223,7 +223,7 @@ namespace ElixirEngine
 						++pVertex;
 					}
 				}
-				m_pDisplay->SetVertexBufferKeyData(uVertexBuffer, pVertexes);
+				bResult = m_pDisplay->SetVertexBufferKeyData(uVertexBuffer, pVertexes);
 				if (false == bResult)
 				{
 					m_pDisplay->ReleaseVertexBufferKey(uVertexBuffer);
@@ -253,7 +253,7 @@ namespace ElixirEngine
 			const UInt uLODVertexCount = uLODVertexPerRowCount * uLODRowCount;
 			DisplayVertexBuffer::CreateInfo oVBCreateInfo = { uLODVertexCount * sizeof(LandscapeVertexLiquid), sizeof(LandscapeVertexLiquid), LandscapeVertexLiquid::s_VertexElement };
 			Key uVertexBuffer = m_pDisplay->CreateVertexBufferKey(oVBCreateInfo);
-			bResult = (NULL != uVertexBuffer);
+			bResult = (0 != uVertexBuffer);
 			if (false != bResult)
 			{
 				const UInt uLODIncrement = 0x00000001 << k;

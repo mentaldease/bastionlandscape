@@ -151,6 +151,18 @@ namespace ElixirEngine
 	class Profiling;
 	typedef Profiling* ProfilingPtr;
 	typedef Profiling& ProfilingRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class Job;
+	typedef Job* JobPtr;
+	typedef Job& JobRef;
+
+	class JobManager;
+	typedef JobManager* JobManagerPtr;
+	typedef JobManager& JobManagerRef;
 }
 
 namespace LuaPlus

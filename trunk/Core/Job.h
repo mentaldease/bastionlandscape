@@ -10,10 +10,11 @@ namespace ElixirEngine
 	class Job : public CoreObject
 	{
 	public:
-		Job();
+		Job(JobManagerRef _rJobManager);
 		virtual ~Job();
 
 	protected:
+		JobManagerRef	m_rJobManager;
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -23,8 +24,19 @@ namespace ElixirEngine
 	class JobManager : public CoreObject
 	{
 	public:
+		struct CreateInfo
+		{
+			UInt	m_uPoolSize;
+		};
+
+	public:
 		JobManager();
 		virtual ~JobManager();
+
+		virtual bool Create(const boost::any& _rConfig);
+		virtual void Release();
+
+		void Schedule(JobPtr _pJob);
 
 	protected:
 	};
