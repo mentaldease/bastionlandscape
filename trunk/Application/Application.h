@@ -49,6 +49,19 @@ namespace BastionGame
 	protected:
 		typedef boost::function<void()> UpdateFunction;
 
+		struct CameraParams
+		{
+			CameraParams();
+
+			void Reset(const bool _bResetSpeed = true);
+
+			float	m_fMoveSpeed;
+			float	m_fFront;
+			float	m_fFront2;
+			float	m_fStrafe;
+			float	m_fUp;
+		};
+
 	protected:
 		void LoadScene();
 		void RenderScene();
@@ -57,10 +70,13 @@ namespace BastionGame
 		void GetLuaConfigParameters();
 		bool AddViewportFromLua(LuaObjectRef _rLuaObject);
 		void Log(const string& _strFormat, ...);
-		bool InitActions();
+		bool CreateActions();
+		void ProcessActions(UInt _uActionID);
+		void ReleaseActions();
 
 	protected:
 		WindowData					m_oWindow;
+		CameraParams				m_oCameraParams;
 		EStateMode					m_eStateMode;
 		DisplayPtr					m_pDisplay;
 		ScenePtr					m_pScene;
@@ -87,7 +103,10 @@ namespace BastionGame
 		LuaStatePtr					m_pLuaState;
 		DisplayCameraPtr			m_pCamera;
 		ActionKeybindingManagerPtr	m_pKeybinds;
+		ActionDispatcherPtr			m_pActionDispatcher;
 		FilePtr						m_pLog;
+		ActionCallbackFunc			m_pActionCallback;
+		Key							m_uProcessAction;
 
 	private:
 	};

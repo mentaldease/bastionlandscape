@@ -37,6 +37,14 @@ namespace BastionGame
 	class ActionKeybindingManager;
 	typedef ActionKeybindingManager* ActionKeybindingManagerPtr;
 	typedef ActionKeybindingManager& ActionKeybindingManagerRef;
+
+	class ActionDispatcher;
+	typedef ActionDispatcher* ActionDispatcherPtr;
+	typedef ActionDispatcher& ActionDispatcherRef;
+	typedef boost::function<void (UInt _uActionID)> ActionCallbackFunc;
+	typedef map<Key, ActionCallbackFunc> ActionCallbackFuncMap;
+	typedef ActionCallbackFuncMap& ActionCallbackFuncMapRef;
+	typedef map<UInt, ActionCallbackFuncMap> ActionCallbackFuncMultiMap;
 }
 
 #endif // __APPLICATIONTYPES_H__
