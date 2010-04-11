@@ -22,6 +22,29 @@ namespace BastionGame
 		EAppAction_PATH_CREATE,
 		EAppAction_COUNT // Always last enum member
 	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class ActionDispatcher : public ElixirEngine::CoreObject
+	{
+	public:
+		ActionDispatcher();
+		virtual ~ActionDispatcher();
+
+		virtual bool Create(const boost::any& _rConfig);
+		virtual void Update();
+		virtual void Release();
+
+		void SetBindings(ActionKeybindingManagerPtr _pBindingManager);
+		bool RegisterActionCallback(UInt _uActionID, const Key _uCallbackID, ActionCallbackFunc _pCallback);
+		void UnregisterActionCallback(UInt _uActionID, const Key _uCallbackID);
+
+	protected:
+		ActionKeybindingManagerPtr	m_pBindingManager;
+		ActionCallbackFuncMultiMap	m_mCallbacks;
+	};
 }
 
 #endif // __APPLICATIONACTIONS_H__

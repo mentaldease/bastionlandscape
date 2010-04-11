@@ -92,6 +92,24 @@ namespace BastionGame
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	Application::CameraParams::CameraParams()
+	{
+		Reset();
+	}
+
+	void Application::CameraParams::Reset(const bool _bResetSpeed)
+	{
+		m_fMoveSpeed = (false == _bResetSpeed) ? m_fMoveSpeed : 0.0f;
+		m_fFront = 0.0f;
+		m_fFront2 = 0.0f;
+		m_fStrafe = 0.0f;
+		m_fUp = 0.0f;
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	Application::Application()
 	:	CoreObject(),
 		m_oWindow(),
@@ -114,8 +132,11 @@ namespace BastionGame
 		m_pLuaState(NULL),
 		m_pCamera(NULL),
 		m_pKeybinds(NULL),
-		m_pLog(NULL)
+		m_pActionDispatcher(NULL),
+		m_pLog(NULL),
+		m_uProcessAction(MakeKey(string("ProcessAction")))
 	{
+		m_pActionCallback = boost::bind(&Application::ProcessActions, this, _1);
 	}
 
 	Application::~Application()
@@ -291,15 +312,7 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			ActionKeybindingManager::CreateInfo oAKMCInfo = { m_aKeysInfo, m_aKeysInfoOld };
-			m_pKeybinds = new ActionKeybindingManager;
-			bResult = ActionKeybindingManager::InitScripting()
-				&& m_pKeybinds->Create(boost::any(&oAKMCInfo));
-		}
-
-		if (false != bResult)
-		{
-			bResult = InitActions();
+			bResult = CreateActions();
 		}
 
 		if (false != bResult)
@@ -350,12 +363,7 @@ namespace BastionGame
 			m_pScene = NULL;
 		}
 
-		if (NULL != m_pKeybinds)
-		{
-			m_pKeybinds->Release();
-			delete m_pKeybinds;
-			m_pKeybinds = NULL;
-		}
+		ReleaseActions();
 
 		if (NULL != m_pInput)
 		{
@@ -548,7 +556,7 @@ namespace BastionGame
 		memcpy(&m_oMouseInfoOld, &m_oMouseInfo, sizeof(DIMouseState));
 		m_pMouse->GetInfo(&m_oMouseInfo);
 
-		m_pKeybinds->Update();
+		m_pActionDispatcher->Update();
 
 		UpdateSpectatorCamera(m_fElapsedTime);
 	}
@@ -564,19 +572,6 @@ namespace BastionGame
 			m_oMouseInfo.lY = 0;
 			m_oMouseInfo.lZ = 0;
 			vsoutput(__FUNCTION__" : mouse reseted\n");
-		}
-
-		if (m_pKeybinds->TestAction(EAppAction_CAMERA_INC_SPEED))
-		{
-			m_fCameraMoveSpeed *= 2.0f;
-		}
-		if (m_pKeybinds->TestAction(EAppAction_CAMERA_DEC_SPEED))
-		{
-			m_fCameraMoveSpeed /= 2.0f;
-			if (1.0f > m_fCameraMoveSpeed)
-			{
-				m_fCameraMoveSpeed = 1.0f;
-			}
 		}
 
 		Vector3& rCamPos = m_pCamera->GetPosition();
@@ -597,13 +592,12 @@ namespace BastionGame
 		m_pCamera->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
 		Vector3 oFrontDir(oCamFrontDir.x, 0.0f, oCamFrontDir.z);
 		D3DXVec3Normalize(&oFrontDir, &oFrontDir);
-		rCamPos += oFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_FRONT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		rCamPos -= oFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_STRAFE_BACK) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		rCamPos += oCamFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_FRONT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		rCamPos -= oCamFrontDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_BACK) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		rCamPos += oCamRightDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_RIGHT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		rCamPos -= oCamRightDir * (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_LEFT) ? 1.0f : 0.0f) * fCameraMoveSpeed;
-		rCamPos.y += (m_pKeybinds->TestAction(EAppAction_CAMERA_MOVE_UP) ? 1.0f : 0.0f) * fCameraMoveSpeed;
+		rCamPos += oFrontDir * m_oCameraParams.m_fFront2 * fCameraMoveSpeed;
+		rCamPos += oCamFrontDir * m_oCameraParams.m_fFront * fCameraMoveSpeed;
+		rCamPos += oCamRightDir * m_oCameraParams.m_fStrafe * fCameraMoveSpeed;
+		rCamPos.y += m_oCameraParams.m_fUp * fCameraMoveSpeed;
+
+		m_oCameraParams.Reset(false);
 	}
 
 	void Application::GetLuaConfigParameters()

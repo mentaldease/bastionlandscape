@@ -12,6 +12,8 @@ namespace ElixirEngine
 	typedef LPDIRECTINPUT8			DIPtr;
 	typedef LPDIRECTINPUTDEVICE8	DIDevicePtr;
 	typedef DIMOUSESTATE2			DIMouseState;
+	typedef DIMouseState*			DIMouseStatePtr;
+	typedef DIMouseState&			DIMouseStateRef;
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
