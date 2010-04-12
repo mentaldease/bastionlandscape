@@ -5,3 +5,5 @@ TODO :
 * mettre en place un system de jobs/tasks afin de tirer profit des cpu multicore.
 * utiliser au maximum les asserts au lieu de simple test (surtout pour accès read/write des conteneurs (vector, map, custom)).
 * utiliser des allocateurs spécifiques pour les conteneurs afin d'viter la fragmentation et tracker les memory leaks.
+* penser à un système d'ordres assignables à une unité ou un groupe.
+voir http://www.gamedev.net/community/forums/topic.asp?topic_id=566842, le post de geo2004
