@@ -24,21 +24,30 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			struct RegisterActionLua
+			struct RegisterAction
 			{
-				RegisterActionLua(LuaObjectRef _rlTable)
-				:	m_rlTable(_rlTable)
+				RegisterAction(LuaObjectRef _rlTable, ActionDispatcherPtr _pActionDispatcher, const Key _uProcessAction, ActionCallbackFunc _pActionCallback)
+				:	m_rlTable(_rlTable),
+					m_pActionDispatcher(_pActionDispatcher),
+					m_uProcessAction(_uProcessAction),
+					m_pActionCallback(_pActionCallback),
+					m_bResult(true)
 				{
 
 				}
 				void Process(const CharPtr _pName, const int _sValue)
 				{
 					m_rlTable.SetInteger(_pName, _sValue);
+					m_bResult &= m_pActionDispatcher->RegisterActionCallback(_sValue, m_uProcessAction, m_pActionCallback);
 				}
 
-				LuaObjectRef	m_rlTable;
+				LuaObjectRef		m_rlTable;
+				ActionDispatcherPtr	m_pActionDispatcher;
+				Key					m_uProcessAction;
+				ActionCallbackFunc	m_pActionCallback;
+				bool				m_bResult;
 			};
-			RegisterActionLua funcRegister(lActions);
+			RegisterAction funcRegister(lActions, m_pActionDispatcher, m_uProcessAction, m_pActionCallback);
 
 			#define REGISTER_ACTION(ACTION) funcRegister.Process(#ACTION, EAppAction_##ACTION)
 
@@ -52,23 +61,21 @@ namespace BastionGame
 			REGISTER_ACTION(CAMERA_MOVE_LEFT);
 			REGISTER_ACTION(CAMERA_MOVE_UP);
 			REGISTER_ACTION(PATH_CREATE);
+			REGISTER_ACTION(ENTITY_CREATE);
 
 			#undef REGISTER_ACTION
 
-			m_pActionDispatcher->SetBindings(m_pKeybinds);
+			bResult = funcRegister.m_bResult;
 
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_INC_SPEED, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_DEC_SPEED, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_STRAFE_FRONT, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_STRAFE_BACK, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_MOVE_FRONT, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_MOVE_BACK, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_MOVE_RIGHT, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_MOVE_LEFT, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_CAMERA_MOVE_UP, m_uProcessAction, m_pActionCallback);
-			m_pActionDispatcher->RegisterActionCallback(EAppAction_PATH_CREATE, m_uProcessAction, m_pActionCallback);
-
-			bResult = m_pKeybinds->LoadBindings(MakeKey(string("default")), "Data/keybinds.lua", true);
+			if (false != bResult)
+			{
+				m_pActionDispatcher->SetBindings(m_pKeybinds);
+				bResult = m_pKeybinds->LoadBindings(MakeKey(string("default")), "Data/keybinds.lua", true);
+			}
+			else
+			{
+				vsoutput(__FUNCTION__" : could not register one or more action.\n");
+			}
 		}
 
 		return bResult;
@@ -133,14 +140,18 @@ namespace BastionGame
 			case EAppAction_PATH_CREATE:
 			{
 				m_pActionDispatcher->UnregisterActionCallback(EAppAction_PATH_CREATE, m_uProcessAction);
-				if ((NULL == m_pOneJob) && (NULL != m_pJobManager))
-				{
-					m_pOneJob = new AppTestJob(*m_pJobManager);
-					if (false != m_pOneJob->Create(boost::any(0)))
-					{
-						m_pJobManager->PushJob(m_pOneJob);
-					}
-				}
+				//if ((NULL == m_pOneJob) && (NULL != m_pJobManager))
+				//{
+				//	m_pOneJob = new AppTestJob(*m_pJobManager);
+				//	if (false != m_pOneJob->Create(boost::any(0)))
+				//	{
+				//		m_pJobManager->PushJob(m_pOneJob);
+				//	}
+				//}
+				break;
+			}
+			case EAppAction_ENTITY_CREATE:
+			{
 				break;
 			}
 		}

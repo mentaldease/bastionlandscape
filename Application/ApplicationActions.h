@@ -20,6 +20,7 @@ namespace BastionGame
 		EAppAction_CAMERA_MOVE_LEFT,
 		EAppAction_CAMERA_MOVE_UP,
 		EAppAction_PATH_CREATE,
+		EAppAction_ENTITY_CREATE,
 		EAppAction_COUNT // Always last enum member
 	};
 

@@ -43,10 +43,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 //	//_CrtSetBreakAlloc(227);
 //#endif
 
-	DWORD_PTR procMask;
-	DWORD_PTR sysMask;
-	GetProcessAffinityMask(GetCurrentProcess(), &procMask, &sysMask);
-
 	WindowData m_oWindow;
 	Application* pApp = new Application;
 
