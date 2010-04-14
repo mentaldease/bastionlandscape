@@ -4,6 +4,7 @@
 #include "../Display/Effect.h"
 #include "../Display/EffectParam.h"
 #include "../Core/File.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -172,8 +173,7 @@ namespace ElixirEngine
 			if (false == bResult)
 			{
 				char* ptr = static_cast<char*>(pCompilErrors->GetBufferPointer());
-				int a = 0;
-				++a;
+				vsoutput(__FUNCTION__" : %s\n", ptr);
 			}
 			else
 			{
@@ -302,6 +302,7 @@ namespace ElixirEngine
 				bResult = (NULL != hParam) && SUCCEEDED(m_pEffect->GetParameterDesc(hParam, &oParamDesc));
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : %s, could not access parameter #%u\n", m_strName.c_str(), i);
 					break;
 				}
 				if (NULL != oParamDesc.Semantic)
@@ -315,6 +316,7 @@ namespace ElixirEngine
 				}
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : %s, could not access %s parameter handle\n", m_strName.c_str(), oParamDesc.Name);
 					break;
 				}
 				m_mHandles[uSemanticKey] = hParam;

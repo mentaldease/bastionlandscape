@@ -160,6 +160,11 @@ namespace ElixirEngine
 	typedef Job* JobPtr;
 	typedef Job& JobRef;
 
+	class JobThread;
+	typedef JobThread* JobThreadPtr;
+	typedef JobThread& JobThreadRef;
+	typedef vector<JobThreadPtr> JobThreadPtrVec;
+
 	class JobManager;
 	typedef JobManager* JobManagerPtr;
 	typedef JobManager& JobManagerRef;

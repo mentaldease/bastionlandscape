@@ -2,6 +2,7 @@
 #include "../Display/FontBMF.h"
 #include "../Display/Effect.h"
 #include "../Display/EffectParam.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -289,7 +290,7 @@ namespace ElixirEngine
 				if (false != bResult)
 				{
 					Byte uBlockType = 0;
-					UInt uBlockSise = 0;
+					UInt uBlockSize = 0;
 					do 
 					{
 						pFile->Read(&uBlockType, sizeof(Byte));
@@ -300,37 +301,38 @@ namespace ElixirEngine
 							break;
 						}
 
-						pFile->Read(&uBlockSise, sizeof(UInt));
+						pFile->Read(&uBlockSize, sizeof(UInt));
 
 						switch (uBlockType)
 						{
 							case 1:
 							{
-								bResult = ReadBlockInfo(pFile, uBlockSise);
+								bResult = ReadBlockInfo(pFile, uBlockSize);
 								break;
 							}
 							case 2:
 							{
-								bResult = ReadBlockCommon(pFile, uBlockSise);
+								bResult = ReadBlockCommon(pFile, uBlockSize);
 								break;
 							}
 							case 3:
 							{
-								bResult = ReadBlockPages(pFile, uBlockSise);
+								bResult = ReadBlockPages(pFile, uBlockSize);
 								break;
 							}
 							case 4:
 							{
-								bResult = ReadBlockChars(pFile, uBlockSise);
+								bResult = ReadBlockChars(pFile, uBlockSize);
 								break;
 							}
 							case 5:
 							{
-								bResult = ReadBlockKerning(pFile, uBlockSise);
+								bResult = ReadBlockKerning(pFile, uBlockSize);
 								break;
 							}
 							default:
 							{
+								vsoutput(__FUNCTION__" : unknown block type %u\n", uBlockType);
 								bResult = false;
 								break;
 							}
@@ -500,6 +502,7 @@ namespace ElixirEngine
 					bResult = (m_mBlockChars.end() == m_mBlockChars.find(uID));
 					if (false == bResult)
 					{
+						vsoutput(__FUNCTION__" : char block #%u already exists\n", uID);
 						break;
 					}
 
@@ -560,6 +563,7 @@ namespace ElixirEngine
 				bResult = pTextureManager->Load(m_oBlockPages.m_vPageNames[i], strFileName, DisplayTexture::EType_2D);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : %s, could not load texture\n", m_oBlockPages.m_vPageNames[i].c_str());
 					break;
 				}
 
@@ -568,6 +572,7 @@ namespace ElixirEngine
 				bResult = (NULL != pTexture);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : %s, could not get texture\n", m_oBlockPages.m_vPageNames[i].c_str());
 					break;
 				}
 

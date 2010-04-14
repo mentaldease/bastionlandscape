@@ -9,6 +9,7 @@
 #include "../Core/Util.h"
 #include "../Core/Scripting.h"
 #include "../Core/Profiling.h"
+#include "../Core/Job.h"
 
 #include "../Display/Display.h"
 #include "../Display/Camera.h"

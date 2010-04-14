@@ -53,6 +53,10 @@ namespace BastionGame
 			m_pMouseInfo = pInfo->m_pMouseInfo;
 			m_pMouseInfoOld = pInfo->m_pMouseInfoOld;
 		}
+		else
+		{
+			vsoutput(__FUNCTION__" : missing keyboard and/or mouse info data\n");
+		}
 
 		return bResult;
 	}
@@ -70,6 +74,7 @@ namespace BastionGame
 		{
 			if (((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i])) || (0 != m_pKeysInfo[i]))
 			{
+				const bool bOnce = ((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i]));
 				const UINT uKey = i + uBaseModifiers + (((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i])) ? s_uOnceModifier : 0);
 				KeyActionMap::iterator iPair = m_pCurrentContext->m_mKeyActions.find(uKey);
 				if (m_pCurrentContext->m_mKeyActions.end() != iPair)
@@ -85,6 +90,7 @@ namespace BastionGame
 			}
 		}
 
+#if 0
 		uBaseModifiers += s_uMouseModifier;
 		BYTE* pMouseButtons = &m_pMouseInfo->rgbButtons[0];
 		BYTE* pMouseButtonsOld = &m_pMouseInfoOld->rgbButtons[0];
@@ -93,7 +99,7 @@ namespace BastionGame
 		{
 			if (((0 != pMouseButtonsOld[i]) && (0 == pMouseButtons[i])) || (0 != pMouseButtons[i]))
 			{
-				const UINT uKey = DIM_BUTTONLEFT + uBaseModifiers + (((0 != pMouseButtonsOld[i]) && (0 == pMouseButtons[i])) ? s_uOnceModifier : 0);
+				const UINT uKey = DIM_BUTTONLEFT + i + uBaseModifiers + (((0 != pMouseButtonsOld[i]) && (0 == pMouseButtons[i])) ? s_uOnceModifier : 0);
 				KeyActionMap::iterator iPair = m_pCurrentContext->m_mKeyActions.find(uKey);
 				if (m_pCurrentContext->m_mKeyActions.end() != iPair)
 				{
@@ -114,7 +120,7 @@ namespace BastionGame
 		{
 			if (((0 != aMoveOld[i]) && (0 == aMove[i])) || (0 != aMove[i]))
 			{
-				const UINT uKey = DIM_MOVEX + uBaseModifiers + (((0 != aMoveOld[i]) && (0 == aMove[i])) ? s_uOnceModifier : 0);
+				const UINT uKey = DIM_MOVEX + i + uBaseModifiers + (((0 != aMoveOld[i]) && (0 == aMove[i])) ? s_uOnceModifier : 0);
 				KeyActionMap::iterator iPair = m_pCurrentContext->m_mKeyActions.find(uKey);
 				if (m_pCurrentContext->m_mKeyActions.end() != iPair)
 				{
@@ -128,6 +134,7 @@ namespace BastionGame
 				}
 			}
 		}
+#endif
 	}
 
 	void ActionKeybindingManager::Release()
@@ -176,6 +183,7 @@ namespace BastionGame
 				bResult = (pContext->m_mKeyActions.end() == pContext->m_mKeyActions.find(uKey));
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : colliding bindings\n");
 					break;
 				}
 				pContext->m_mKeyActions[uKey] = uAction;

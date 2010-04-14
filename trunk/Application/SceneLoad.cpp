@@ -30,6 +30,7 @@ namespace BastionGame
 				bResult = (NULL == pTexture);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : %s texture already exists\n", strName.c_str());
 					break;
 				}
 
@@ -44,6 +45,7 @@ namespace BastionGame
 					DisplayTexture::EUsage_RENDERTARGET);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : could not create %s texture\n", strName.c_str());
 					break;
 				}
 
@@ -51,6 +53,7 @@ namespace BastionGame
 				bResult = (NULL != pTexture);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : could not access %s texture\n", strName.c_str());
 					break;
 				}
 				m_mAdditionalRTs[uNameKey] = pTexture;
@@ -76,6 +79,7 @@ namespace BastionGame
 			bool bResult = Scripting::Lua::Loadfile(strFileName);
 			if (false == bResult)
 			{
+				vsoutput(__FUNCTION__" : could not load %s\n", strFileName.c_str());
 				break;
 			}
 			string strMaterialLibrary;
@@ -85,6 +89,7 @@ namespace BastionGame
 			bResult = (false == oMaterialLibrary.IsNil());
 			if (false == bResult)
 			{
+				vsoutput(__FUNCTION__" : could not access %s lua table\n", strMaterialLibrary.c_str());
 				bResult = false;
 				break;
 			}
@@ -99,6 +104,7 @@ namespace BastionGame
 					&& (false != pMaterialManager->CreateMaterial(uMaterialNameKey, oMaterial));
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : could not create %s material\n", strMaterialName.c_str());
 					break;
 				}
 				m_mMaterials[uMaterialNameKey] = pMaterialManager->GetMaterial(strMaterialName);
@@ -166,6 +172,7 @@ namespace BastionGame
 					bResult = CreateLoadWaterData(oWater[i + 1], m_pWaterData[i]);
 					if (false == bResult)
 					{
+						vsoutput(__FUNCTION__" : failed to create water data #%d\n", i);
 						break;
 					}
 				}
@@ -223,6 +230,7 @@ namespace BastionGame
 			bool bResult = Scripting::Lua::Loadfile(strFileName);
 			if (false == bResult)
 			{
+				vsoutput(__FUNCTION__" : could not load %s\n", strFileName.c_str());
 				break;
 			}
 			string strCameraLibrary;
@@ -232,6 +240,7 @@ namespace BastionGame
 			bResult = (false == oCameraLibrary.IsNil());
 			if (false == bResult)
 			{
+				vsoutput(__FUNCTION__" : failed to access %s lua table\n", strCameraLibrary.c_str());
 				break;
 			}
 			const int uCameraCount = oCameraLibrary.GetCount();
@@ -244,6 +253,7 @@ namespace BastionGame
 					&& (false != pDisplay->CreateCamera(uCameraNameKey, oCamera));
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : failed to create %s camera\n", strCameraName.c_str());
 					break;
 				}
 				m_mCameras[uCameraNameKey] = pDisplay->GetCamera(uCameraNameKey);
@@ -293,6 +303,7 @@ namespace BastionGame
 		}
 		else
 		{
+			vsoutput(__FUNCTION__" : failed to create %s render stage\n", strName.c_str());
 			pRenderStage->Release();
 			delete pRenderStage;
 		}
@@ -316,6 +327,7 @@ namespace BastionGame
 				bResult = Scripting::Lua::Get(oObject, "class", strClass, strClass);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : missing class for object #%d\n", i);
 					break;
 				}
 
@@ -324,6 +336,7 @@ namespace BastionGame
 				bResult = (s_mClasses.end() != iPair);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : undeclared %s class for object #%d\n", strClass.c_str(), i);
 					break;
 				}
 
@@ -331,6 +344,7 @@ namespace BastionGame
 				bResult = Scripting::Lua::Get(oObject, "name", strName, strName);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : missing name for object #%d\n", i);
 					break;
 				}
 
@@ -338,6 +352,7 @@ namespace BastionGame
 				bResult = (m_mHierarchy.end() == m_mHierarchy.find(uObjectNameKey));
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : %s already exists for object #%d\n", strName.c_str(), i);
 					break;
 				}
 
@@ -346,6 +361,7 @@ namespace BastionGame
 				bResult = (NULL != pObject);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : failed to create %s object #%d\n", strName.c_str(), i);
 					break;
 				}
 
