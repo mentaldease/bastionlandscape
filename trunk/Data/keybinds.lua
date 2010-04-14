@@ -19,5 +19,6 @@ keybinds =
 	[Keys.DIK_LEFT + Keys.SHIFT] = Actions.CAMERA_MOVE_LEFT,
 	[Keys.DIK_A + Keys.SHIFT] = Actions.CAMERA_MOVE_LEFT,
 	[Keys.DIK_SPACE] = Actions.CAMERA_MOVE_UP,
-	[Keys.DIK_1] = Actions.PATH_CREATE,
+	[Keys.DIK_1] = Actions.ENTITY_CREATE,
+	[Keys.DIK_2] = Actions.PATH_CREATE,
 }

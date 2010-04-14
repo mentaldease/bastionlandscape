@@ -162,7 +162,17 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			JobManager::CreateInfo oJMCInfo = { 2 };
+			const UInt uBitSize = sizeof(DWORD_PTR) * 8;
+			DWORD_PTR ProcMask;
+			DWORD_PTR SysMask;
+			GetProcessAffinityMask(GetCurrentProcess(), &ProcMask, &SysMask);
+			UInt uCount = 0;
+			for (UInt i = 0 ; uBitSize > i ; ++i)
+			{
+				uCount = (0 != (ProcMask & 1)) ? uCount + 1 : uCount;
+				ProcMask >>= 1;
+			}
+			JobManager::CreateInfo oJMCInfo = { uCount };
 			m_pJobManager = new JobManager;
 			bResult = m_pJobManager->Create(boost::any(&oJMCInfo));
 		}
