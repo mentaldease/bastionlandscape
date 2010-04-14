@@ -279,6 +279,7 @@ namespace ElixirEngine
 					bResult = (NULL != pNode) && pNode->Create(boost::any(&oONCInfo));
 					if (false == bResult)
 					{
+						vsoutput(__FUNCTION__" : could not create node\n");
 						break;
 					}
 					//vsoutput("child #%d created\n");
@@ -373,6 +374,7 @@ namespace ElixirEngine
 					bResult = (NULL != pNode) && pNode->RemoveObject(_pObject);
 					if (false == bResult)
 					{
+						vsoutput(__FUNCTION__" : could not remove node\n");
 						break;
 					}
 					if (0 == pNode->GetChildrenCount())

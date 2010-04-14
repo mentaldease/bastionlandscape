@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Display/Texture.h"
 #include "../Core/File.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -101,8 +102,13 @@ namespace ElixirEngine
 						bResult = SUCCEEDED(m_pTexture->GetLevelDesc(0, &m_aSurfaceDescs[0]));
 						if (false == bResult)
 						{
+							vsoutput(__FUNCTION__" : %s, could not get texture surface\n", _rInfo.m_strPath.c_str());
 							break;
 						}
+					}
+					else
+					{
+						vsoutput(__FUNCTION__" : %s, could not create texture\n", _rInfo.m_strPath.c_str());
 					}
 					break;
 				}
@@ -118,10 +124,15 @@ namespace ElixirEngine
 								&& pSurface->GetDesc(&m_aSurfaceDescs[i]));
 							if (false == bResult)
 							{
+								vsoutput(__FUNCTION__" : %s, could not get cube map surface #%d\n", _rInfo.m_strPath.c_str(), i);
 								break;
 							}
 							pSurface->Release();
 						}
+					}
+					else
+					{
+						vsoutput(__FUNCTION__" : %s, could not create cube map\n", _rInfo.m_strPath.c_str());
 					}
 					break;
 				}

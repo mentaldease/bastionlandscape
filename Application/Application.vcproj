@@ -161,6 +161,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ApplicationJob.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DebugTextOverlay.cpp"
 				>
 			</File>
@@ -220,6 +224,10 @@
 			</File>
 			<File
 				RelativePath=".\ApplicationIncludes.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ApplicationJob.h"
 				>
 			</File>
 			<File

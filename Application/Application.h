@@ -106,6 +106,8 @@ namespace BastionGame
 		ActionDispatcherPtr			m_pActionDispatcher;
 		FilePtr						m_pLog;
 		ActionCallbackFunc			m_pActionCallback;
+		JobManagerPtr				m_pJobManager;
+		JobPtr						m_pOneJob;
 		Key							m_uProcessAction;
 
 	private:

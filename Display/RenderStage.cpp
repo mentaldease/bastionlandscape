@@ -3,6 +3,7 @@
 #include "../Display/PostProcess.h"
 #include "../Display/NormalProcess.h"
 #include "../Core/Scripting.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -148,6 +149,7 @@ namespace ElixirEngine
 		}
 		else
 		{
+			vsoutput(__FUNCTION__" : could not create %s post process\n", strName.c_str());
 			pPostProcess->Release();
 			delete pPostProcess;
 		}
@@ -193,6 +195,7 @@ namespace ElixirEngine
 		}
 		else
 		{
+			vsoutput(__FUNCTION__" : could not create %s normal process\n", strName.c_str());
 			pNormalProcess->Release();
 			delete pNormalProcess;
 		}

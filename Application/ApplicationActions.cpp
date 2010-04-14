@@ -3,6 +3,7 @@
 #include "../Application/Application.h"
 #include "../Application/ApplicationActions.h"
 #include "../Application/ActionKeybinding.h"
+#include "../Application/ApplicationJob.h"
 
 namespace BastionGame
 {
@@ -13,7 +14,7 @@ namespace BastionGame
 	bool Application::CreateActions()
 	{
 		LuaObject lActions = Scripting::Lua::GetGlobalTable(string("Actions"), true);
-		ActionKeybindingManager::CreateInfo oAKMCInfo = { m_aKeysInfo, m_aKeysInfoOld };
+		ActionKeybindingManager::CreateInfo oAKMCInfo = { m_aKeysInfo, m_aKeysInfoOld, &m_oMouseInfo, &m_oMouseInfoOld };
 		m_pKeybinds = new ActionKeybindingManager;
 		m_pActionDispatcher = new ActionDispatcher;
 		bool bResult = (false == lActions.IsNil())
@@ -132,6 +133,14 @@ namespace BastionGame
 			case EAppAction_PATH_CREATE:
 			{
 				m_pActionDispatcher->UnregisterActionCallback(EAppAction_PATH_CREATE, m_uProcessAction);
+				if ((NULL == m_pOneJob) && (NULL != m_pJobManager))
+				{
+					m_pOneJob = new AppTestJob(*m_pJobManager);
+					if (false != m_pOneJob->Create(boost::any(0)))
+					{
+						m_pJobManager->PushJob(m_pOneJob);
+					}
+				}
 				break;
 			}
 		}

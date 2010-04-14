@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "../Display/RenderTarget.h"
 #include "../Display/Camera.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -208,6 +209,7 @@ namespace ElixirEngine
 				bResult = m_rDisplay.GetTextureManager()->New(strTexName, pInfo->m_uWidth, pInfo->m_uHeight, pInfo->m_uFormat, false, DisplayTexture::EType_2D, DisplayTexture::EUsage_RENDERTARGET);
 				if (false == bResult)
 				{
+					vsoutput(__FUNCTION__" : %s, could not create texture\n", strTexName.c_str());
 					break;
 				}
 				m_pDoubleBufferTex[i] = m_rDisplay.GetTextureManager()->Get(strTexName);

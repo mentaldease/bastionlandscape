@@ -4,6 +4,7 @@
 #include "../Display/Display.h"
 #include "../Display/EffectStateManager.h"
 #include "../Core/CoreTypes.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -67,8 +68,7 @@ namespace ElixirEngine
 		const bool bResult = (m_uCapacity >= (m_uSize + _uSize));
 		if (false == bResult)
 		{
-			UInt a = 0;
-			++a;
+			vsoutput(__FUNCTION__" : cannot alloc %u bytes\n", _uSize);
 		}
 		return bResult;
 	}

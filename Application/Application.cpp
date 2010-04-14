@@ -134,6 +134,8 @@ namespace BastionGame
 		m_pKeybinds(NULL),
 		m_pActionDispatcher(NULL),
 		m_pLog(NULL),
+		m_pJobManager(NULL),
+		m_pOneJob(NULL),
 		m_uProcessAction(MakeKey(string("ProcessAction")))
 	{
 		m_pActionCallback = boost::bind(&Application::ProcessActions, this, _1);
@@ -158,12 +160,12 @@ namespace BastionGame
 			Profiling::SetTimer(m_uProfileTimerID);
 		}
 
-		//if (false != bResult)
-		//{
-		//	JobManager::CreateInfo oJMCInfo;
-		//	m_pJobManager = new JobManager;
-		//	bResult = m_pJobManager->Create(boost::any(&oJMCInfo));
-		//}
+		if (false != bResult)
+		{
+			JobManager::CreateInfo oJMCInfo = { 2 };
+			m_pJobManager = new JobManager;
+			bResult = m_pJobManager->Create(boost::any(&oJMCInfo));
+		}
 
 		if (false != bResult)
 		{
@@ -463,12 +465,19 @@ namespace BastionGame
 			m_pFSRoot = NULL;
 		}
 
-		//if (NULL != m_pJobManager)
-		//{
-		//	m_pJobManager->Release();
-		//	delete m_pJobManager;
-		//	m_pJobManager = NULL;
-		//}
+		if (NULL != m_pJobManager)
+		{
+			m_pJobManager->Release();
+			delete m_pJobManager;
+			m_pJobManager = NULL;
+		}
+
+		if (NULL != m_pOneJob)
+		{
+			m_pOneJob->Release();
+			delete m_pOneJob;
+			m_pOneJob = NULL;
+		}
 
 		if (NULL != m_pTime)
 		{
