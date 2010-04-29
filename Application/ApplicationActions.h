@@ -21,6 +21,17 @@ namespace BastionGame
 		EAppAction_CAMERA_MOVE_UP,
 		EAppAction_PATH_CREATE,
 		EAppAction_ENTITY_CREATE,
+		EAppAction_POINTERCLICK1,
+		EAppAction_POINTERCLICK2,
+		EAppAction_POINTERCLICK3,
+		EAppAction_POINTERCLICK4,
+		EAppAction_POINTERCLICK5,
+		EAppAction_POINTERCLICK6,
+		EAppAction_POINTERCLICK7,
+		EAppAction_POINTERCLICK8,
+		EAppAction_POINTERMOVEX,
+		EAppAction_POINTERMOVEY,
+		EAppAction_POINTERMOVEZ,
 		EAppAction_COUNT // Always last enum member
 	};
 

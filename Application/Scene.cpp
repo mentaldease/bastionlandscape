@@ -25,6 +25,7 @@ namespace BastionGame
 		m_mCameras(),
 		m_mRenderStages(),
 		m_vRenderStages(),
+		m_vTraversedObjects(),
 		m_f4LightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
 		m_pOctree(NULL),
@@ -36,8 +37,8 @@ namespace BastionGame
 		m_uWaterDataKey(MakeKey(string("WATERDATA"))),
 		m_uFrustumModeKey(MakeKey(string("FRUSTUM"))),
 		m_pUITextOverlay(NULL),
-		m_uUIMainFontLabel(0),
-		m_uUIRenderPass(0),
+		m_uUIMainFontLabel(MakeKey(string("Normal"))),
+		m_uUIRenderStage(MakeKey(string("ui"))),
 		m_fDayTime(0.0f),
 		m_fVerticalOffset(0.0f)
 	{
@@ -101,9 +102,6 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			m_uUIMainFontLabel = MakeKey(string("Normal"));
-			m_uUIRenderPass = MakeKey(string("ui"));
-
 			DisplayPtr pDisplay = Display::GetInstance();
 			DebugTextOverlay::CreateInfo oDTOCInfo;
 			unsigned int uTemp[2];
@@ -111,7 +109,7 @@ namespace BastionGame
 			oDTOCInfo.m_mFontNameList[m_uUIMainFontLabel] = "Data/Fonts/arial24.fnt";
 			oDTOCInfo.m_mFontMaterialList[m_uUIMainFontLabel] = "ui";
 			oDTOCInfo.m_f3ScreenOffset = Vector3(-float(uTemp[0] / 2), float(uTemp[1] / 2), 0.0f);
-			oDTOCInfo.m_uRenderStageKey = m_uUIRenderPass;
+			oDTOCInfo.m_uRenderStageKey = m_uUIRenderStage;
 			oDTOCInfo.m_uMaxText = 50;
 			m_pUITextOverlay = new DebugTextOverlay();
 			bResult = m_pUITextOverlay->Create(boost::any(&oDTOCInfo));
@@ -132,7 +130,7 @@ namespace BastionGame
 
 		DisplayPtr pDisplay = Display::GetInstance();
 		const Key uCurrentRenderStage = pDisplay->GetCurrentRenderStage()->GetNameKey();
-		if (m_uUIRenderPass != uCurrentRenderStage)
+		if (m_uUIRenderStage != uCurrentRenderStage)
 		{
 			{
 				PROFILING(__FUNCTION__" [HIERARCHY]");
@@ -146,98 +144,117 @@ namespace BastionGame
 			}
 
 			{
-				OctreeObjectPtrVec vObjects;
+				OctreeObjectPtrVec vOctreeObjects;
 				OctreeNodePtrVec vNodes;
 				{
 					PROFILING(__FUNCTION__" [TRAVERSE]");
-					m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vObjects);
-					//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vObjects.size());
+					m_pOctree->Traverse(m_uFrustumModeKey, vNodes, vOctreeObjects);
+					//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vOctreeObjects.size());
+				}
+
+				Vector3 f3RayBegin(0.0f, 0.0f, 0.0f);
+				Vector3 f3RayEnd(0.0f, 0.0f, 0.0f);
+				Vector3 f3Pick(0.0f, 0.0f, 0.0f);
+
+				m_af3PickTriangleVertices[0] = NULL;
+				m_af3PickTriangleVertices[1] = NULL;
+				m_af3PickTriangleVertices[2] = NULL;
+				DisplayObjectPtr pPickCursorObject = NULL;
+
+				DisplayNormalProcessPtr pNormalProcess = pDisplay->GetCurrentNormalProcess();
+				// pick cursor
+				if ((NULL != pNormalProcess) && (MakeKey(string("base")) == pNormalProcess->GetNameKey()))
+				{
+					pPickCursorObject = static_cast<DisplayObjectPtr>(GetHierarchyObject(MakeKey(string("picking00"))));
+					const Key uRenderStageName = pPickCursorObject->GetRenderStage();
+					if (uCurrentRenderStage == uRenderStageName)
+					{
+						m_vTraversedObjects = vOctreeObjects;
+						OctreeObjectPtrVec vPickedOcytreeObjects;
+						DisplayCameraPtr pCamera = pDisplay->GetCurrentCamera();
+						const Vector3 f3MousePos = m_rApplication.GetMousePos();
+						Vector3 f3ScreenBegin(f3MousePos.x, f3MousePos.y, 0.0f);
+						Vector3 f3ScreenEnd(f3MousePos.x, f3MousePos.y, 1.0f);
+						pDisplay->Unproject(&f3ScreenBegin, &f3RayBegin, pCamera);
+						pDisplay->Unproject(&f3ScreenEnd, &f3RayEnd, pCamera);
+						UpdatePicking(&f3RayBegin, &f3RayEnd, &f3Pick, vPickedOcytreeObjects);
+						pDisplay->RenderRequest(uRenderStageName, pPickCursorObject);
+						// uncomment following line to restrict rendered objects to the ones colliding with the pick ray
+						//vOctreeObjects = vPickedOcytreeObjects;
+					}
 				}
 
 				{
 					PROFILING(__FUNCTION__" [REQUESTS]");
-					OctreeObjectPtrVec::iterator iObject = vObjects.begin();
-					OctreeObjectPtrVec::iterator iEnd = vObjects.end();
+					OctreeObjectPtrVec::iterator iObject = vOctreeObjects.begin();
+					OctreeObjectPtrVec::iterator iEnd = vOctreeObjects.end();
 					while (iEnd != iObject)
 					{
 						DisplayObjectPtr pDisplayObject = dynamic_cast<DisplayObjectPtr>(*iObject);
-						const Key uRenderStageName = pDisplayObject->GetRenderStage();
-						if (uCurrentRenderStage == uRenderStageName)
+						if (NULL != pDisplayObject)
 						{
-							pDisplay->RenderRequest(uRenderStageName, pDisplayObject);
+							const Key uRenderStageName = pDisplayObject->GetRenderStage();
+							if (uCurrentRenderStage == uRenderStageName)
+							{
+								pDisplay->RenderRequest(uRenderStageName, pDisplayObject);
+							}
 						}
 						++iObject;
 					}
 				}
 
 				DisplayGeometryLineManagerPtr pLineManager = static_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
-				if ((NULL != pLineManager) && (false))
+				if ((NULL != pLineManager) && (true))
 				{
 					PROFILING(__FUNCTION__" [DEBUGLINES]");
+					// pick triangle
+					if ((false) && (NULL != m_af3PickTriangleVertices[0]))
 					{
+						const Vector4 f4Color(1.0f, 0.0f, 0.0f, 1.0f);
+						Vector3 f3V0 = *m_af3PickTriangleVertices[0];
+						Vector3 f3V1 = *m_af3PickTriangleVertices[1];
+						Vector3 f3V2 = *m_af3PickTriangleVertices[2];
+
+						pLineManager->NewTriangle(
+							Vector3(f3V0.x, f3V0.y + 25.0f, f3V0.z),
+							Vector3(f3V1.x, f3V1.y + 25.0f, f3V1.z),
+							Vector3(f3V2.x, f3V2.y + 25.0f, f3V2.z),
+							f4Color);
+					}
+					// octree nodes
+					if (false)
+					{
+						const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
 						OctreeNodePtrVec::iterator iNode = vNodes.begin();
 						OctreeNodePtrVec::iterator iEnd = vNodes.end();
 						while (iEnd != iNode)
 						{
-							const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
-							DisplayGeometryLineManager::LineStripInfoRef rLS = pLineManager->NewLineStrip();
-
-							rLS.m_vVertexBuffer.resize(8);
-							rLS.m_vIndexBuffer.resize(16);
-							rLS.m_vIndexBuffer[0] = 3; rLS.m_vIndexBuffer[1] = 0; rLS.m_vIndexBuffer[2] = 1; rLS.m_vIndexBuffer[3] = 2;
-							rLS.m_vIndexBuffer[4] = 3; rLS.m_vIndexBuffer[5] = 7; rLS.m_vIndexBuffer[6] = 6; rLS.m_vIndexBuffer[7] = 5;
-							rLS.m_vIndexBuffer[8] = 4; rLS.m_vIndexBuffer[9] = 7; rLS.m_vIndexBuffer[10] = 6; rLS.m_vIndexBuffer[11] = 2;
-							rLS.m_vIndexBuffer[12] = 1; rLS.m_vIndexBuffer[13] = 5; rLS.m_vIndexBuffer[14] = 4; rLS.m_vIndexBuffer[15] = 0;
-
 							OctreeNodePtr pNode = *iNode;
 							const fsVector3Vec& rvAABB = pNode->GetAABB();
-							#define fsVec3ToVec3(ID, vFSVEC3, vVEC3, COLOR) \
-								vVEC3[ID].m_f3Position.x = vFSVEC3[ID].x(); \
-								vVEC3[ID].m_f3Position.y = vFSVEC3[ID].y(); \
-								vVEC3[ID].m_f3Position.z = vFSVEC3[ID].z(); \
-								vVEC3[ID].m_f4Color = COLOR;
-							fsVec3ToVec3(EOctreeAABB_TOPLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_TOPLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							#define fsVec3ToVec3(vFSVEC3) Vector3((vFSVEC3).x(), (vFSVEC3).y(), (vFSVEC3).z())
+							pLineManager->NewAABB(
+								fsVec3ToVec3(rvAABB[EOctreeAABB_TOPRIGHTTFAR]),
+								fsVec3ToVec3(rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR]),
+								f4Color);
 							#undef fsVec3ToVec3
 							++iNode;
 						}
 					}
+					// octree objects
+					if (false)
 					{
-						OctreeObjectPtrVec::iterator iObject = vObjects.begin();
-						OctreeObjectPtrVec::iterator iEnd = vObjects.end();
+						const Vector4 f4Color(0.75f, 0.125f, 0.125f, 1.0f);
+						OctreeObjectPtrVec::iterator iObject = vOctreeObjects.begin();
+						OctreeObjectPtrVec::iterator iEnd = vOctreeObjects.end();
 						while (iEnd != iObject)
 						{
-							const Vector4 f4Color(0.75f, 0.125f, 0.125f, 1.0f);
-							DisplayGeometryLineManager::LineStripInfoRef rLS = pLineManager->NewLineStrip();
-
-							rLS.m_vVertexBuffer.resize(8);
-							rLS.m_vIndexBuffer.resize(16);
-							rLS.m_vIndexBuffer[0] = 3; rLS.m_vIndexBuffer[1] = 0; rLS.m_vIndexBuffer[2] = 1; rLS.m_vIndexBuffer[3] = 2;
-							rLS.m_vIndexBuffer[4] = 3; rLS.m_vIndexBuffer[5] = 7; rLS.m_vIndexBuffer[6] = 6; rLS.m_vIndexBuffer[7] = 5;
-							rLS.m_vIndexBuffer[8] = 4; rLS.m_vIndexBuffer[9] = 7; rLS.m_vIndexBuffer[10] = 6; rLS.m_vIndexBuffer[11] = 2;
-							rLS.m_vIndexBuffer[12] = 1; rLS.m_vIndexBuffer[13] = 5; rLS.m_vIndexBuffer[14] = 4; rLS.m_vIndexBuffer[15] = 0;
-
 							OctreeObjectPtr pObject = *iObject;
 							const fsVector3Vec& rvAABB = pObject->GetAABB();
-							#define fsVec3ToVec3(ID, vFSVEC3, vVEC3, COLOR) \
-								vVEC3[ID].m_f3Position.x = vFSVEC3[ID].x(); \
-								vVEC3[ID].m_f3Position.y = vFSVEC3[ID].y(); \
-								vVEC3[ID].m_f3Position.z = vFSVEC3[ID].z(); \
-								vVEC3[ID].m_f4Color = COLOR;
-							fsVec3ToVec3(EOctreeAABB_TOPLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_TOPRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_TOPLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTFAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMRIGHTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
-							fsVec3ToVec3(EOctreeAABB_BOTTOMLEFTTNEAR, rvAABB, rLS.m_vVertexBuffer, f4Color);
+							#define fsVec3ToVec3(vFSVEC3) Vector3((vFSVEC3).x(), (vFSVEC3).y(), (vFSVEC3).z())
+							pLineManager->NewAABB(
+								fsVec3ToVec3(rvAABB[EOctreeAABB_TOPRIGHTTFAR]),
+								fsVec3ToVec3(rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR]),
+								f4Color);
 							#undef fsVec3ToVec3
 							++iObject;
 						}
@@ -247,16 +264,26 @@ namespace BastionGame
 		}
 		else if (NULL != m_pUITextOverlay)
 		{
+			// project name
 			{
 				wstring wstrText = L"BASTION";
 				Vector4 f4Color(1.0f, 1.0f, 1.0f, 1.0f);
 				DrawOverlayText(0.0f, 0.0f, wstrText, f4Color);
 			}
+			// dev team
 			{
-				wstring wstrText = L"33S";
+				wstring wstrText = L"Sapporo Super Sampling";
 				Vector4 f4Color(1.0f, 1.0f, 0.0f, 1.0f);
 				DrawOverlayText(0.0f, -30.0f, wstrText, f4Color);
 			}
+			// mouse pos
+			//{
+			//	wchar_t wszBuffer[1024];
+			//	Vector4 f4Color(0.0f, 1.0f, 1.0f, 1.0f);				
+			//	int sLength = wsprintf(wszBuffer, L"%d %d", int(m_rApplication.GetMousePos().x), int(m_rApplication.GetMousePos().y));
+			//	wstring wstrText(wszBuffer);
+			//	DrawOverlayText(0.0f, -60.0f, wstrText, f4Color);
+			//}
 			m_pUITextOverlay->Update();
 		}
 	}
@@ -352,7 +379,7 @@ namespace BastionGame
 	void Scene::DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _f4Color)
 	{
 		DisplayPtr pDisplay = Display::GetInstance();
-		if (m_uUIRenderPass == pDisplay->GetCurrentRenderStage()->GetNameKey())
+		if (m_uUIRenderStage == pDisplay->GetCurrentRenderStage()->GetNameKey())
 		{
 			if (NULL != m_pUITextOverlay)
 			{
@@ -375,6 +402,114 @@ namespace BastionGame
 	OctreePtr Scene::GetOctree()
 	{
 		return m_pOctree;
+	}
+
+	void Scene::PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects)
+	{
+		const fsVector3 fs3RayBegin(_f3RayBegin.x, _f3RayBegin.y, _f3RayBegin.z);
+		const fsVector3 fs3RayEnd(_f3RayEnd.x, _f3RayEnd.y, _f3RayEnd.z);
+		fsVector3 fs3Intersect1;
+		fsVector3 fs3Intersect2;
+
+		_rvOctreeObjects.clear();
+
+		OctreeObjectPtrVec::iterator iOctreeObject = m_vTraversedObjects.begin();
+		OctreeObjectPtrVec::iterator iEnd = m_vTraversedObjects.end();
+		while (iEnd != iOctreeObject)
+		{
+			OctreeObjectPtr pOctreeObject = *iOctreeObject;
+			if (false != pOctreeObject->RayIntersect(fs3RayBegin, fs3RayEnd, fs3Intersect1, fs3Intersect2))
+			{
+				CoreObjectPtr pCoreObject = dynamic_cast<CoreObjectPtr>(pOctreeObject);
+				if ((NULL != pCoreObject) && (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), pCoreObject)))
+				{
+					_rvObjects.push_back(pCoreObject);
+				}
+				_rvOctreeObjects.push_back(pOctreeObject);
+			}
+			++iOctreeObject;
+		}
+	}
+
+	void Scene::UpdatePicking(const Vector3Ptr _f3RayBegin, const Vector3Ptr _f3RayEnd, Vector3Ptr _f3Out, OctreeObjectPtrVecRef _rvOctreeObjects)
+	{
+		DisplayObjectPtr pDisplayObject = static_cast<DisplayObjectPtr>(GetHierarchyObject(MakeKey(string("picking00"))));
+		if (NULL != pDisplayObject)
+		{
+			DisplayPtr pDisplay = Display::GetInstance();
+
+			CoreObjectPtrVec vObjects;
+			PickObjects(*_f3RayBegin, *_f3RayEnd, vObjects, _rvOctreeObjects);
+
+			if (false == vObjects.empty())
+			{
+				Vector3 f3Delta;
+				Vector3 f3Pick;
+				Vector3 f3Intersect;
+				float fNearDist = FLT_MAX;
+
+				CoreObjectPtrVec::iterator iObject = vObjects.begin();
+				CoreObjectPtrVec::iterator iEnd = vObjects.end();
+				while (iEnd != iObject)
+				{
+					DisplayObjectPtr pDisplayObject = dynamic_cast<DisplayObjectPtr>(*iObject);
+					if (NULL != pDisplayObject)
+					{
+						if (false != pDisplayObject->RayIntersect(*_f3RayBegin, *_f3RayEnd, f3Intersect))
+						{
+							f3Delta = f3Intersect - *_f3RayBegin;
+							const float fLength = D3DXVec3Length(&f3Delta);
+							if (fNearDist > fLength)
+							{
+								fNearDist = fLength;
+								f3Pick = f3Intersect;
+								m_af3PickTriangleVertices[0] = LandscapeChunk::s_af3PickVertices[0];
+								m_af3PickTriangleVertices[1] = LandscapeChunk::s_af3PickVertices[1];
+								m_af3PickTriangleVertices[2] = LandscapeChunk::s_af3PickVertices[2];
+							}
+						}
+					}
+					++iObject;
+				}
+
+				if (FLT_MAX != fNearDist)
+				{
+					Matrix mPos;
+					D3DXMatrixTranslation(&mPos, f3Pick.x, f3Pick.y, f3Pick.z);
+					pDisplayObject->SetWorldMatrix(mPos);
+					*_f3Out = f3Pick;
+					//{
+					//	#define VEC3MIN(ARRAY, MEMBER) (ARRAY[0]->MEMBER < ARRAY[1]->MEMBER) ? ((ARRAY[0]->MEMBER < ARRAY[2]->MEMBER) ? ARRAY[0]->MEMBER : ARRAY[2]->MEMBER) : ((ARRAY[1]->MEMBER < ARRAY[2]->MEMBER) ? ARRAY[1]->MEMBER : ARRAY[2]->MEMBER)
+					//	#define VEC3MAX(ARRAY, MEMBER) (ARRAY[0]->MEMBER > ARRAY[1]->MEMBER) ? ((ARRAY[0]->MEMBER > ARRAY[2]->MEMBER) ? ARRAY[0]->MEMBER : ARRAY[2]->MEMBER) : ((ARRAY[1]->MEMBER > ARRAY[2]->MEMBER) ? ARRAY[1]->MEMBER : ARRAY[2]->MEMBER)
+					//	Vector3 f3Min;
+					//	Vector3 f3Max;
+					//	f3Min.x = VEC3MIN(m_af3PickTriangleVertices, x);
+					//	f3Min.y = VEC3MIN(m_af3PickTriangleVertices, y);
+					//	f3Min.z = VEC3MIN(m_af3PickTriangleVertices, z);
+					//	f3Max.x = VEC3MAX(m_af3PickTriangleVertices, x);
+					//	f3Max.y = VEC3MAX(m_af3PickTriangleVertices, y);
+					//	f3Max.z = VEC3MAX(m_af3PickTriangleVertices, z);
+					//	if ((f3Min.x > f3Pick.x) || (f3Max.x < f3Pick.x)
+					//		|| (f3Min.y > f3Pick.y) || (f3Max.y < f3Pick.y)
+					//		|| (f3Min.z > f3Pick.z) || (f3Max.z < f3Pick.z))
+					//	{
+					//		BP
+					//	}
+					//}
+				}
+			}
+		}
+	}
+
+	CoreObjectPtr Scene::GetHierarchyObject(const Key _uNameKey)
+	{
+		CoreObjectPtr pResult = NULL;
+		CoreObjectPtrMap::iterator iObject = m_mHierarchy.find(_uNameKey);
+		if (m_mHierarchy.end() != iObject)
+		{
+			pResult = iObject->second;
+		}
+		return pResult;
 	}
 
 	bool Scene::CreateFromLuaConfig(Scene::CreateInfoPtr _pInfo)

@@ -317,41 +317,6 @@ namespace BastionGame
 		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEHEIGHT")), &m_fHazeHeight);
 		pMaterialManager->SetFloatBySemantic(MakeKey(string("SKY_HAZEINTENSITY")), &m_fHazeIntensity);
 		pMaterialManager->SetVector3BySemantic(MakeKey(string("SKY_HAZECOLOR")), &m_f3HazeColor);
-
-		// 		if (OverrideBrumeLightning)
-		// 		{
-		// 			if (brume.DirectionalLight == null)
-		// 				brume.DirectionalLight = new BrumeDirectionalLight("SkyDomeLight", BrumeVector.XAXIS, BrumeVector.YAXIS, Color.White);
-		// 
-		// 			brume.DirectionalLight.Dir = sunPosition;
-		// 
-		// 			int ambientIntensity = 0;
-		// 			if (m_fDayTime >= 17.0f * 60.0f && m_fDayTime <= 19.0f * 60.0f)
-		// 			{
-		// 				float factor = (m_fDayTime * 0.016666666f - 17.0f)*0.5f;
-		// 				ambientIntensity = (int)(128 * (1.0f - factor));
-		// 			}
-		// 			else if (m_fDayTime >= 6.0f * 60.0f && m_fDayTime <= 8.0f * 60.0f)
-		// 			{
-		// 				float factor = (m_fDayTime * 0.016666666f - 6.0f) * 0.5f;
-		// 				ambientIntensity = (int)(128 * factor);
-		// 			}
-		// 			else if (m_fDayTime > 8.0f * 60.0f && m_fDayTime < 17.0f * 60.0f)
-		// 			{
-		// 				// day
-		// 				ambientIntensity = 128;
-		// 			}
-		// 			else
-		// 			{
-		// 				// night
-		// 				ambientIntensity = 0;
-		// 			}
-		// 
-		// 			brume.GlobalAmbientLight = Color.FromArgb(255, ambientIntensity, ambientIntensity, ambientIntensity);
-		// 
-		// 			brume.DirectionalLight.Diffuse = Color.FromArgb((int)(f4HazeColor.W * (127.0f + ambientIntensity)), (int)(f4HazeColor.X * (127.0f + ambientIntensity)), (int)(f4HazeColor.Y * (127.0f + ambientIntensity)), (int)(f4HazeColor.Z * (127.0f + ambientIntensity)));
-		// 
-		// 		}
 	}
 
 	Vector4 Sky::Interpolate(Vector4 src, Vector4 dst, float factor)

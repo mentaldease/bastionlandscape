@@ -153,12 +153,10 @@ namespace ElixirEngine
 	public:
 		struct CreateInfo
 		{
-			string			m_strName;
-			UInt			m_uWidth;
-			UInt			m_uHeight;
-			D3DFORMAT		m_uFormat;
-			UInt			m_uBufferCount;
-			const UIntPtr	m_pFormats;
+			string					m_strName;
+			GraphicConfigDataPtr	m_pGraphicConfig;
+			UInt					m_uWidth;
+			UInt					m_uHeight;
 		};
 
 	public:
@@ -187,6 +185,7 @@ namespace ElixirEngine
 	protected:
 		DisplayRenderTargetPtrVec	m_vGBuffer;
 		DisplayRef					m_rDisplay;
+		int							m_sDepthBufferIndex;
 		bool						m_bImmediateWrite;
 
 	private:

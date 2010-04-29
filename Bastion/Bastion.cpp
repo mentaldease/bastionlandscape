@@ -24,11 +24,11 @@ HACCEL hAccelTable;
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
-HWND				InitInstance(WindowData& _rConfig);
+HWND				InitInstance(GraphicConfigDataRef _rConfig);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 BOOL CALLBACK		MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData);
-HWND				MyCreateWindow(WindowData& _rConfig);
+HWND				MyCreateWindow(GraphicConfigDataRef _rConfig);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -43,28 +43,28 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 //	//_CrtSetBreakAlloc(227);
 //#endif
 
-	WindowData m_oWindow;
+	GraphicConfigData m_oGraphicConfig;
 	Application* pApp = new Application;
 
 	// default values
-	m_oWindow.m_pCreateWindow = MyCreateWindow;
-	m_oWindow.m_hInstance = hInstance;
-	m_oWindow.m_hPrevInstance = hPrevInstance;
-	m_oWindow.m_lpCmdLine = lpCmdLine;
-	m_oWindow.m_nCmdShow = nCmdShow;
-	m_oWindow.m_oClientRect.left = 0;
-	m_oWindow.m_oClientRect.right = 0;
-	m_oWindow.m_oClientRect.right = 640;
-	m_oWindow.m_oClientRect.bottom = 480;
-	m_oWindow.m_uDXColorFormat = D3DFMT_A8R8G8B8;
-	m_oWindow.m_uDXDepthFormat = D3DFMT_D24S8;
-	m_oWindow.m_uDXGBufferFormat = D3DFMT_A8R8G8B8;
-	m_oWindow.m_uDXGBufferCount = 1;
-	m_oWindow.m_fZNear = 1.0f;
-	m_oWindow.m_fZFar = 1000.0f;
-	m_oWindow.m_bFullScreen = false;
+	m_oGraphicConfig.m_pCreateWindow = MyCreateWindow;
+	m_oGraphicConfig.m_hInstance = hInstance;
+	m_oGraphicConfig.m_hPrevInstance = hPrevInstance;
+	m_oGraphicConfig.m_lpCmdLine = lpCmdLine;
+	m_oGraphicConfig.m_nCmdShow = nCmdShow;
+	m_oGraphicConfig.m_oClientRect.left = 0;
+	m_oGraphicConfig.m_oClientRect.right = 0;
+	m_oGraphicConfig.m_oClientRect.right = 640;
+	m_oGraphicConfig.m_oClientRect.bottom = 480;
+	m_oGraphicConfig.m_uDXColorFormat = D3DFMT_A8R8G8B8;
+	m_oGraphicConfig.m_uDXDepthFormat = D3DFMT_D24S8;
+	m_oGraphicConfig.m_uDXGBufferFormat = D3DFMT_A8R8G8B8;
+	m_oGraphicConfig.m_uDXGBufferCount = 1;
+	m_oGraphicConfig.m_fZNear = 1.0f;
+	m_oGraphicConfig.m_fZFar = 1000.0f;
+	m_oGraphicConfig.m_bFullScreen = false;
 
-	if (false != pApp->Create(boost::any(&m_oWindow)))
+	if (false != pApp->Create(boost::any(&m_oGraphicConfig)))
 	{
 		do
 		{
@@ -79,7 +79,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	return 0;
 }
 
-HWND MyCreateWindow(WindowData& _rConfig)
+HWND MyCreateWindow(GraphicConfigDataRef _rConfig)
 {
 	// Initialize global strings
 	LoadString(_rConfig.m_hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -87,7 +87,7 @@ HWND MyCreateWindow(WindowData& _rConfig)
 	MyRegisterClass(_rConfig.m_hInstance);
 
 	// Perform application initialization:
-	InitInstance (_rConfig);
+	InitInstance(_rConfig);
 
 	if (NULL != _rConfig.m_hWnd)
 	{
@@ -133,7 +133,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 }
 
 //
-//   FUNCTION: InitInstance(WindowData)
+//   FUNCTION: InitInstance(GraphicConfigData)
 //
 //   PURPOSE: Saves instance handle and creates main window
 //
@@ -142,27 +142,29 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-HWND InitInstance(WindowData& _rConfig)
+HWND InitInstance(GraphicConfigDataRef _rConfig)
 {
    hInst = _rConfig.m_hInstance; // Store instance handle in our global variable
 
    WINDOWINFO oDesktopWI;
    GetWindowInfo( GetDesktopWindow(), &oDesktopWI );
 
-   _rConfig.m_oWindowRect = _rConfig.m_oClientRect;
+   _rConfig.m_oGraphicConfigRect = _rConfig.m_oClientRect;
 
    // Resizes window so that client size has the specified video width/height.
-   AdjustWindowRect( &_rConfig.m_oWindowRect, WS_OVERLAPPEDWINDOW, TRUE );
+   AdjustWindowRect( &_rConfig.m_oGraphicConfigRect, WS_OVERLAPPEDWINDOW, TRUE );
+   _rConfig.m_oGraphicConfigRect.right -= _rConfig.m_oGraphicConfigRect.left;
+   _rConfig.m_oGraphicConfigRect.bottom -= _rConfig.m_oGraphicConfigRect.top;
    // Set window positions in the middle of the first monitor.
-   EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, LPARAM(&_rConfig.m_oWindowRect) );
+   EnumDisplayMonitors( NULL, NULL, MonitorEnumProc, LPARAM(&_rConfig.m_oGraphicConfigRect) );
 
    _rConfig.m_hWnd = CreateWindow(szWindowClass,
 	   szTitle,
 	   WS_OVERLAPPEDWINDOW,
-	   _rConfig.m_oWindowRect.left,
-	   _rConfig.m_oWindowRect.top,
-	   _rConfig.m_oWindowRect.right,
-	   _rConfig.m_oWindowRect.bottom,
+	   _rConfig.m_oGraphicConfigRect.left,
+	   _rConfig.m_oGraphicConfigRect.top,
+	   _rConfig.m_oGraphicConfigRect.right,
+	   _rConfig.m_oGraphicConfigRect.bottom,
 	   NULL,
 	   NULL,
 	   _rConfig.m_hInstance,
@@ -221,6 +223,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_MOUSEMOVE:
+		{
+			ApplicationPtr pApp = (ApplicationPtr)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+			if (NULL != pApp)
+			{
+				pApp->SetMousePos(float(GET_X_LPARAM(lParam)), float(GET_Y_LPARAM(lParam)));
+			}
+		}
+		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -254,8 +265,8 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMoni
 	{
 		LPRECT pRect = LPRECT(dwData);
 
-		pRect->left = ( lprcMonitor->right - pRect->right ) / 2;
-		pRect->top = ( lprcMonitor->bottom - pRect->bottom ) / 2;
+		pRect->left += ( lprcMonitor->right - pRect->right ) / 2;
+		pRect->top += ( lprcMonitor->bottom - pRect->bottom ) / 2;
 
 		return FALSE;
 	}

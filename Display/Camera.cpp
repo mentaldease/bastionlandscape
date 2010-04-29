@@ -474,6 +474,16 @@ namespace ElixirEngine
 		return m_aFrustumCorners;
 	}
 
+	void DisplayCamera::GetStateInfo(DisplayCamera::StateInfoRef _rInfo)
+	{
+		_rInfo.m_pViewport = m_pCurrentViewport;
+		_rInfo.m_fFovy = m_fFovy;
+		_rInfo.m_fAspectRatio = m_fAspectRatio;
+		_rInfo.m_fPixelSize = m_fPixelSize;
+		_rInfo.m_fNear = m_fNear;
+		_rInfo.m_fFar = m_fFar;
+	}
+
 	void DisplayCamera::UpdatePixelSize()
 	{
 		//const float fFovx = m_fFovy * m_fAspectRatio;

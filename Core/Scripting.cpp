@@ -3,6 +3,7 @@
 #include "../Core/Scripting.h"
 #include "../Core/File.h"
 #include "../Core/File.h"
+#include "../Core/Util.h"
 
 namespace ElixirEngine
 {
@@ -63,8 +64,13 @@ namespace ElixirEngine
 				FS::GetRoot()->CloseFile(pFile);
 				pSourceCode[sSize] = '\0';
 				_pState = (NULL == _pState) ? s_pState : _pState;
-				bResult = (0 == _pState->DoString(pSourceCode));
+				const int sResult = _pState->DoString(pSourceCode);
+				bResult = (0 == sResult);
 				delete[] pSourceCode;
+				if (false == bResult)
+				{
+					OutputError(sResult, _pState);
+				}
 			}
 			return bResult;
 		}
@@ -79,6 +85,49 @@ namespace ElixirEngine
 				lTable = _pState->GetGlobals().CreateTable(_strTableName.c_str());
 			}
 			return lTable;
+		}
+
+		void Lua::OutputError(const int _sErrorCode, LuaStatePtr _pState)
+		{
+			const char* szMsg = lua_tostring(_pState->GetCState(), -1);
+			if (NULL == szMsg) 
+			{
+				szMsg = "(error with no message)"; 
+			}
+
+			switch (_sErrorCode)
+			{
+				case LUA_ERRERR:
+				{
+					vsoutput("LUA_ERRERR : error while running the error handler function (%s)\n", szMsg);
+					break;
+				}
+				case LUA_ERRFILE:
+				{
+					vsoutput("LUA_ERRFILE : file error (%s)\n", szMsg);
+					break;		
+				}
+				case LUA_ERRMEM:
+				{
+					vsoutput("LUA_ERRMEM : memory allocation error (%s)\n", szMsg);
+					break;
+				}
+				case LUA_ERRRUN:
+				{
+					vsoutput("LUA_ERRRUN : runtime error (%s)\n", szMsg);
+					break;
+				}
+				case LUA_ERRSYNTAX:
+				{
+					vsoutput("LUA_ERRSYNTAX : syntax error during pre-compilation (%s)\n", szMsg);
+					break;
+				}
+				default:
+				{
+					vsoutput("%s\n", szMsg);
+					break;
+				}
+			}
 		}
 
 		template<typename T>

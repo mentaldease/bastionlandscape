@@ -4,6 +4,7 @@
 #include "../Application/ApplicationActions.h"
 #include "../Application/ActionKeybinding.h"
 #include "../Application/ApplicationJob.h"
+#include "../Application/Scene.h"
 
 namespace BastionGame
 {
@@ -62,6 +63,17 @@ namespace BastionGame
 			REGISTER_ACTION(CAMERA_MOVE_UP);
 			REGISTER_ACTION(PATH_CREATE);
 			REGISTER_ACTION(ENTITY_CREATE);
+			REGISTER_ACTION(POINTERCLICK1);
+			REGISTER_ACTION(POINTERCLICK2);
+			REGISTER_ACTION(POINTERCLICK3);
+			REGISTER_ACTION(POINTERCLICK4);
+			REGISTER_ACTION(POINTERCLICK5);
+			REGISTER_ACTION(POINTERCLICK6);
+			REGISTER_ACTION(POINTERCLICK7);
+			REGISTER_ACTION(POINTERCLICK8);
+			REGISTER_ACTION(POINTERMOVEX);
+			REGISTER_ACTION(POINTERMOVEY);
+			REGISTER_ACTION(POINTERMOVEZ);
 
 			#undef REGISTER_ACTION
 
@@ -69,6 +81,7 @@ namespace BastionGame
 
 			if (false != bResult)
 			{
+				m_uPendingAction = EAppAction_UNKNOWN;
 				m_pActionDispatcher->SetBindings(m_pKeybinds);
 				bResult = m_pKeybinds->LoadBindings(MakeKey(string("default")), "Data/keybinds.lua", true);
 			}
@@ -152,6 +165,37 @@ namespace BastionGame
 			}
 			case EAppAction_ENTITY_CREATE:
 			{
+				m_uPendingAction = _uActionID;
+				break;
+			}
+			case EAppAction_POINTERCLICK1:
+			case EAppAction_POINTERCLICK2:
+			case EAppAction_POINTERMOVEX:
+			case EAppAction_POINTERMOVEY:
+			{
+				ProcessPendingAction(_uActionID);
+				break;
+			}
+		}
+	}
+
+	void Application::ProcessPendingAction(UInt _uActionID)
+	{
+		switch (m_uPendingAction)
+		{
+			case EAppAction_ENTITY_CREATE:
+			{
+				switch (_uActionID)
+				{
+					case EAppAction_POINTERCLICK1:
+					case EAppAction_POINTERCLICK2:
+					case EAppAction_POINTERMOVEX:
+					case EAppAction_POINTERMOVEY:
+					case EAppAction_POINTERMOVEZ:
+					{
+						break;
+					}
+				}
 				break;
 			}
 		}

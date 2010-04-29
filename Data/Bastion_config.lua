@@ -9,13 +9,16 @@ bastion_config =
 		depth_format = "D3DFMT_D16",
 		depth_near = 1.0,
 		depth_far = 10000.0,
-		gbuffer_count = 4,
-		gbuffers_format =
+		gbuffers =
 		{
-			"D3DFMT_A8R8G8B8",
-			"D3DFMT_R32F",
-			"D3DFMT_A8R8G8B8",
-			"D3DFMT_A8R8G8B8"
+			buffers =
+			{
+				"D3DFMT_A8R8G8B8",
+				"D3DFMT_R32F",
+				"D3DFMT_A8R8G8B8",
+				"D3DFMT_A8R8G8B8"
+			},
+			depth_index = 1,
 		},
 		viewports =
 		{

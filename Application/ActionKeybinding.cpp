@@ -70,28 +70,46 @@ namespace BastionGame
 		m_pCurrentContext->m_mActions.clear();
 		m_vActions.clear();
 
+		struct TestActionFunc
+		{
+			TestActionFunc(ContextRef _rContex, UIntVec& _rvActions)
+			:	m_rContex(_rContex),
+				m_rvActions(_rvActions)
+			{
+
+			}
+
+			void Do(const UINT _uKey)
+			{
+				KeyActionMap::iterator iPair = m_rContex.m_mKeyActions.find(_uKey);
+				if (m_rContex.m_mKeyActions.end() != iPair)
+				{
+					const UInt uAction = iPair->second;
+					const bool bActive = m_rContex.m_mActionRights[uAction];
+					m_rContex.m_mActions[uAction] = bActive;
+					if (false != bActive)
+					{
+						m_rvActions.push_back(uAction);
+					}
+				}
+			}
+
+			ContextRef	m_rContex;
+			UIntVec&	m_rvActions;
+		};
+
+		TestActionFunc funcTestAction(*m_pCurrentContext, m_vActions);
+
 		for (int i = 0 ; 256 > i ; ++i)
 		{
 			if (((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i])) || (0 != m_pKeysInfo[i]))
 			{
 				const bool bOnce = ((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i]));
 				const UINT uKey = i + uBaseModifiers + (((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i])) ? s_uOnceModifier : 0);
-				KeyActionMap::iterator iPair = m_pCurrentContext->m_mKeyActions.find(uKey);
-				if (m_pCurrentContext->m_mKeyActions.end() != iPair)
-				{
-					const UInt uAction = iPair->second;
-					const bool bActive = m_pCurrentContext->m_mActionRights[uAction];
-					m_pCurrentContext->m_mActions[uAction] = bActive;
-					if (false != bActive)
-					{
-						m_vActions.push_back(uAction);
-					}
-				}
+				funcTestAction.Do(uKey);
 			}
 		}
 
-#if 0
-		uBaseModifiers += s_uMouseModifier;
 		BYTE* pMouseButtons = &m_pMouseInfo->rgbButtons[0];
 		BYTE* pMouseButtonsOld = &m_pMouseInfoOld->rgbButtons[0];
 
@@ -100,17 +118,7 @@ namespace BastionGame
 			if (((0 != pMouseButtonsOld[i]) && (0 == pMouseButtons[i])) || (0 != pMouseButtons[i]))
 			{
 				const UINT uKey = DIM_BUTTONLEFT + i + uBaseModifiers + (((0 != pMouseButtonsOld[i]) && (0 == pMouseButtons[i])) ? s_uOnceModifier : 0);
-				KeyActionMap::iterator iPair = m_pCurrentContext->m_mKeyActions.find(uKey);
-				if (m_pCurrentContext->m_mKeyActions.end() != iPair)
-				{
-					const UInt uAction = iPair->second;
-					const bool bActive = m_pCurrentContext->m_mActionRights[uAction];
-					m_pCurrentContext->m_mActions[uAction] = bActive;
-					if (false != bActive)
-					{
-						m_vActions.push_back(uAction);
-					}
-				}
+				funcTestAction.Do(uKey);
 			}
 		}
 
@@ -120,21 +128,12 @@ namespace BastionGame
 		{
 			if (((0 != aMoveOld[i]) && (0 == aMove[i])) || (0 != aMove[i]))
 			{
-				const UINT uKey = DIM_MOVEX + i + uBaseModifiers + (((0 != aMoveOld[i]) && (0 == aMove[i])) ? s_uOnceModifier : 0);
-				KeyActionMap::iterator iPair = m_pCurrentContext->m_mKeyActions.find(uKey);
-				if (m_pCurrentContext->m_mKeyActions.end() != iPair)
-				{
-					const UInt uAction = iPair->second;
-					const bool bActive = m_pCurrentContext->m_mActionRights[uAction];
-					m_pCurrentContext->m_mActions[uAction] = bActive;
-					if (false != bActive)
-					{
-						m_vActions.push_back(uAction);
-					}
-				}
+				const UINT uKeyInc = DIM_MOVEX_INC + (i * 2) + uBaseModifiers + (((0 < aMoveOld[i]) && (0 == aMove[i])) ? s_uOnceModifier : 0);
+				const UINT uKeyDec = DIM_MOVEX_DEC + (i * 2) + uBaseModifiers + (((0 > aMoveOld[i]) && (0 == aMove[i])) ? s_uOnceModifier : 0);
+				funcTestAction.Do(uKeyInc);
+				funcTestAction.Do(uKeyDec);
 			}
 		}
-#endif
 	}
 
 	void ActionKeybindingManager::Release()
@@ -429,9 +428,12 @@ namespace BastionGame
 			REGISTER_INPUTEVENT(DIK_PGDN);
 			REGISTER_INPUTEVENT(DIK_CIRCUMFLEX);
 
-			REGISTER_INPUTEVENT(DIM_MOVEX);
-			REGISTER_INPUTEVENT(DIM_MOVEY);
-			REGISTER_INPUTEVENT(DIM_MOVEZ);
+			REGISTER_INPUTEVENT(DIM_MOVEX_INC);
+			REGISTER_INPUTEVENT(DIM_MOVEX_DEC);
+			REGISTER_INPUTEVENT(DIM_MOVEY_INC);
+			REGISTER_INPUTEVENT(DIM_MOVEY_DEC);
+			REGISTER_INPUTEVENT(DIM_MOVEZ_INC);
+			REGISTER_INPUTEVENT(DIM_MOVEZ_DEC);
 			REGISTER_INPUTEVENT(DIM_BUTTONLEFT);
 			REGISTER_INPUTEVENT(DIM_BUTTONRIGHT);
 			REGISTER_INPUTEVENT(DIM_BUTTONMIDDLE);

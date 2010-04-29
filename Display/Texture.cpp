@@ -68,7 +68,7 @@ namespace ElixirEngine
 		return NULL;
 	}
 
-	SurfaceDescPtr DisplayTexture::GetDesc(const D3DCUBEMAP_FACES& _eFace)
+	SurfaceDescPtr DisplayTexture::GetDesc(const D3DCUBEMAP_FACES _eFace)
 	{
 		if (NULL != m_pTexture)
 		{
@@ -79,6 +79,58 @@ namespace ElixirEngine
 			return &m_aSurfaceDescs[_eFace];
 		}
 		return NULL;
+	}
+
+	bool DisplayTexture::GetValue(const Vector2Ptr _pf2In, UIntRef _uOut, const D3DCUBEMAP_FACES _eFace)
+	{
+		SurfacePtr pSurface = NULL;
+		SurfaceDescPtr pSurfaceDesc = NULL;
+		bool bResult = false;
+		if (NULL != m_pTexture)
+		{
+			bResult = SUCCEEDED(m_pTexture->GetSurfaceLevel(0, &pSurface));
+			pSurfaceDesc = &m_aSurfaceDescs[0];
+		}
+		if (NULL != m_pCubeTexture)
+		{
+			bResult = SUCCEEDED(m_pCubeTexture->GetCubeMapSurface(_eFace, 0, &pSurface));
+			pSurfaceDesc = &m_aSurfaceDescs[_eFace];
+		}
+
+		while (NULL != pSurface)
+		{
+			LockedRect oLockRect;
+			bResult = SUCCEEDED(pSurface->LockRect(&oLockRect, NULL, D3DLOCK_READONLY | D3DLOCK_NOOVERWRITE | D3DLOCK_NOSYSLOCK));
+			if (false == bResult)
+			{
+				pSurface->Release();
+				break;
+			}
+
+			const UInt uDepthBytes = Display::GetInstance()->GetFormatBitsPerPixel(pSurfaceDesc->Format);
+			BytePtr pBuffer = (BytePtr)oLockRect.pBits;
+			const UInt uOffset = UInt(_pf2In->y) * oLockRect.Pitch + UInt(_pf2In->x) * (uDepthBytes / 8);
+			if (16 == uDepthBytes)
+			{
+				WordPtr p16Bits = (WordPtr)&pBuffer[uOffset];
+				_uOut = *p16Bits;
+			}
+			else if (32 == uDepthBytes)
+			{
+				UIntPtr p32Bits = (UIntPtr)&pBuffer[uOffset];
+				_uOut = *p32Bits;
+			}
+			else
+			{
+				bResult = false;
+			}
+
+			pSurface->UnlockRect();
+			pSurface->Release();
+			break;
+		}
+
+		return bResult;
 	}
 
 	bool DisplayTexture::Load(CreateInfoRef _rInfo)

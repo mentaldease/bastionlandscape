@@ -64,7 +64,8 @@ namespace ElixirEngine
 		m_uCurrentVertexDecl(0),
 		m_uVertexDeclID(0),
 		m_uWidth(0),
-		m_uHeight(0)
+		m_uHeight(0),
+		m_bDepthBytes(0)
 	{
 		if (NULL == GetInstance())
 		{
@@ -82,8 +83,8 @@ namespace ElixirEngine
 
 	bool Display::Create(const boost::any& _rConfig)
 	{
-		WindowData* pWindowData = boost::any_cast<WindowData*>(_rConfig);
-		bool bResult = (NULL != pWindowData);
+		GraphicConfigData* pGraphicConfigData = boost::any_cast<GraphicConfigData*>(_rConfig);
+		bool bResult = (NULL != pGraphicConfigData);
 
 		if (false != bResult)
 		{
@@ -93,7 +94,7 @@ namespace ElixirEngine
 		}
 		if (false != bResult)
 		{
-			bResult = OpenVideo(*pWindowData);
+			bResult = OpenVideo(*pGraphicConfigData);
 		}
 
 		return bResult;
@@ -171,7 +172,7 @@ namespace ElixirEngine
 		}
 	}
 
-	bool Display::OpenVideo(WindowData& _rWindowData)
+	bool Display::OpenVideo(GraphicConfigDataRef _rGraphicConfigData)
 	{
 		bool bResult = (NULL == m_pDevice);
 		HRESULT hResult;
@@ -182,16 +183,17 @@ namespace ElixirEngine
 			memset(&oD3DPP, 0 ,sizeof(D3DPRESENT_PARAMETERS));
 
 			oD3DPP.EnableAutoDepthStencil = TRUE;
-			oD3DPP.AutoDepthStencilFormat = D3DFORMAT(_rWindowData.m_uDXDepthFormat);
-			oD3DPP.Windowed = _rWindowData.m_bFullScreen ? FALSE : TRUE;
-			oD3DPP.BackBufferWidth = _rWindowData.m_oClientRect.right;
-			oD3DPP.BackBufferHeight = _rWindowData.m_oClientRect.bottom;
-			oD3DPP.BackBufferFormat = _rWindowData.m_bFullScreen ? D3DFORMAT(_rWindowData.m_uDXColorFormat) : D3DFMT_UNKNOWN;
+			oD3DPP.AutoDepthStencilFormat = D3DFORMAT(_rGraphicConfigData.m_uDXDepthFormat);
+			oD3DPP.Windowed = _rGraphicConfigData.m_bFullScreen ? FALSE : TRUE;
+			oD3DPP.BackBufferWidth = _rGraphicConfigData.m_oClientRect.right;
+			oD3DPP.BackBufferHeight = _rGraphicConfigData.m_oClientRect.bottom;
+			oD3DPP.BackBufferFormat = _rGraphicConfigData.m_bFullScreen ? D3DFORMAT(_rGraphicConfigData.m_uDXColorFormat) : D3DFMT_UNKNOWN;
 			oD3DPP.SwapEffect = D3DSWAPEFFECT_DISCARD;
 			oD3DPP.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
 
-			m_uWidth = _rWindowData.m_oClientRect.right;
-			m_uHeight = _rWindowData.m_oClientRect.bottom;
+			m_uWidth = _rGraphicConfigData.m_oClientRect.right;
+			m_uHeight = _rGraphicConfigData.m_oClientRect.bottom;
+			m_bDepthBytes = GetFormatBitsPerPixel(D3DFORMAT(_rGraphicConfigData.m_uDXDepthFormat)) / 8;
 
 
 			UINT AdapterToUse=D3DADAPTER_DEFAULT;
@@ -218,7 +220,7 @@ namespace ElixirEngine
 			hResult = m_pDirect3D->CreateDevice(
 				AdapterToUse,
 				DeviceType,
-				_rWindowData.m_hWnd,
+				_rGraphicConfigData.m_hWnd,
 				D3DCREATE_HARDWARE_VERTEXPROCESSING,
 				&oD3DPP,
 				&m_pDevice);
@@ -261,7 +263,7 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			DisplayRenderTargetGeometry::CreateInfo oRTGCInfo = { m_uWidth, m_uHeight };
-			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "GBUFFERS", m_uWidth, m_uHeight, D3DFORMAT(_rWindowData.m_uDXGBufferFormat), _rWindowData.m_uDXGBufferCount, _rWindowData.m_aDXGBufferFormat };
+			DisplayRenderTargetChain::CreateInfo oRTCCInfo = { "GBUFFERS", &_rGraphicConfigData, m_uWidth, m_uHeight };
 			m_pPostProcessGeometry = new DisplayRenderTargetGeometry(*this);
 			m_pRTChain = new DisplayRenderTargetChain(*this);
 			bResult =  m_pPostProcessGeometry->Create(boost::any(&oRTGCInfo))
@@ -370,6 +372,11 @@ namespace ElixirEngine
 		{
 			pRS->RenderRequest(_pDisplayObject);
 		}
+	}
+
+	void Display::RenderRequest(DisplayObjectPtr _pDisplayObject)
+	{
+		RenderRequest(_pDisplayObject->GetRenderStage(), _pDisplayObject);
 	}
 
 	Key Display::CreateVertexBufferKey(DisplayVertexBuffer::CreateInfo& _rCreateInfo)
@@ -797,6 +804,20 @@ namespace ElixirEngine
 		return m_pStateManagerInterface;
 	}
 
+	void Display::Unproject(const Vector3Ptr _pf3In, Vector3Ptr _pf3Out, DisplayCameraPtr _pCamera, const MatrixPtr _pObjectWorld)
+	{
+		Matrix mIdentity;
+		D3DXMatrixIdentity(&mIdentity);
+		_pCamera = (NULL == _pCamera) ? m_pCurrentCamera : _pCamera;
+		D3DXVec3Unproject(
+			_pf3Out,
+			_pf3In,
+			_pCamera->GetCurrentViewport(),
+			_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ),
+			_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW),
+			(NULL != _pObjectWorld) ? _pObjectWorld : &mIdentity);
+	}
+
 	void Display::RenderUpdate()
 	{
 		PROFILING(__FUNCTION__);
@@ -902,16 +923,6 @@ namespace ElixirEngine
 
 		{
 			PROFILING(__FUNCTION__" [RENDER]");
-#if 0
-			struct RenderEffectFunction
-			{
-				void operator()(DisplayEffectPtr _pDisplayEffect)
-				{
-					_pDisplayEffect->Render();
-				}
-			};
-			for_each(m_vRenderList.begin(), m_vRenderList.end(), RenderEffectFunction());
-#else
 			DisplayEffectPtrVec::iterator iEffect = m_vRenderList.begin();
 			DisplayEffectPtrVec::iterator iEnd = m_vRenderList.end();
 			while (iEnd != iEffect)
@@ -919,7 +930,6 @@ namespace ElixirEngine
 				(*iEffect)->Render();
 				++iEffect;
 			}
-#endif
 			m_vRenderList.clear();
 		}
 	}

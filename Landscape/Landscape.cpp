@@ -117,9 +117,9 @@ namespace ElixirEngine
 		m_fFloorScale = _rOpenInfo.m_fFloorScale;
 		m_fHeightScale = _rOpenInfo.m_fHeightScale;
 		m_eFormat = _rOpenInfo.m_eFormat;
-		const unsigned int uBandCount = m_uQuadSize;
-		const unsigned int uVertexPerBand = (m_uQuadSize + 1) * 2;
-		const unsigned int uBandJunctionVertexCount = 2 * (m_uQuadSize - 1);
+		const UInt uBandCount = m_uQuadSize;
+		const UInt uVertexPerBand = (m_uQuadSize + 1) * 2;
+		const UInt uBandJunctionVertexCount = 2 * (m_uQuadSize - 1);
 		m_uStripSize = uBandCount * uVertexPerBand + uBandJunctionVertexCount;
 
 		bool bResult = Display::IsPowerOf2(m_uGridSize, &m_uLODCount) && Display::IsPowerOf2(m_uQuadSize);
@@ -130,7 +130,7 @@ namespace ElixirEngine
 			m_uTotalLODStripSize = 0;
 			m_pLODs = new LODInfo[m_uLODCount];
 			LODInfoPtr pLODInfo = m_pLODs;
-			for (unsigned int i = 0 ; m_uLODCount > i ; ++i)
+			for (UInt i = 0 ; m_uLODCount > i ; ++i)
 			{
 				pLODInfo->m_uStripSize = m_uStripSize;
 				pLODInfo->m_uStartIndex = m_uTotalLODStripSize;
@@ -362,9 +362,9 @@ namespace ElixirEngine
 		return m_oGlobalInfo;
 	}
 
-	void Landscape::GetVertexPosition(const LODInfo& _rLODInfo, const unsigned int& _uIndexBufferIndex, const unsigned int& _uVertexStartIndex, Vector3& _rPosition)
+	void Landscape::GetVertexPosition(LODInfoRef _rLODInfo, const UInt& _uIndexBufferIndex, const UInt& _uVertexStartIndex, Vector3& _rPosition)
 	{
-		const unsigned int uVertexIndex = _uVertexStartIndex + m_pIndexes[_rLODInfo.m_uStartIndex + _uIndexBufferIndex];
+		const UInt uVertexIndex = _uVertexStartIndex + m_pIndexes[_rLODInfo.m_uStartIndex + _uIndexBufferIndex];
 		switch (m_oGlobalInfo.m_eFormat)
 		{
 			case ELandscapeVertexFormat_DEFAULT:
@@ -387,7 +387,7 @@ namespace ElixirEngine
 		return m_pDisplay->SetCurrentIndexBufferKey(m_uIndexBuffer);
 	}
 
-	bool Landscape::UseLODVertexBuffer(const unsigned int& _uLOD)
+	bool Landscape::UseLODVertexBuffer(const UInt& _uLOD)
 	{
 		m_uCurrentVertexBuffer = m_oGlobalInfo.m_pLODs[_uLOD].m_uVertexBuffer;
 		bool bResult = m_pDisplay->SetCurrentVertexBufferKey(m_uCurrentVertexBuffer);
@@ -399,23 +399,28 @@ namespace ElixirEngine
 		LandscapeLayerManager::GetInstance()->SetCurrentLayering(m_pLayering);
 	}
 
+	const UIntPtr Landscape::GetIndices() const
+	{
+		return m_pIndexes;
+	}
+
 	bool Landscape::CreateIndexBuffer()
 	{
 		bool bResult = false;
-		m_pIndexes = new unsigned int[m_oGlobalInfo.m_uTotalLODStripSize];
+		m_pIndexes = new UInt[m_oGlobalInfo.m_uTotalLODStripSize];
 		bResult = (NULL != m_pIndexes);
 		if (false != bResult)
 		{
-			unsigned int* pIndexes = m_pIndexes;
+			UIntPtr pIndexes = m_pIndexes;
 
-			for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
+			for (UInt k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 			{
-				const unsigned int uLODIncrement = (0x00000001 << 0);
-				const unsigned int uLODQuadSize = (m_oGlobalInfo.m_uQuadSize << 0);
-				const unsigned int uVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
-				for (unsigned int j = 0 ; uLODQuadSize > j ; j += uLODIncrement)
+				const UInt uLODIncrement = (0x00000001 << 0);
+				const UInt uLODQuadSize = (m_oGlobalInfo.m_uQuadSize << 0);
+				const UInt uVertexPerRowCount = (m_oGlobalInfo.m_uVertexPerRowCount >> k) | 0x00000001;
+				for (UInt j = 0 ; uLODQuadSize > j ; j += uLODIncrement)
 				{
-					for (unsigned int i = 0 ; (uLODQuadSize + uLODIncrement) > i ; i += uLODIncrement)
+					for (UInt i = 0 ; (uLODQuadSize + uLODIncrement) > i ; i += uLODIncrement)
 					{
 						*pIndexes = i + j * uVertexPerRowCount;
 						++pIndexes;
@@ -446,8 +451,8 @@ namespace ElixirEngine
 	bool Landscape::CreateChunks()
 	{
 		// compute total chunks (all LODs)
-		unsigned int uLOD = 0;
-		unsigned int uGridSize = m_oGlobalInfo.m_uGridSize;
+		UInt uLOD = 0;
+		UInt uGridSize = m_oGlobalInfo.m_uGridSize;
 		m_oGlobalInfo.m_uChunkCount = 0;
 		while (m_oGlobalInfo.m_uLODCount > uLOD)
 		{
@@ -485,11 +490,11 @@ namespace ElixirEngine
 			// get surface info
 			ImageInfoRef rSurfaceInfo = pSurface->GetInfo();
 			// foe each LOD
-			for (unsigned int k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
+			for (UInt k = 0 ; m_oGlobalInfo.m_uLODCount > k ; ++k)
 			{
-				const unsigned int uLODVertexPerRowCount = m_oGlobalInfo.m_pLODs[k].m_uVertexPerRowCount;
-				const unsigned int uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
-				const unsigned int uLODIncrement = 0x00000001 << k;
+				const UInt uLODVertexPerRowCount = m_oGlobalInfo.m_pLODs[k].m_uVertexPerRowCount;
+				const UInt uLODRowCount = (m_oGlobalInfo.m_uRowCount >> k) | 0x00000001;
+				const UInt uLODIncrement = 0x00000001 << k;
 				const float fVStep = 1.0f / float(uLODRowCount);
 				const float fUStep = 1.0f / float(uLODVertexPerRowCount);
 				LandscapeVertexIndependentPtr pVertexes = m_oGlobalInfo.m_pLODs[k].m_pVertexesIndependent;

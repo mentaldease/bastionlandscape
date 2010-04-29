@@ -20,6 +20,15 @@ namespace BastionGame
 		typedef CreateInfo* CreateInfoPtr;
 		typedef CreateInfo& CreateInfoRef;
 
+		struct PickedObject
+		{
+			DisplayObjectPtr	m_pObject;
+			Vector3				m_f3Intersection;
+		};
+		typedef PickedObject* PickedObjectPtr;
+		typedef PickedObject& PickedObjectRef;
+		typedef vector<PickedObjectPtr> PickedObjectPtrVec;
+
 	public:
 		Scene(ApplicationRef _rApplication);
 		virtual ~Scene();
@@ -39,6 +48,10 @@ namespace BastionGame
 		ApplicationRef GetApplication();
 		Vector4 GetLightDir();
 		OctreePtr GetOctree();
+
+		void PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects);
+		void UpdatePicking(const Vector3Ptr _f3RayBegin, const Vector3Ptr _f3RayEnd, Vector3Ptr _f3Out, OctreeObjectPtrVecRef _rvOctreeObjects);
+		CoreObjectPtr GetHierarchyObject(const Key _uNameKey);
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
@@ -68,6 +81,7 @@ namespace BastionGame
 		DisplayCameraPtrMap				m_mCameras;
 		DisplayRenderStagePtrMap		m_mRenderStages;
 		DisplayRenderStagePtrVec		m_vRenderStages;
+		OctreeObjectPtrVec				m_vTraversedObjects;
 		Vector4							m_f4LightDir;
 		WaterDataPtr					m_pWaterData;
 		OctreePtr						m_pOctree;
@@ -81,10 +95,12 @@ namespace BastionGame
 
 		DebugTextOverlayPtr				m_pUITextOverlay;
 		Key								m_uUIMainFontLabel;
-		Key								m_uUIRenderPass;
+		Key								m_uUIRenderStage;
 
 		float							m_fDayTime;
 		float							m_fVerticalOffset;
+
+		Vector3Ptr						m_af3PickTriangleVertices[3];
 	};
 }
 

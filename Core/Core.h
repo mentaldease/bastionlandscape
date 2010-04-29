@@ -12,12 +12,16 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	struct WindowData
+	struct GraphicConfigData;
+	typedef GraphicConfigData* GraphicConfigDataPtr;
+	typedef GraphicConfigData& GraphicConfigDataRef;
+
+	struct GraphicConfigData
 	{
 		const static UInt c_uMaxGBuffers = 32;
-		WindowData();
+		GraphicConfigData();
 
-		HWND			(*m_pCreateWindow)(WindowData& _rConfig);
+		HWND			(*m_pCreateWindow)(GraphicConfigDataRef _rConfig);
 		HINSTANCE		m_hInstance;
 		HINSTANCE		m_hPrevInstance;
 		LPTSTR			m_lpCmdLine;
@@ -25,7 +29,7 @@ namespace ElixirEngine
 		HACCEL			m_hAccelTable;
 		HWND			m_hWnd;
 		RECT			m_oClientRect;
-		RECT			m_oWindowRect;
+		RECT			m_oGraphicConfigRect;
 		int				m_sColorMode;
 		bool			m_bFullScreen;
 		unsigned int	m_uDXColorFormat;
@@ -35,6 +39,7 @@ namespace ElixirEngine
 		float			m_fZNear;
 		float			m_fZFar;
 		UInt			m_aDXGBufferFormat[c_uMaxGBuffers];
+		int				m_sDXGufferDepthIndex;
 	};
 
 	//-----------------------------------------------------------------------------------------------

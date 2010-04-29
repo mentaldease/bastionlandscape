@@ -9,17 +9,20 @@ namespace BastionGame
 
 	#define DIM_SHIFT_MODIFIER	16
 	#define DIM_EVENT(VALUE)	((1 << DIM_SHIFT_MODIFIER) + VALUE)
-	#define DIM_MOVEX			DIM_EVENT(0)
-	#define DIM_MOVEY			DIM_EVENT(1)
-	#define DIM_MOVEZ			DIM_EVENT(2)
-	#define DIM_BUTTONLEFT		DIM_EVENT(3)
-	#define DIM_BUTTONRIGHT		DIM_EVENT(4)
-	#define DIM_BUTTONMIDDLE	DIM_EVENT(5)
-	#define DIM_BUTTON4			DIM_EVENT(6)
-	#define DIM_BUTTON5			DIM_EVENT(7)
-	#define DIM_BUTTON6			DIM_EVENT(8)
-	#define DIM_BUTTON7			DIM_EVENT(9)
-	#define DIM_BUTTON8			DIM_EVENT(10)
+	#define DIM_MOVEX_INC		DIM_EVENT(0)
+	#define DIM_MOVEX_DEC		DIM_EVENT(1)
+	#define DIM_MOVEY_INC		DIM_EVENT(2)
+	#define DIM_MOVEY_DEC		DIM_EVENT(3)
+	#define DIM_MOVEZ_INC		DIM_EVENT(4)
+	#define DIM_MOVEZ_DEC		DIM_EVENT(5)
+	#define DIM_BUTTONLEFT		DIM_EVENT(6)
+	#define DIM_BUTTONRIGHT		DIM_EVENT(7)
+	#define DIM_BUTTONMIDDLE	DIM_EVENT(8)
+	#define DIM_BUTTON4			DIM_EVENT(9)
+	#define DIM_BUTTON5			DIM_EVENT(10)
+	#define DIM_BUTTON6			DIM_EVENT(11)
+	#define DIM_BUTTON7			DIM_EVENT(12)
+	#define DIM_BUTTON8			DIM_EVENT(13)
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -65,7 +68,6 @@ namespace BastionGame
 		static const UInt s_uControlModifier = (1 << 9);
 		static const UInt s_uAltModifier = (1 << 10);
 		static const UInt s_uOnceModifier = (1 << 11);
-		static const UInt s_uMouseModifier = (1 << DIM_SHIFT_MODIFIER);
 
 		struct Context
 		{

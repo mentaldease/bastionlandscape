@@ -17,7 +17,7 @@ namespace BastionGame
 		LuaObject oAdditionals = oRenderTargets["additionals"];
 		if (false == oAdditionals.IsNil())
 		{
-			const WindowData& rWindowData = m_rApplication.GetWindowData();
+			const GraphicConfigData& rGraphicConfigData = m_rApplication.GetGraphicConfigData();
 			DisplayTextureManagerPtr pTextureManager = m_rApplication.GetDisplay()->GetTextureManager();
 			const int uCount = oAdditionals.GetCount();
 			for (int i = 0 ; uCount > i ; ++i)
@@ -35,10 +35,10 @@ namespace BastionGame
 				}
 
 				const string strFormat = oAdditional["format"].GetString();
-				D3DFORMAT uFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(rWindowData.m_uDXColorFormat));
+				D3DFORMAT uFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(rGraphicConfigData.m_uDXColorFormat));
 				bResult = pTextureManager->New(strName,
-					rWindowData.m_oClientRect.right,
-					rWindowData.m_oClientRect.bottom,
+					rGraphicConfigData.m_oClientRect.right,
+					rGraphicConfigData.m_oClientRect.bottom,
 					uFormat,
 					false,
 					DisplayTexture::EType_2D,

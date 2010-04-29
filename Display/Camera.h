@@ -46,6 +46,20 @@ namespace ElixirEngine
 			float		m_fZFar;
 			bool		m_bPerspectiveMode;
 		};
+		typedef CreateInfo* CreateInfoPtr;
+		typedef CreateInfo& CreateInfoRef;
+
+		struct StateInfo
+		{
+			ViewportPtr	m_pViewport;
+			float		m_fFovy;
+			float		m_fAspectRatio;
+			float		m_fPixelSize;
+			float		m_fNear;
+			float		m_fFar;
+		};
+		typedef StateInfo* StateInfoPtr;
+		typedef StateInfo& StateInfoRef;
 
 		enum EMatrix
 		{
@@ -124,6 +138,7 @@ namespace ElixirEngine
 		void SetClipPlanes(const UInt _uCount, PlanePtr _pPlanes);
 
 		Vector3Ptr GetFrustumCorners();
+		void GetStateInfo(StateInfoRef _rInfo);
 
 	protected:
 		void UpdatePixelSize();

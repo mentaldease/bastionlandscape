@@ -20,41 +20,6 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	enum EDIsplayCommand
-	{
-		EDisplayCommand_UNKNOWN,				// 0
-		EDisplayCommand_SETSTAGE,				// 1
-		EDisplayCommand_BEGINNORMALPROCESS,		// 2
-		EDisplayCommand_ENDNORMALPROCESS,		// 3
-		EDisplayCommand_BEGINNONORMALPROCESSES,	// 4
-		EDisplayCommand_ENDNONORMALPROCESSES,	// 5
-		EDisplayCommand_BEGINNORMALPROCESSES,	// 6
-		EDisplayCommand_ENDNORMALPROCESSES,		// 7
-		EDisplayCommand_BEGINPOSTPROCESSES,		// 8
-		EDisplayCommand_ENDPOSTPROCESSES,		// 9
-		EDisplayCommand_BEGINPOSTPROCESS,		// 10
-		EDisplayCommand_ENDPOSTPROCESS,			// 11
-		EDisplayCommand_EFFECTUSEPARAMS,		// 12
-		EDisplayCommand_DRAWINDEXEDPRIMITIVE,	// 13
-		EDisplayCommand_BUILDTEXT,				// 14
-		EDisplayCommand_DRAWPRIMITIVEUP,		// 15
-		EDisplayCommand_SETVERTEXDECLARATION,	// 16
-		EDisplayCommand_SETINDEXBUFFER,			// 17
-		EDisplayCommand_SETVERTEXBUFFER,		// 18
-		EDisplayCommand_DRAWINDEXEDPRIMITIVEUP,	// 19
-		EDisplayCommand_SETNORMALPROCESS,		// 20
-		EDisplayCommand_SETPOSTPROCESS,			// 21
-		EDisplayCommand_EFFECTBEGIN,			// 22
-		EDisplayCommand_EFFECTEND,				// 23
-		EDisplayCommand_EFFECTBEGINPASS,		// 24
-		EDisplayCommand_EFFECTENDPASS,			// 25
-		EDisplayCommand_EFFECTCOMMITCHANGE		// 26
-	};
-
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-	//-----------------------------------------------------------------------------------------------
-
 	template<typename T>
 	struct RenderFunction
 	{
@@ -163,6 +128,8 @@ namespace ElixirEngine
 		virtual void Render() = 0;
 		virtual void RenderEnd() {};
 
+		virtual bool RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect);
+
 	protected:
 		Matrix				m_oWorld;
 		DisplayMaterialPtr	m_pMaterial;
@@ -183,11 +150,12 @@ namespace ElixirEngine
 		virtual void Update();
 		virtual void Release();
 
-		bool OpenVideo(WindowData& _rWindowData);
+		bool OpenVideo(GraphicConfigDataRef _rGraphicConfigData);
 		void CloseVideo();
 
 		void UpdateRequest(CoreObjectPtr _pCoreObject);
 		void RenderRequest(const Key& _uRenderPassKey, DisplayObjectPtr _pDisplayObject);
+		void RenderRequest(DisplayObjectPtr _pDisplayObject);
 
 		Key CreateVertexBufferKey(DisplayVertexBuffer::CreateInfo& _rCreateInfo);
 		bool SetCurrentVertexBufferKey(const Key _uVertexBuffer);
@@ -238,6 +206,8 @@ namespace ElixirEngine
 		void ReleaseVertexDeclaration(const Key _uVertexDeclaration);
 
 		DisplayStateManagerPtr GetStateManagerInterface();
+
+		void Unproject(const Vector3Ptr _pf3In, Vector3Ptr _pf3Out, DisplayCameraPtr _pCamera = NULL, const MatrixPtr _pObjectWorld = NULL);
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
@@ -298,8 +268,9 @@ namespace ElixirEngine
 		Key								m_uCurrentIndexBuffer;
 		Key								m_uCurrentVertexDecl;
 		Key								m_uVertexDeclID;
-		unsigned int					m_uWidth;
-		unsigned int					m_uHeight;
+		UInt							m_uWidth;
+		UInt							m_uHeight;
+		UInt							m_bDepthBytes;
 
 	private:
 	};

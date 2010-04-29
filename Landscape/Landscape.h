@@ -171,12 +171,12 @@ namespace ElixirEngine
 		void Close();
 
 		const GlobalInfo& GetGlobalInfo() const;
-		void GetVertexPosition(const LODInfo& _rLODInfo, const UInt& _uIndexBufferIndex, const UInt& _uVertexStartIndex, Vector3& _rPosition);
+		void GetVertexPosition(LODInfoRef _rLODInfo, const UInt& _uIndexBufferIndex, const UInt& _uVertexStartIndex, Vector3& _rPosition);
 		bool SetIndices();
 		bool UseLODVertexBuffer(const UInt& _uLOD);
 		void UseLayering();
 
-		UInt m_uOutOfFrustum;
+		const UIntPtr GetIndices() const;
 
 	protected:
 		bool CreateVertexBufferIndependent();
@@ -242,9 +242,12 @@ namespace ElixirEngine
 		virtual void SetRenderStage(const Key& _uRenderPass);
 		virtual void RenderBegin();
 		virtual void Render();
+		virtual bool RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect);
 
 		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
 		UInt GetLODID() const;
+
+		static Vector3Ptr s_af3PickVertices[3];
 
 	protected:
 		static Key				s_uMorphFactorKey;
