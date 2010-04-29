@@ -32,9 +32,9 @@ namespace ElixirEngine
 			static bool Get(LuaObjectRef _rLuaObject, const CharPtr _pszFieldName, const T _tDefault, T& _tResult);
 
 		protected:
-			static LuaStatePtr s_pState;
+			static void OutputError(const int _sErrorCode, LuaStatePtr _pState);
 
-		private:
+			static LuaStatePtr s_pState;
 		};
 	}
 }

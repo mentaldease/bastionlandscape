@@ -17,7 +17,7 @@ namespace ElixirEngine
 		EOctreeAABB_TOPLEFTFAR,
 		EOctreeAABB_TOPRIGHTTFAR,
 		EOctreeAABB_TOPRIGHTTNEAR,
-		EOctreeAABB_TOPLEFTTNEAR,
+		EOctreeAABB_TOPLEFTNEAR,
 		EOctreeAABB_BOTTOMLEFTFAR,
 		EOctreeAABB_BOTTOMRIGHTTFAR,
 		EOctreeAABB_BOTTOMRIGHTTNEAR,
@@ -41,6 +41,12 @@ namespace ElixirEngine
 		const fsVector3Vec& GetAABB() const;
 		const fsVector3& GetCenter() const;
 		const float GetRadius() const;
+
+		virtual bool RayIntersect(const fsVector3& _f3RayBegin, const fsVector3& _f3RayEnd, fsVector3& _f3Intersect1, fsVector3& _f3Intersect2);
+
+	protected:
+		bool ClipSegment(float min, float max, float a, float b, float d, float& t0, float& t1);
+		bool ClipSegment(fsVector3& A, fsVector3& B, const fsVector3& Min, const fsVector3& Max);
 
 	protected:
 		fsVector3Vec	m_vPoints;

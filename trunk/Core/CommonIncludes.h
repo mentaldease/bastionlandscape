@@ -7,6 +7,7 @@
 
 // Windows Header Files:
 #include <windows.h>
+#include <windowsx.h>
 #include <d3dx9.h>
 #include <dinput.h>
 

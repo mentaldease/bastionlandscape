@@ -213,6 +213,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\OctreeNode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OctreeObject.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Profiling.cpp"
 				>
 			</File>

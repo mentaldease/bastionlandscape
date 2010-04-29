@@ -13,7 +13,7 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	WindowData::WindowData()
+	GraphicConfigData::GraphicConfigData()
 	:	m_pCreateWindow(NULL),
 		m_hInstance(NULL),
 		m_hPrevInstance(NULL),
@@ -29,7 +29,8 @@ namespace ElixirEngine
 		m_uDXGBufferFormat(0),
 		m_uDXGBufferCount(0),
 		m_fZNear(1.0f),
-		m_fZFar(100.0f)
+		m_fZFar(100.0f),
+		m_sDXGufferDepthIndex(-1)
 	{
 
 	}

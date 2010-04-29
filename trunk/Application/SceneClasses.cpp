@@ -123,6 +123,12 @@ namespace BastionGame
 				break;
 			}
 
+			bool bInOctree = true;
+			Scripting::Lua::Get(_rTable, "in_octree", bInOctree, bInOctree);
+			if (false != bInOctree)
+			{
+			}
+
 			pResult->SetMaterial(pMaterial);
 			pResult->SetRenderStage(MakeKey(strRenderStage));
 
@@ -160,8 +166,6 @@ namespace BastionGame
 		DisplayGeometryLineManager::CreateInfo oGLMCInfo; 
 		Scripting::Lua::Get(_rTable, "position", Vector3(0.0f, 0.0f, 0.0f), oGLMCInfo.m_oPos);
 		Scripting::Lua::Get(_rTable, "rotation", Vector3(0.0f, 0.0f, 0.0f), oGLMCInfo.m_oRot);
-		Scripting::Lua::Get(_rTable, "max_vertex", UInt(10), oGLMCInfo.m_uMaxVertex);
-		Scripting::Lua::Get(_rTable, "max_index", UInt(10), oGLMCInfo.m_uMaxIndex);
 		bool bResult = pResult->Create(boost::any(&oGLMCInfo));
 
 		while (false != bResult)

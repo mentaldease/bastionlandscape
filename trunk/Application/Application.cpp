@@ -14,10 +14,10 @@ namespace BastionGame
 	class CameraListener : public CoreObject
 	{
 	public:
-		CameraListener(DisplayRef _rDisplay)
+		CameraListener()
 		:	CoreObject(),
-			m_pCamera(NULL),
-			m_rDisplay(_rDisplay),
+			m_pMainCamera(NULL),
+			m_rDisplay(*Display::GetInstance()),
 			m_oReflection(),
 			m_uReflectionKey(MakeKey(string("reflection"))),
 			m_uReflection2Key(MakeKey(string("reflection2"))),
@@ -41,8 +41,8 @@ namespace BastionGame
 		virtual void Update()
 		{
 			const Key uProcessNameKey = m_rDisplay.GetCurrentNormalProcess()->GetNameKey();
-			m_pCamera = m_rDisplay.GetCurrentCamera();
-			if ((NULL != m_pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess())
+			DisplayCameraPtr pCamera = m_rDisplay.GetCurrentCamera();
+			if ((NULL != pCamera) && (NULL != m_rDisplay.GetCurrentNormalProcess())
 				&& ((m_uReflectionKey == uProcessNameKey) || (m_uReflection2Key == uProcessNameKey)))
 			{
 				FloatPtr pWaterLevel = m_rDisplay.GetMaterialManager()->GetFloatBySemantic(m_uWaterLevelKey);
@@ -64,19 +64,19 @@ namespace BastionGame
 				Vector3 oWaterLevel(0.0f, *pWaterLevel, 0.0f);
 				Vector3 oReflectDir(0.0f, 1.0f, 0.0f);
 				D3DXPlaneFromPointNormal(&m_oReflectPlane, &oWaterLevel, &oReflectDir);
-				m_pCamera->SetReflection(true, &m_oReflectPlane);
-				m_pCamera->SetClipPlanes(1, &m_oReflectPlane);
+				pCamera->SetReflection(true, &m_oReflectPlane);
+				pCamera->SetClipPlanes(1, &m_oReflectPlane);
 			}
-			else if (NULL != m_pCamera)
+			else if (NULL != pCamera)
 			{
-				m_pCamera->SetReflection(false);
-				m_pCamera->SetClipPlanes(0, NULL);
+				pCamera->SetReflection(false);
+				pCamera->SetClipPlanes(0, NULL);
 				//vsoutput(__FUNCTION__" : main camera\n");
 			}
 		}
 
 	protected:
-		DisplayCameraPtr	m_pCamera;
+		DisplayCameraPtr	m_pMainCamera;
 		DisplayRef			m_rDisplay;
 		Matrix				m_oReflection;
 		Plane				m_oReflectPlane;
@@ -112,7 +112,8 @@ namespace BastionGame
 
 	Application::Application()
 	:	CoreObject(),
-		m_oWindow(),
+		m_oGraphicConfig(),
+		m_f3MousePos(0.0f, 0.0f, 0.0f),
 		m_eStateMode(EStateMode_UNINITIALIZED),
 		m_pDisplay(NULL),
 		m_pScene(NULL),
@@ -130,13 +131,14 @@ namespace BastionGame
 		m_fCameraMoveSpeed(100.0f),
 		m_pCameraListener(NULL),
 		m_pLuaState(NULL),
-		m_pCamera(NULL),
+		m_pMainCamera(NULL),
 		m_pKeybinds(NULL),
 		m_pActionDispatcher(NULL),
 		m_pLog(NULL),
 		m_pJobManager(NULL),
 		m_pOneJob(NULL),
-		m_uProcessAction(MakeKey(string("ProcessAction")))
+		m_uProcessAction(MakeKey(string("ProcessAction"))),
+		m_uPendingAction(EAppAction_UNKNOWN)
 	{
 		m_pActionCallback = boost::bind(&Application::ProcessActions, this, _1);
 	}
@@ -204,23 +206,31 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			m_oWindow = *(boost::any_cast<WindowData*>(_rConfig));
+			m_oGraphicConfig = *(boost::any_cast<GraphicConfigData*>(_rConfig));
 			Scripting::Lua::SetStateInstance(m_pLuaState);
-			GetLuaConfigParameters();
+			bResult = GetLuaConfigParameters();
 		}
 
 		if (false != bResult)
 		{
 			m_eStateMode = EStateMode_INITIALING_WINDOW;
-			m_eStateMode = (NULL != (*m_oWindow.m_pCreateWindow)(m_oWindow)) ? m_eStateMode : EStateMode_ERROR;
+			m_eStateMode = (NULL != (*m_oGraphicConfig.m_pCreateWindow)(m_oGraphicConfig)) ? m_eStateMode : EStateMode_ERROR;
 			bResult = (EStateMode_ERROR != m_eStateMode);
+			if (false != bResult)
+			{
+				SetLastError(0);
+				SetWindowLongPtr(m_oGraphicConfig.m_hWnd, GWLP_USERDATA, LONG_PTR(this));
+				SetMousePos(0.0f, 0.0f);
+				const DWORD dwError = GetLastError();
+				bResult = (0 == dwError);
+			}
 		}
 
 		if (false != bResult)
 		{
 			m_eStateMode = EStateMode_INITIALING_DISPLAY;
 			m_pDisplay = new Display;
-			bResult = m_pDisplay->Create(boost::any(&m_oWindow));
+			bResult = m_pDisplay->Create(boost::any(&m_oGraphicConfig));
 			m_eStateMode = (false != bResult) ? EStateMode_READY : EStateMode_ERROR;
 			if (false != bResult)
 			{
@@ -291,8 +301,8 @@ namespace BastionGame
 			oICInfo.m_bCreateDefaultMouse = true;
 			oICInfo.m_uCooperativeLevelKeyboard = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
 			oICInfo.m_uCooperativeLevelMouse = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
-			oICInfo.m_hWnd = m_oWindow.m_hWnd;
-			oICInfo.m_hInstance = m_oWindow.m_hInstance;
+			oICInfo.m_hWnd = m_oGraphicConfig.m_hWnd;
+			oICInfo.m_hInstance = m_oGraphicConfig.m_hInstance;
 			oICInfo.m_uDefaultKeyboardKey = MakeKey(string("DIKEYBOARD"));
 			oICInfo.m_uDefaultMouseKey = MakeKey(string("DIMOUSE"));
 			bResult = m_pInput->Create(boost::any(&oICInfo));
@@ -330,6 +340,7 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			m_pUpdateFunction = boost::bind(&Application::LoadScene, this);
+			m_f3MousePos;
 			m_eStateMode = EStateMode_READY;
 		}
 
@@ -343,7 +354,7 @@ namespace BastionGame
 			MSG msg;
 			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
-				if (!TranslateAccelerator(msg.hwnd, m_oWindow.m_hAccelTable, &msg))
+				if (!TranslateAccelerator(msg.hwnd, m_oGraphicConfig.m_hAccelTable, &msg))
 				{
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
@@ -362,7 +373,7 @@ namespace BastionGame
 	{
 		if (NULL != m_pCameraListener)
 		{
-			m_pCamera->RemoveListener(m_pCameraListener);
+			m_pMainCamera->RemoveListener(m_pCameraListener);
 			m_pCameraListener->Release();
 			delete m_pCameraListener;
 			m_pCameraListener = NULL;
@@ -508,9 +519,9 @@ namespace BastionGame
 		return m_eStateMode;
 	}
 
-	const WindowData& Application::GetWindowData() const
+	const GraphicConfigData& Application::GetGraphicConfigData() const
 	{
-		return m_oWindow;
+		return m_oGraphicConfig;
 	}
 
 	DisplayPtr Application::GetDisplay()
@@ -521,6 +532,26 @@ namespace BastionGame
 	const float& Application::GetDeltaTime() const
 	{
 		return m_fElapsedTime;
+	}
+
+	void Application::SetMousePos(const float _fX, const float _fY)
+	{
+		m_f3MousePos.x = _fX;
+		m_f3MousePos.y = _fY;
+	}
+
+	const Vector3& Application::GetMousePos()
+	{
+#if 1
+		POINT oPos;
+		if (FALSE != GetCursorPos(&oPos))
+		{
+			ScreenToClient(m_oGraphicConfig.m_hWnd, &oPos);
+			m_f3MousePos.x = float(oPos.x);
+			m_f3MousePos.y = float(oPos.y);
+		}
+#endif
+		return m_f3MousePos;
 	}
 
 	void Application::LoadScene()
@@ -535,12 +566,12 @@ namespace BastionGame
 				Profiling::OutputInfo(m_pLog);
 				Profiling::Clear();
 
-				m_pCamera = m_pDisplay->GetCamera(MakeKey(string("scenecamera00")));
-				m_pCameraListener = new CameraListener(*m_pDisplay);
+				m_pMainCamera = m_pDisplay->GetCamera(MakeKey(string("scenecamera00")));
+				m_pCameraListener = new CameraListener();
 				bool bResult = m_pCameraListener->Create(boost::any(0));
 				if (false != bResult)
 				{
-					m_pCamera->AddListener(m_pCameraListener);
+					m_pMainCamera->AddListener(m_pCameraListener);
 					m_pUpdateFunction = boost::bind(&Application::RenderScene, this);
 				}
 			}
@@ -593,8 +624,8 @@ namespace BastionGame
 			vsoutput(__FUNCTION__" : mouse reseted\n");
 		}
 
-		Vector3& rCamPos = m_pCamera->GetPosition();
-		Vector3& rCamRot = m_pCamera->GetRotation();
+		Vector3& rCamPos = m_pMainCamera->GetPosition();
+		Vector3& rCamRot = m_pMainCamera->GetRotation();
 		Vector3 oCamFrontDir;
 		Vector3 oCamRightDir;
 		Vector3 oCamUpDir;
@@ -608,7 +639,7 @@ namespace BastionGame
 			//vsoutput(__FUNCTION__" : mouse %d %d\n", m_oMouseInfo.lX, m_oMouseInfo.lY);
 		}
 
-		m_pCamera->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
+		m_pMainCamera->GetDirs(oCamFrontDir, oCamRightDir, oCamUpDir);
 		Vector3 oFrontDir(oCamFrontDir.x, 0.0f, oCamFrontDir.z);
 		D3DXVec3Normalize(&oFrontDir, &oFrontDir);
 		rCamPos += oFrontDir * m_oCameraParams.m_fFront2 * fCameraMoveSpeed;
@@ -619,35 +650,42 @@ namespace BastionGame
 		m_oCameraParams.Reset(false);
 	}
 
-	void Application::GetLuaConfigParameters()
+	bool Application::GetLuaConfigParameters()
 	{
-		if (false != Scripting::Lua::Loadfile("data/bastion_config.lua"))
+		bool bResult = (false != Scripting::Lua::Loadfile("data/bastion_config.lua"));
+		if (false != bResult)
 		{
 			LuaStatePtr pLuaState = Scripting::Lua::GetStateInstance();
 			LuaObject oGlobals = pLuaState->GetGlobals();
 			LuaObject oConfig = oGlobals["bastion_config"];
 			LuaObject oGraphics = oConfig["graphics"];
+			LuaObject oGBuffers = oGraphics["gbuffers"];
 
-			m_oWindow.m_bFullScreen = oGraphics["fullscreen"].GetBoolean();
-			m_oWindow.m_oClientRect.right = oGraphics["width"].GetInteger();
-			m_oWindow.m_oClientRect.bottom = oGraphics["height"].GetInteger();
-			m_oWindow.m_fZNear = oGraphics["depth_near"].GetFloat();
-			m_oWindow.m_fZFar = oGraphics["depth_far"].GetFloat();
-			m_oWindow.m_uDXGBufferCount = oGraphics["gbuffer_count"].GetInteger();
-			m_oWindow.m_uDXGBufferCount = (WindowData::c_uMaxGBuffers < m_oWindow.m_uDXGBufferCount) ? WindowData::c_uMaxGBuffers : m_oWindow.m_uDXGBufferCount;
+			m_oGraphicConfig.m_bFullScreen = oGraphics["fullscreen"].GetBoolean();
+			m_oGraphicConfig.m_oClientRect.right = oGraphics["width"].GetInteger();
+			m_oGraphicConfig.m_oClientRect.bottom = oGraphics["height"].GetInteger();
+			m_oGraphicConfig.m_fZNear = oGraphics["depth_near"].GetFloat();
+			m_oGraphicConfig.m_fZFar = oGraphics["depth_far"].GetFloat();
 
 			string strFormat = oGraphics["color_format"].GetString();
-			m_oWindow.m_uDXColorFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXColorFormat));
+			m_oGraphicConfig.m_uDXColorFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oGraphicConfig.m_uDXColorFormat));
 			strFormat = oGraphics["depth_format"].GetString();
-			m_oWindow.m_uDXDepthFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_uDXDepthFormat));
+			m_oGraphicConfig.m_uDXDepthFormat = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oGraphicConfig.m_uDXDepthFormat));
 
-			LuaObject oGBuffers = oGraphics["gbuffers_format"];
-			for (UInt i = 0 ; m_oWindow.m_uDXGBufferCount > i ; ++i)
+			if (false == oGBuffers.IsNil())
 			{
-				strFormat = oGBuffers[i + 1].GetString();
-				m_oWindow.m_aDXGBufferFormat[i] = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oWindow.m_aDXGBufferFormat[i]));
+				LuaObject oBuffers = oGBuffers["buffers"];
+				m_oGraphicConfig.m_uDXGBufferCount = oBuffers.GetTableCount();
+				m_oGraphicConfig.m_uDXGBufferCount = (GraphicConfigData::c_uMaxGBuffers < m_oGraphicConfig.m_uDXGBufferCount) ? GraphicConfigData::c_uMaxGBuffers : m_oGraphicConfig.m_uDXGBufferCount;
+				for (UInt i = 0 ; m_oGraphicConfig.m_uDXGBufferCount > i ; ++i)
+				{
+					strFormat = oBuffers[i + 1].GetString();
+					m_oGraphicConfig.m_aDXGBufferFormat[i] = Display::StringToDisplayFormat(strFormat, D3DFORMAT(m_oGraphicConfig.m_aDXGBufferFormat[i]));
+				}
+				 Scripting::Lua::Get(oGBuffers, "depth_index", m_oGraphicConfig.m_sDXGufferDepthIndex, m_oGraphicConfig.m_sDXGufferDepthIndex);
 			}
 		}
+		return bResult;
 	}
 
 

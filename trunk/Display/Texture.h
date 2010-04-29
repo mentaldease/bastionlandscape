@@ -50,7 +50,9 @@ namespace ElixirEngine
 		virtual void Release();
 
 		virtual BaseTexturePtr GetBase();
-		virtual SurfaceDescPtr GetDesc(const D3DCUBEMAP_FACES& _eFace);
+		virtual SurfaceDescPtr GetDesc(const D3DCUBEMAP_FACES _eFace = D3DCUBEMAP_FACE_POSITIVE_X);
+
+		bool GetValue(const Vector2Ptr _pf2In, UIntRef _uOut, const D3DCUBEMAP_FACES _eFace = D3DCUBEMAP_FACE_POSITIVE_X);
 
 	protected:
 		bool Load(CreateInfoRef _rInfo);

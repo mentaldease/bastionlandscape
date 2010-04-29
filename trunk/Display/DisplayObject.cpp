@@ -57,4 +57,9 @@ namespace ElixirEngine
 	{
 		return m_uRenderPass;
 	}
+
+	bool DisplayObject::RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect)
+	{
+		return false;
+	}
 }

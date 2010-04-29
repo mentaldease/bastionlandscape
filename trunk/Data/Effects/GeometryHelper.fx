@@ -3,6 +3,7 @@
 //--------------------------------------------------------------------------------------
 
 #define CAMERA_LINEARIZED_DEPTH	0
+#define USE_PS_NORMAL 1
 
 //--------------------------------------------------------------------------------------
 // Global variables
@@ -108,7 +109,9 @@ struct PS_OUTPUT
 {
 	float4 vColor		: COLOR0;  // Pixel color
 	float4 vPosition	: COLOR1;  // Pixel position
+#if USE_PS_NORMAL
 	float4 vNormal		: COLOR2;  // Pixel normal
+#endif // USE_PS_NORMAL
 };
 
 //--------------------------------------------------------------------------------------
@@ -123,10 +126,12 @@ PS_OUTPUT RenderScenePS(VS_OUTPUT psInput)
 	//psOutput.vColor = g_f4Diffuse * vTexColor;
 	psOutput.vColor = g_f4Diffuse;
 
+#if USE_PS_NORMAL
 	float3 vNormal = (psInput.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;
 	psOutput.vNormal = float4(vNormal, 1.0f);
+#endif // USE_PS_NORMAL
 
-	float fDepth = psInput.PositionZ / 10000.0f;
+	float fDepth = psInput.PositionZ / 100000.0f;
 	psOutput.vPosition = float4(fDepth, 1.0f, 1.0f, 1.0f);
 
 	return psOutput;
@@ -140,10 +145,12 @@ PS_OUTPUT RenderScenePSColor(VS_OUTPUT_COLOR psInput)
 	//psOutput.vColor = g_f4Diffuse * vTexColor;
 	psOutput.vColor = g_f4Diffuse * psInput.Diffuse;
 
+#if USE_PS_NORMAL
 	float3 vNormal = (psInput.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;
 	psOutput.vNormal = float4(vNormal, 1.0f);
+#endif // USE_PS_NORMAL
 
-	float fDepth = psInput.PositionZ / 10000.0f;
+	float fDepth = psInput.PositionZ / 100000.0f;
 	psOutput.vPosition = float4(fDepth, 1.0f, 1.0f, 1.0f);
 
 	return psOutput;
@@ -157,14 +164,6 @@ technique RenderScene
 {
     pass P0
     {
-		//FillMode = Wireframe;
-		// PointSize = 5.0;
-		// Lighting = FALSE;
-		// CullMode = NONE;
-		// AlphaBlendEnable = TRUE;
-		// DestBlend = INVSRCALPHA;
-		// SrcBlend = SRCALPHA;
-
         VertexShader = compile vs_3_0 RenderSceneVS();
         PixelShader  = compile ps_3_0 RenderScenePS();
     }
@@ -174,14 +173,6 @@ technique RenderSceneVertexColor
 {
     pass P0
     {
-		//FillMode = Wireframe;
-		// PointSize = 5.0;
-		// Lighting = FALSE;
-		// CullMode = NONE;
-		// AlphaBlendEnable = TRUE;
-		// DestBlend = INVSRCALPHA;
-		// SrcBlend = SRCALPHA;
-
         VertexShader = compile vs_3_0 RenderSceneVSColor();
         PixelShader  = compile ps_3_0 RenderScenePSColor();
     }

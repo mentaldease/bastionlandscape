@@ -41,10 +41,13 @@ namespace BastionGame
 		virtual void Release();
 
 		const EStateMode& GetStateMode() const;
-		const WindowData& GetWindowData() const;
+		const GraphicConfigData& GetGraphicConfigData() const;
 
 		DisplayPtr GetDisplay();
 		const float& GetDeltaTime() const;
+
+		void SetMousePos(const float _fX, const float _fY);
+		const Vector3& GetMousePos();
 
 	protected:
 		typedef boost::function<void()> UpdateFunction;
@@ -67,16 +70,18 @@ namespace BastionGame
 		void RenderScene();
 		void UpdateInput();
 		void UpdateSpectatorCamera(const float& _fElapsedTime);
-		void GetLuaConfigParameters();
+		bool GetLuaConfigParameters();
 		bool AddViewportFromLua(LuaObjectRef _rLuaObject);
 		void Log(const string& _strFormat, ...);
 		bool CreateActions();
 		void ProcessActions(UInt _uActionID);
+		void ProcessPendingAction(UInt _uActionID);
 		void ReleaseActions();
 
 	protected:
-		WindowData					m_oWindow;
+		GraphicConfigData			m_oGraphicConfig;
 		CameraParams				m_oCameraParams;
+		Vector3						m_f3MousePos;
 		EStateMode					m_eStateMode;
 		DisplayPtr					m_pDisplay;
 		ScenePtr					m_pScene;
@@ -101,7 +106,7 @@ namespace BastionGame
 		DIMouseState				m_oMouseInfoOld;
 		CameraListenerPtr			m_pCameraListener;
 		LuaStatePtr					m_pLuaState;
-		DisplayCameraPtr			m_pCamera;
+		DisplayCameraPtr			m_pMainCamera;
 		ActionKeybindingManagerPtr	m_pKeybinds;
 		ActionDispatcherPtr			m_pActionDispatcher;
 		FilePtr						m_pLog;
@@ -109,6 +114,7 @@ namespace BastionGame
 		JobManagerPtr				m_pJobManager;
 		JobPtr						m_pOneJob;
 		Key							m_uProcessAction;
+		UInt						m_uPendingAction;
 
 	private:
 	};

@@ -421,6 +421,7 @@ namespace ElixirEngine
 	:	CoreObject(),
 		m_rDisplay(_rDisplay),
 		m_vGBuffer(),
+		m_sDepthBufferIndex(-1),
 		m_bImmediateWrite(false)
 	{
 
@@ -438,10 +439,11 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
-			for (UInt i = 0 ; pInfo->m_uBufferCount > i ; ++i)
+			GraphicConfigDataPtr pGraphicConfig = pInfo->m_pGraphicConfig;
+			for (UInt i = 0 ; pGraphicConfig->m_uDXGBufferCount > i ; ++i)
 			{
 				const string strRTName = boost::str(boost::format("%1%_buffer%2%") % pInfo->m_strName % i);
-				DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, D3DFORMAT(pInfo->m_pFormats[i]), i };
+				DisplayRenderTarget::CreateInfo oRTRTCInfo = { strRTName, pInfo->m_uWidth, pInfo->m_uHeight, D3DFORMAT(pGraphicConfig->m_aDXGBufferFormat[i]), i };
 				DisplayRenderTargetPtr pRT = new DisplayRenderTarget(m_rDisplay);
 				bResult = pRT->Create(boost::any(&oRTRTCInfo));
 				if (false == bResult)
@@ -452,6 +454,7 @@ namespace ElixirEngine
 				}
 				m_vGBuffer.push_back(pRT);
 			}
+			m_sDepthBufferIndex = pGraphicConfig->m_sDXGufferDepthIndex;
 		}
 
 		return bResult;

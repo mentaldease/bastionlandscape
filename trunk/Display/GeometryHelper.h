@@ -87,8 +87,6 @@ namespace ElixirEngine
 		{
 			Vector3	m_oPos;
 			Vector3	m_oRot;
-			UInt	m_uMaxVertex;
-			UInt	m_uMaxIndex;
 		};
 		typedef CreateInfo* CreateInfoPtr;
 		typedef CreateInfo& CreateInfoRef;
@@ -116,6 +114,8 @@ namespace ElixirEngine
 		virtual void RenderEnd();
 
 		LineStripInfoRef NewLineStrip();
+		void NewTriangle(const Vector3& _f3Point0, const Vector3& _f3Point1, const Vector3& _f3Point2, const Vector4& _f4Color);
+		void NewAABB(const Vector3& _f3TopRightFar, const Vector3& _f3BottomLeftNear, const Vector4& _f4Color);
 
 	protected:
 		LineStripInfoPtrVec	m_vLineStrips;
