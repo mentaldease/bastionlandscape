@@ -1,9 +1,9 @@
 TODO :
 * faire en sorte que s se scale automatiquement par rapport à la taille du terrain (TerrainScattering.fx).
 * faire en sorte que s se scale automatiquement par rapport à la taille de la sphere (scattering.fxh).
-* faire en sorte que le radius sz la sphere se scale automatiquement par rapport à la taille du terrain (SceneTest00.lua).
+* faire en sorte que le radius du sky dome se scale automatiquement par rapport à la taille du terrain (SceneTest00.lua).
 * mettre en place un system de jobs/tasks afin de tirer profit des cpu multicore.
 * utiliser au maximum les asserts au lieu de simple test (surtout pour accès read/write des conteneurs (vector, map, custom)).
-* utiliser des allocateurs spécifiques pour les conteneurs afin d'viter la fragmentation et tracker les memory leaks.
+* utiliser des allocateurs spécifiques pour les conteneurs afin d'éviter la fragmentation et tracker les memory leaks.
 * penser à un système d'ordres assignables à une unité ou un groupe.
 voir http://www.gamedev.net/community/forums/topic.asp?topic_id=566842, le post de geo2004

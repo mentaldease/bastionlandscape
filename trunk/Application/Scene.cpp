@@ -25,7 +25,6 @@ namespace BastionGame
 		m_mCameras(),
 		m_mRenderStages(),
 		m_vRenderStages(),
-		m_vTraversedObjects(),
 		m_f4LightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
 		m_pOctree(NULL),
@@ -40,7 +39,8 @@ namespace BastionGame
 		m_uUIMainFontLabel(MakeKey(string("Normal"))),
 		m_uUIRenderStage(MakeKey(string("ui"))),
 		m_fDayTime(0.0f),
-		m_fVerticalOffset(0.0f)
+		m_fVerticalOffset(0.0f),
+		m_oPicker()
 	{
 
 	}
@@ -117,6 +117,12 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
+			ScenePicker::CreateInfo oSPCInfo = { this };
+			bResult = m_oPicker.Create(boost::any(&oSPCInfo));
+		}
+
+		if (false != bResult)
+		{
 			m_rApplication.GetDisplay()->AddRenderStages(m_vRenderStages);
 		}
 
@@ -152,37 +158,7 @@ namespace BastionGame
 					//vsoutput(__FUNCTION__" : %u objects catched from octree\n", vOctreeObjects.size());
 				}
 
-				Vector3 f3RayBegin(0.0f, 0.0f, 0.0f);
-				Vector3 f3RayEnd(0.0f, 0.0f, 0.0f);
-				Vector3 f3Pick(0.0f, 0.0f, 0.0f);
-
-				m_af3PickTriangleVertices[0] = NULL;
-				m_af3PickTriangleVertices[1] = NULL;
-				m_af3PickTriangleVertices[2] = NULL;
-				DisplayObjectPtr pPickCursorObject = NULL;
-
-				DisplayNormalProcessPtr pNormalProcess = pDisplay->GetCurrentNormalProcess();
-				// pick cursor
-				if ((NULL != pNormalProcess) && (MakeKey(string("base")) == pNormalProcess->GetNameKey()))
-				{
-					pPickCursorObject = static_cast<DisplayObjectPtr>(GetHierarchyObject(MakeKey(string("picking00"))));
-					const Key uRenderStageName = pPickCursorObject->GetRenderStage();
-					if (uCurrentRenderStage == uRenderStageName)
-					{
-						m_vTraversedObjects = vOctreeObjects;
-						OctreeObjectPtrVec vPickedOcytreeObjects;
-						DisplayCameraPtr pCamera = pDisplay->GetCurrentCamera();
-						const Vector3 f3MousePos = m_rApplication.GetMousePos();
-						Vector3 f3ScreenBegin(f3MousePos.x, f3MousePos.y, 0.0f);
-						Vector3 f3ScreenEnd(f3MousePos.x, f3MousePos.y, 1.0f);
-						pDisplay->Unproject(&f3ScreenBegin, &f3RayBegin, pCamera);
-						pDisplay->Unproject(&f3ScreenEnd, &f3RayEnd, pCamera);
-						UpdatePicking(&f3RayBegin, &f3RayEnd, &f3Pick, vPickedOcytreeObjects);
-						pDisplay->RenderRequest(uRenderStageName, pPickCursorObject);
-						// uncomment following line to restrict rendered objects to the ones colliding with the pick ray
-						//vOctreeObjects = vPickedOcytreeObjects;
-					}
-				}
+				m_oPicker.Update(vOctreeObjects);
 
 				{
 					PROFILING(__FUNCTION__" [REQUESTS]");
@@ -207,20 +183,6 @@ namespace BastionGame
 				if ((NULL != pLineManager) && (true))
 				{
 					PROFILING(__FUNCTION__" [DEBUGLINES]");
-					// pick triangle
-					if ((false) && (NULL != m_af3PickTriangleVertices[0]))
-					{
-						const Vector4 f4Color(1.0f, 0.0f, 0.0f, 1.0f);
-						Vector3 f3V0 = *m_af3PickTriangleVertices[0];
-						Vector3 f3V1 = *m_af3PickTriangleVertices[1];
-						Vector3 f3V2 = *m_af3PickTriangleVertices[2];
-
-						pLineManager->NewTriangle(
-							Vector3(f3V0.x, f3V0.y + 25.0f, f3V0.z),
-							Vector3(f3V1.x, f3V1.y + 25.0f, f3V1.z),
-							Vector3(f3V2.x, f3V2.y + 25.0f, f3V2.z),
-							f4Color);
-					}
 					// octree nodes
 					if (false)
 					{
@@ -301,6 +263,9 @@ namespace BastionGame
 			delete pRS;
 			m_vRenderStages.erase(m_vRenderStages.begin());
 		}
+
+		// Picker
+		m_oPicker.Release();
 
 		// camera
 		while (false == m_mCameras.empty())
@@ -404,103 +369,6 @@ namespace BastionGame
 		return m_pOctree;
 	}
 
-	void Scene::PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects)
-	{
-		const fsVector3 fs3RayBegin(_f3RayBegin.x, _f3RayBegin.y, _f3RayBegin.z);
-		const fsVector3 fs3RayEnd(_f3RayEnd.x, _f3RayEnd.y, _f3RayEnd.z);
-		fsVector3 fs3Intersect1;
-		fsVector3 fs3Intersect2;
-
-		_rvOctreeObjects.clear();
-
-		OctreeObjectPtrVec::iterator iOctreeObject = m_vTraversedObjects.begin();
-		OctreeObjectPtrVec::iterator iEnd = m_vTraversedObjects.end();
-		while (iEnd != iOctreeObject)
-		{
-			OctreeObjectPtr pOctreeObject = *iOctreeObject;
-			if (false != pOctreeObject->RayIntersect(fs3RayBegin, fs3RayEnd, fs3Intersect1, fs3Intersect2))
-			{
-				CoreObjectPtr pCoreObject = dynamic_cast<CoreObjectPtr>(pOctreeObject);
-				if ((NULL != pCoreObject) && (_rvObjects.end() == find(_rvObjects.begin(), _rvObjects.end(), pCoreObject)))
-				{
-					_rvObjects.push_back(pCoreObject);
-				}
-				_rvOctreeObjects.push_back(pOctreeObject);
-			}
-			++iOctreeObject;
-		}
-	}
-
-	void Scene::UpdatePicking(const Vector3Ptr _f3RayBegin, const Vector3Ptr _f3RayEnd, Vector3Ptr _f3Out, OctreeObjectPtrVecRef _rvOctreeObjects)
-	{
-		DisplayObjectPtr pDisplayObject = static_cast<DisplayObjectPtr>(GetHierarchyObject(MakeKey(string("picking00"))));
-		if (NULL != pDisplayObject)
-		{
-			DisplayPtr pDisplay = Display::GetInstance();
-
-			CoreObjectPtrVec vObjects;
-			PickObjects(*_f3RayBegin, *_f3RayEnd, vObjects, _rvOctreeObjects);
-
-			if (false == vObjects.empty())
-			{
-				Vector3 f3Delta;
-				Vector3 f3Pick;
-				Vector3 f3Intersect;
-				float fNearDist = FLT_MAX;
-
-				CoreObjectPtrVec::iterator iObject = vObjects.begin();
-				CoreObjectPtrVec::iterator iEnd = vObjects.end();
-				while (iEnd != iObject)
-				{
-					DisplayObjectPtr pDisplayObject = dynamic_cast<DisplayObjectPtr>(*iObject);
-					if (NULL != pDisplayObject)
-					{
-						if (false != pDisplayObject->RayIntersect(*_f3RayBegin, *_f3RayEnd, f3Intersect))
-						{
-							f3Delta = f3Intersect - *_f3RayBegin;
-							const float fLength = D3DXVec3Length(&f3Delta);
-							if (fNearDist > fLength)
-							{
-								fNearDist = fLength;
-								f3Pick = f3Intersect;
-								m_af3PickTriangleVertices[0] = LandscapeChunk::s_af3PickVertices[0];
-								m_af3PickTriangleVertices[1] = LandscapeChunk::s_af3PickVertices[1];
-								m_af3PickTriangleVertices[2] = LandscapeChunk::s_af3PickVertices[2];
-							}
-						}
-					}
-					++iObject;
-				}
-
-				if (FLT_MAX != fNearDist)
-				{
-					Matrix mPos;
-					D3DXMatrixTranslation(&mPos, f3Pick.x, f3Pick.y, f3Pick.z);
-					pDisplayObject->SetWorldMatrix(mPos);
-					*_f3Out = f3Pick;
-					//{
-					//	#define VEC3MIN(ARRAY, MEMBER) (ARRAY[0]->MEMBER < ARRAY[1]->MEMBER) ? ((ARRAY[0]->MEMBER < ARRAY[2]->MEMBER) ? ARRAY[0]->MEMBER : ARRAY[2]->MEMBER) : ((ARRAY[1]->MEMBER < ARRAY[2]->MEMBER) ? ARRAY[1]->MEMBER : ARRAY[2]->MEMBER)
-					//	#define VEC3MAX(ARRAY, MEMBER) (ARRAY[0]->MEMBER > ARRAY[1]->MEMBER) ? ((ARRAY[0]->MEMBER > ARRAY[2]->MEMBER) ? ARRAY[0]->MEMBER : ARRAY[2]->MEMBER) : ((ARRAY[1]->MEMBER > ARRAY[2]->MEMBER) ? ARRAY[1]->MEMBER : ARRAY[2]->MEMBER)
-					//	Vector3 f3Min;
-					//	Vector3 f3Max;
-					//	f3Min.x = VEC3MIN(m_af3PickTriangleVertices, x);
-					//	f3Min.y = VEC3MIN(m_af3PickTriangleVertices, y);
-					//	f3Min.z = VEC3MIN(m_af3PickTriangleVertices, z);
-					//	f3Max.x = VEC3MAX(m_af3PickTriangleVertices, x);
-					//	f3Max.y = VEC3MAX(m_af3PickTriangleVertices, y);
-					//	f3Max.z = VEC3MAX(m_af3PickTriangleVertices, z);
-					//	if ((f3Min.x > f3Pick.x) || (f3Max.x < f3Pick.x)
-					//		|| (f3Min.y > f3Pick.y) || (f3Max.y < f3Pick.y)
-					//		|| (f3Min.z > f3Pick.z) || (f3Max.z < f3Pick.z))
-					//	{
-					//		BP
-					//	}
-					//}
-				}
-			}
-		}
-	}
-
 	CoreObjectPtr Scene::GetHierarchyObject(const Key _uNameKey)
 	{
 		CoreObjectPtr pResult = NULL;
@@ -510,6 +378,11 @@ namespace BastionGame
 			pResult = iObject->second;
 		}
 		return pResult;
+	}
+
+	void Scene::ActivatePicking(const bool _bState)
+	{
+		m_oPicker.Activate(_bState);
 	}
 
 	bool Scene::CreateFromLuaConfig(Scene::CreateInfoPtr _pInfo)

@@ -60,12 +60,35 @@ namespace ElixirEngine
 		inline void DecRef() { --m_uRefCount; };
 		inline UInt GetRef() { return m_uRefCount; };
 
+		inline void AddChild(CoreObjectPtr _pChild)
+		{
+			assert(NULL != _pChild);
+			CoreObjectPtrVec::iterator iEnd = m_vChildren.end();
+			CoreObjectPtrVec::iterator iChild = find(m_vChildren.begin(), iEnd, _pChild);
+			if (iEnd == iChild)
+			{
+				m_vChildren.push_back(_pChild);
+			}
+		}
+
+		inline void RemoveChild(CoreObjectPtr _pChild)
+		{
+			assert(NULL != _pChild);
+			CoreObjectPtrVec::iterator iEnd = m_vChildren.end();
+			CoreObjectPtrVec::iterator iChild = find(m_vChildren.begin(), iEnd, _pChild);
+			if (iEnd != iChild)
+			{
+				m_vChildren.erase(iChild);
+			}
+		}
+
+		inline const CoreObjectPtrVec& GetChildren() { return m_vChildren; }
+
 		static CoreObjectPtrCounterMap s_mObjects;
 
 	protected:
-		UInt	m_uRefCount;
-
-	private:
+		CoreObjectPtrVec	m_vChildren;
+		UInt				m_uRefCount;
 	};
 
 	//-----------------------------------------------------------------------------------------------

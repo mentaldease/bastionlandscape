@@ -110,6 +110,16 @@ namespace ElixirEngine
 	class DisplayObject : public CoreObject
 	{
 	public:
+		// derived DisplayObject class should also derivate CloneInfo if they need to provide more control over Clone method.
+		struct CloneInfo
+		{
+			bool	m_bShareVertexBuffer;
+			bool	m_bShareIndexBuffer;
+		};
+		typedef CloneInfo* CloneInfoPtr;
+		typedef CloneInfo& CloneInfoRef;
+
+	public:
 		DisplayObject();
 		virtual ~DisplayObject();
 
@@ -129,6 +139,8 @@ namespace ElixirEngine
 		virtual void RenderEnd() {};
 
 		virtual bool RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect);
+
+		virtual DisplayObjectPtr Clone(const CloneInfoRef _rInfo);
 
 	protected:
 		Matrix				m_oWorld;

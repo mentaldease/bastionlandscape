@@ -13,7 +13,6 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 
 	Key LandscapeChunk::s_uMorphFactorKey = MakeKey(string("MORPHFACTOR"));
-	Vector3Ptr LandscapeChunk::s_af3PickVertices[3] = { NULL, NULL, NULL };
 
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
@@ -497,10 +496,6 @@ namespace ElixirEngine
 		UInt uIndex = 0;
 		bool bResult = false;
 
-		s_af3PickVertices[0] = NULL;
-		s_af3PickVertices[1] = NULL;
-		s_af3PickVertices[2] = NULL;
-
 		ppVertices[0] = oVertexAccessor.Get(0);
 		ppVertices[1] = oVertexAccessor.Get(1);
 
@@ -544,9 +539,6 @@ namespace ElixirEngine
 				{
 					_f3Intersect = f3Out;
 					fNearest = fLength;
-					s_af3PickVertices[0] = &ppVertices[uI0]->m_f3Position;
-					s_af3PickVertices[1] = &ppVertices[uI1]->m_f3Position;
-					s_af3PickVertices[2] = &ppVertices[uI2]->m_f3Position;
 					bResult = true;
 				}
 			}

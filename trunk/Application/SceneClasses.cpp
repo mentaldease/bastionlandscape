@@ -123,12 +123,6 @@ namespace BastionGame
 				break;
 			}
 
-			bool bInOctree = true;
-			Scripting::Lua::Get(_rTable, "in_octree", bInOctree, bInOctree);
-			if (false != bInOctree)
-			{
-			}
-
 			pResult->SetMaterial(pMaterial);
 			pResult->SetRenderStage(MakeKey(strRenderStage));
 

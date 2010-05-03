@@ -152,7 +152,8 @@ namespace BastionGame
 			}
 			case EAppAction_PATH_CREATE:
 			{
-				m_pActionDispatcher->UnregisterActionCallback(EAppAction_PATH_CREATE, m_uProcessAction);
+				m_uPendingAction = _uActionID;
+				m_pActionDispatcher->UnregisterActionCallback(_uActionID, m_uProcessAction);
 				//if ((NULL == m_pOneJob) && (NULL != m_pJobManager))
 				//{
 				//	m_pOneJob = new AppTestJob(*m_pJobManager);
@@ -166,6 +167,8 @@ namespace BastionGame
 			case EAppAction_ENTITY_CREATE:
 			{
 				m_uPendingAction = _uActionID;
+				m_pScene->ActivatePicking(true);
+				m_pActionDispatcher->UnregisterActionCallback(_uActionID, m_uProcessAction);
 				break;
 			}
 			case EAppAction_POINTERCLICK1:
@@ -188,14 +191,21 @@ namespace BastionGame
 				switch (_uActionID)
 				{
 					case EAppAction_POINTERCLICK1:
-					case EAppAction_POINTERCLICK2:
-					case EAppAction_POINTERMOVEX:
-					case EAppAction_POINTERMOVEY:
-					case EAppAction_POINTERMOVEZ:
 					{
+						m_uPendingAction = EAppAction_UNKNOWN;
+						m_pScene->ActivatePicking(false);
+						m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
 						break;
 					}
 				}
+				break;
+			}
+			case EAppAction_PATH_CREATE:
+			{
+				break;
+			}
+			case EAppAction_UNKNOWN:
+			{
 				break;
 			}
 		}
