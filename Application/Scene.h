@@ -10,6 +10,42 @@ namespace BastionGame
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class ScenePicker : public CoreObject
+	{
+	public:
+		struct CreateInfo
+		{
+			ScenePtr	m_pScene;
+		};
+		typedef CreateInfo* CreateInfoPtr;
+		typedef CreateInfo& CreateInfoRef;
+
+	public:
+		ScenePicker();
+
+		virtual bool Create(const boost::any& _rConfig);
+
+		void Activate(const bool _bState);
+		void Update(OctreeObjectPtrVecRef _rvOctreeObjects);
+		void RenderDebug();
+
+	protected:
+		void PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects);
+		void UpdatePicking(const Vector3Ptr _f3RayBegin, const Vector3Ptr _f3RayEnd, Vector3Ptr _f3Out, OctreeObjectPtrVecRef _rvOctreeObjects);
+
+	protected:
+		ScenePtr			m_pScene;
+		OctreeObjectPtrVec	m_vTraversedObjects;
+		Vector3				m_f3RayBegin;
+		Vector3				m_f3RayEnd;
+		Vector3				m_f3Pick;
+		bool				m_bActive;
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	class Scene : public CoreObject
 	{
 	public:
@@ -19,15 +55,6 @@ namespace BastionGame
 		};
 		typedef CreateInfo* CreateInfoPtr;
 		typedef CreateInfo& CreateInfoRef;
-
-		struct PickedObject
-		{
-			DisplayObjectPtr	m_pObject;
-			Vector3				m_f3Intersection;
-		};
-		typedef PickedObject* PickedObjectPtr;
-		typedef PickedObject& PickedObjectRef;
-		typedef vector<PickedObjectPtr> PickedObjectPtrVec;
 
 	public:
 		Scene(ApplicationRef _rApplication);
@@ -48,10 +75,9 @@ namespace BastionGame
 		ApplicationRef GetApplication();
 		Vector4 GetLightDir();
 		OctreePtr GetOctree();
-
-		void PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects);
-		void UpdatePicking(const Vector3Ptr _f3RayBegin, const Vector3Ptr _f3RayEnd, Vector3Ptr _f3Out, OctreeObjectPtrVecRef _rvOctreeObjects);
 		CoreObjectPtr GetHierarchyObject(const Key _uNameKey);
+
+		void ActivatePicking(const bool _bState);
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
@@ -64,6 +90,7 @@ namespace BastionGame
 		bool CreateLoadRenderStages(LuaObjectRef _rLuaObject);
 		bool CreateLoadRenderStage(LuaObjectRef _rLuaObject);
 		bool CreateLoadHierarchy(LuaObjectRef _rLuaObject);
+
 
 	protected:
 		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable, ScenePtr _pScene);
@@ -81,7 +108,6 @@ namespace BastionGame
 		DisplayCameraPtrMap				m_mCameras;
 		DisplayRenderStagePtrMap		m_mRenderStages;
 		DisplayRenderStagePtrVec		m_vRenderStages;
-		OctreeObjectPtrVec				m_vTraversedObjects;
 		Vector4							m_f4LightDir;
 		WaterDataPtr					m_pWaterData;
 		OctreePtr						m_pOctree;
@@ -100,7 +126,7 @@ namespace BastionGame
 		float							m_fDayTime;
 		float							m_fVerticalOffset;
 
-		Vector3Ptr						m_af3PickTriangleVertices[3];
+		ScenePicker						m_oPicker;
 	};
 }
 

@@ -62,4 +62,9 @@ namespace ElixirEngine
 	{
 		return false;
 	}
+
+	DisplayObjectPtr DisplayObject::Clone(const boost::any& _rConfig)
+	{
+		return NULL;
+	}
 }

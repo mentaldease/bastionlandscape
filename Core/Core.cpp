@@ -67,6 +67,6 @@ namespace ElixirEngine
 
 	void CoreObject::Release()
 	{
-
+		m_vChildren.clear();
 	}
 }

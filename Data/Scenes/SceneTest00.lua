@@ -100,7 +100,6 @@ scenetest00 =
 			color = { 26.0 / 255.0, 103.0 / 255.0, 149.0 / 255.0, 1.0 },
 			daytime = 12.0 * 60.0,
 			target_stage = "scene",
-			in_octree = true,
 		},
 	},
 	render_stages =

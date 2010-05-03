@@ -247,8 +247,6 @@ namespace ElixirEngine
 		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
 		UInt GetLODID() const;
 
-		static Vector3Ptr s_af3PickVertices[3];
-
 	protected:
 		static Key				s_uMorphFactorKey;
 
