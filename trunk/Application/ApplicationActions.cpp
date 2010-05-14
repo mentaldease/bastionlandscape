@@ -52,6 +52,7 @@ namespace BastionGame
 
 			#define REGISTER_ACTION(ACTION) funcRegister.Process(#ACTION, EAppAction_##ACTION)
 
+			REGISTER_ACTION(CANCEL);
 			REGISTER_ACTION(CAMERA_INC_SPEED);
 			REGISTER_ACTION(CAMERA_DEC_SPEED);
 			REGISTER_ACTION(CAMERA_STRAFE_FRONT);
@@ -153,6 +154,7 @@ namespace BastionGame
 			case EAppAction_PATH_CREATE:
 			{
 				m_uPendingAction = _uActionID;
+				m_pScene->ActivatePicking(true);
 				m_pActionDispatcher->UnregisterActionCallback(_uActionID, m_uProcessAction);
 				//if ((NULL == m_pOneJob) && (NULL != m_pJobManager))
 				//{
@@ -171,10 +173,7 @@ namespace BastionGame
 				m_pActionDispatcher->UnregisterActionCallback(_uActionID, m_uProcessAction);
 				break;
 			}
-			case EAppAction_POINTERCLICK1:
-			case EAppAction_POINTERCLICK2:
-			case EAppAction_POINTERMOVEX:
-			case EAppAction_POINTERMOVEY:
+			default:
 			{
 				ProcessPendingAction(_uActionID);
 				break;
@@ -192,9 +191,17 @@ namespace BastionGame
 				{
 					case EAppAction_POINTERCLICK1:
 					{
-						m_uPendingAction = EAppAction_UNKNOWN;
+						m_pScene->NewDummy();
 						m_pScene->ActivatePicking(false);
 						m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
+						m_uPendingAction = EAppAction_UNKNOWN;
+						break;
+					}
+					case EAppAction_CANCEL:
+					{
+						m_pScene->ActivatePicking(false);
+						m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
+						m_uPendingAction = EAppAction_UNKNOWN;
 						break;
 					}
 				}
@@ -202,10 +209,35 @@ namespace BastionGame
 			}
 			case EAppAction_PATH_CREATE:
 			{
+				switch (_uActionID)
+				{
+					case EAppAction_POINTERCLICK1:
+					{
+						m_pScene->ActivatePicking(false);
+						m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
+						m_uPendingAction = EAppAction_UNKNOWN;
+						break;
+					}
+					case EAppAction_CANCEL:
+					{
+						m_pScene->ActivatePicking(false);
+						m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
+						m_uPendingAction = EAppAction_UNKNOWN;
+						break;
+					}
+				}
 				break;
 			}
 			case EAppAction_UNKNOWN:
 			{
+				switch (_uActionID)
+				{
+					case EAppAction_CANCEL:
+					{
+						m_eStateMode = EStateMode_QUIT;
+						break;
+					}
+				}
 				break;
 			}
 		}

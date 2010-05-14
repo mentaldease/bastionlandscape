@@ -14,6 +14,8 @@ namespace BastionGame
 		m_f3RayBegin(0.0f, 0.0f, 0.0),
 		m_f3RayEnd(0.0f, 0.0f, 0.0),
 		m_f3Pick(0.0f, 0.0f, 0.0),
+		m_pPickCursorObject(NULL),
+		m_pPickedObject(NULL),
 		m_bActive(false)
 	{
 	}
@@ -23,6 +25,9 @@ namespace BastionGame
 		CreateInfoPtr pInfo = boost::any_cast<CreateInfoPtr>(_rConfig);
 		const bool bResult = (NULL != pInfo) && (NULL != pInfo->m_pScene);
 		m_pScene = pInfo->m_pScene;
+		m_pPickCursorObject = NULL;
+		m_pPickedObject = NULL;
+		m_bActive = false;
 		return bResult;
 	}
 
@@ -33,19 +38,23 @@ namespace BastionGame
 
 	void ScenePicker::Update(OctreeObjectPtrVecRef _rvOctreeObjects)
 	{
-		if (false != m_bActive)
+		m_pPickedObject = NULL;
+
+		if (NULL == m_pPickCursorObject)
+		{
+			m_pPickCursorObject = static_cast<DisplayObjectPtr>(m_pScene->GetHierarchyObject(MakeKey(string("picking00"))));
+		}
+
+		if ((false != m_bActive) && (NULL != m_pPickCursorObject))
 		{
 			DisplayPtr pDisplay = Display::GetInstance();
-
-			DisplayObjectPtr pPickCursorObject = NULL;
 
 			// pick cursor
 			DisplayNormalProcessPtr pNormalProcess = pDisplay->GetCurrentNormalProcess();
 			if ((NULL != pNormalProcess) && (MakeKey(string("base")) == pNormalProcess->GetNameKey()))
 			{
-				pPickCursorObject = static_cast<DisplayObjectPtr>(m_pScene->GetHierarchyObject(MakeKey(string("picking00"))));
 				const Key uCurrentRenderStage = pDisplay->GetCurrentRenderStage()->GetNameKey();
-				const Key uRenderStageName = pPickCursorObject->GetRenderStage();
+				const Key uRenderStageName = m_pPickCursorObject->GetRenderStage();
 				if (uCurrentRenderStage == uRenderStageName)
 				{
 					m_vTraversedObjects = _rvOctreeObjects;
@@ -57,12 +66,26 @@ namespace BastionGame
 					pDisplay->Unproject(&f3ScreenBegin, &m_f3RayBegin, pCamera);
 					pDisplay->Unproject(&f3ScreenEnd, &m_f3RayEnd, pCamera);
 					UpdatePicking(&m_f3RayBegin, &m_f3RayEnd, &m_f3Pick, vPickedOcytreeObjects);
-					pDisplay->RenderRequest(uRenderStageName, pPickCursorObject);
+					pDisplay->RenderRequest(uRenderStageName, m_pPickCursorObject);
 					// uncomment following line to restrict rendered objects to the ones colliding with the pick ray
 					//_rvOctreeObjects = vPickedOcytreeObjects;
 				}
 			}
 		}
+	}
+
+	MatrixPtr ScenePicker::GetWorldMatrix()
+	{
+		if (NULL == m_pPickCursorObject)
+		{
+			m_pPickCursorObject = static_cast<DisplayObjectPtr>(m_pScene->GetHierarchyObject(MakeKey(string("picking00"))));
+		}
+		return ((NULL != m_pPickCursorObject) ? m_pPickCursorObject->GetWorldMatrix() : NULL);
+	}
+
+	DisplayObjectPtr ScenePicker::GetPickedObject()
+	{
+		return m_pPickedObject;
 	}
 
 	void ScenePicker::PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects)
@@ -112,8 +135,11 @@ namespace BastionGame
 
 	void ScenePicker::UpdatePicking(const Vector3Ptr _f3RayBegin, const Vector3Ptr _f3RayEnd, Vector3Ptr _f3Out, OctreeObjectPtrVecRef _rvOctreeObjects)
 	{
-		DisplayObjectPtr pDisplayObject = static_cast<DisplayObjectPtr>(m_pScene->GetHierarchyObject(MakeKey(string("picking00"))));
-		if (NULL != pDisplayObject)
+		if (NULL == m_pPickCursorObject)
+		{
+			m_pPickCursorObject = static_cast<DisplayObjectPtr>(m_pScene->GetHierarchyObject(MakeKey(string("picking00"))));
+		}
+		if (NULL != m_pPickCursorObject)
 		{
 			DisplayPtr pDisplay = Display::GetInstance();
 
@@ -142,17 +168,38 @@ namespace BastionGame
 							{
 								fNearDist = fLength;
 								f3Pick = f3Intersect;
+								m_pPickedObject = pDisplayObject;
 							}
 						}
 					}
 					++iObject;
 				}
 
+				// now test against water planes
+				Vector3 f3Dir = *_f3RayEnd - *_f3RayBegin;
+				D3DXVec3Normalize(&f3Dir, &f3Dir);
+				float fWaterLevel;
+				UInt uCount;
+				WaterDataPtr pWaterData = m_pScene->GetWaterData(uCount);
+				for (UInt i = 0 ; uCount > i ; ++i)
+				{
+					const float fDist = (pWaterData[i].m_fWaterLevel - _f3RayBegin->y) / f3Dir.y;
+					if ((pWaterData[i].m_fWaterLevel < _f3RayBegin->y) && (fNearDist > fDist))
+					{
+						f3Intersect = *_f3RayBegin + f3Dir * fDist;
+						if ((false != m_pScene->GetWaterLevel(f3Intersect, fWaterLevel)) && (pWaterData[i].m_fWaterLevel == fWaterLevel))
+						{
+							f3Pick = f3Intersect;
+							fNearDist = fDist;
+						}
+					}
+				}
+
 				if (FLT_MAX != fNearDist)
 				{
 					Matrix mPos;
 					D3DXMatrixTranslation(&mPos, f3Pick.x, f3Pick.y, f3Pick.z);
-					pDisplayObject->SetWorldMatrix(mPos);
+					m_pPickCursorObject->SetWorldMatrix(mPos);
 					*_f3Out = f3Pick;
 				}
 			}

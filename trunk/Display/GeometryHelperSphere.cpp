@@ -1,8 +1,9 @@
 #include "stdafx.h"
+#include "../Core/Util.h"
 #include "../Display/Display.h"
 #include "../Display/Effect.h"
 #include "../Display/GeometryHelper.h"
-#include "../Core/Util.h"
+#include "../Display/PointInTriangleTester.h"
 
 namespace ElixirEngine
 {
@@ -30,13 +31,46 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
-	DisplayGeometrySphere::DisplayGeometrySphere()
+	struct VertexAccessor
+	{
+		virtual GeometryHelperVertexPtr Get(UInt _uIndex) = 0;
+	};
+
+	template<typename T>
+	struct TVertexAccessor : public VertexAccessor
+	{
+		TVertexAccessor(GeometryHelperVertexPtr _pVertex, T* _pIndex)
+		:	m_pVertex(_pVertex),
+			m_pIndex(_pIndex)
+		{
+
+		}
+
+		virtual GeometryHelperVertexPtr Get(UInt _uIndex)
+		{
+			assert((NULL != m_pVertex) && (NULL != m_pIndex));
+			return m_pVertex + m_pIndex[_uIndex];
+		}
+
+		GeometryHelperVertexPtr	m_pVertex;
+		T*						m_pIndex;
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	DisplayGeometrySphere::DisplayGeometrySphere(OctreeRef _rOctree)
 	:	DisplayObject(),
+		OctreeObject(_rOctree),
+		m_f4Color(1.0f, 1.0f, 1.0f, 1.0f),
+		m_pIndex16(NULL),
+		m_pIndex32(NULL),
+		m_pVertex(NULL),
 		m_uVertexBuffer(0),
 		m_uIndexBuffer(0),
 		m_uVertexCount(0),
-		m_uIndexCount(0),
-		m_f4Color(1.0f, 1.0f, 1.0f, 1.0f)
+		m_uIndexCount(0)
 	{
 
 	}
@@ -67,10 +101,12 @@ namespace ElixirEngine
 			}
 			if (false != bResult)
 			{
+				CreateBoundingMesh(*pInfo);
+
 				Matrix m4Pos;
-				D3DXMatrixTranslation(&m4Pos, pInfo->m_oPos.x, pInfo->m_oPos.y, pInfo->m_oPos.z);
+				D3DXMatrixTranslation(&m4Pos, pInfo->m_f3Pos.x, pInfo->m_f3Pos.y, pInfo->m_f3Pos.z);
 				Matrix m4Rot;
-				D3DXMatrixRotationYawPitchRoll(&m4Rot, D3DXToRadian(pInfo->m_oRot.x), D3DXToRadian(pInfo->m_oRot.y), D3DXToRadian(pInfo->m_oRot.z));
+				D3DXMatrixRotationYawPitchRoll(&m4Rot, D3DXToRadian(pInfo->m_f3Rot.x), D3DXToRadian(pInfo->m_f3Rot.y), D3DXToRadian(pInfo->m_f3Rot.z));
 				Matrix m4World;
 				D3DXMatrixMultiply(&m4World, &m4Rot, &m4Pos);
 				SetWorldMatrix(m4World);
@@ -100,6 +136,21 @@ namespace ElixirEngine
 			m_uVertexBuffer = 0;
 			m_uVertexCount = 0;
 		}
+		if (NULL != m_pIndex16)
+		{
+			delete[] m_pIndex16;
+			m_pIndex16 = NULL;
+		}
+		if (NULL != m_pIndex32)
+		{
+			delete[] m_pIndex32;
+			m_pIndex32 = NULL;
+		}
+		if (NULL != m_pVertex)
+		{
+			delete[] m_pVertex;
+			m_pVertex = NULL;
+		}
 		DisplayObject::Release();
 	}
 
@@ -117,6 +168,72 @@ namespace ElixirEngine
 		{
 			pDisplay->GetDevicePtr()->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP, 0, 0, m_uVertexCount, 0, m_uIndexCount - 2);
 		}
+	}
+
+	bool DisplayGeometrySphere::RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect)
+	{
+		Vector3 aVertices[3];
+		VertexAccessor* pVertexAccessor = NULL;
+		PITTester3 oPITTester;
+		Vector4 f4Tranform;
+		Vector3 f3Out;
+		Vector3 f3Delta;
+		float fLength;
+		float fNearest = FLT_MAX;
+		UInt uIndex = 0;
+		bool bResult = false;
+
+		if (NULL != m_pIndex16)
+		{
+			pVertexAccessor = new TVertexAccessor<Word>(m_pVertex, m_pIndex16);
+		}
+		else
+		{
+			pVertexAccessor = new TVertexAccessor<UInt>(m_pVertex, m_pIndex32);
+		}
+
+		D3DXVec3Transform(&f4Tranform, &pVertexAccessor->Get(0)->m_f3Position, &m_m4World);
+		aVertices[0] = Vector3(f4Tranform.x, f4Tranform.y, f4Tranform.z);
+		D3DXVec3Transform(&f4Tranform, &pVertexAccessor->Get(1)->m_f3Position, &m_m4World);
+		aVertices[1] = Vector3(f4Tranform.x, f4Tranform.y, f4Tranform.z);
+
+		for (UInt i = 2 ; m_uIndexCount > i ; ++i, ++uIndex)
+		{
+			const UInt uI0 = ((uIndex + 0) % 3);
+			const UInt uI1 = ((uIndex + 1) % 3);
+			const UInt uI2 = ((uIndex + 2) % 3);
+
+			D3DXVec3Transform(&f4Tranform, &pVertexAccessor->Get(i)->m_f3Position, &m_m4World);
+			aVertices[i % 3] = Vector3(f4Tranform.x, f4Tranform.y, f4Tranform.z);
+
+			if ((aVertices[uI0] == aVertices[uI1]) || (aVertices[uI0] == aVertices[uI2]))
+			{
+				continue;
+			}
+
+			if (false != oPITTester.Do(_f3RayBegin, _f3RayEnd,
+				aVertices[uI0], aVertices[uI1], aVertices[uI2],
+				f3Out))
+			{
+				f3Delta = f3Out - _f3RayBegin;
+				fLength = D3DXVec3Length(&f3Delta);
+				if (fNearest > fLength)
+				{
+					_f3Intersect = f3Out;
+					fNearest = fLength;
+					bResult = true;
+				}
+			}
+		}
+
+		delete pVertexAccessor;
+
+		return bResult;
+	}
+
+	DisplayObject::BoundingMeshRef DisplayGeometrySphere::GetBoundingMesh()
+	{
+		return m_oBoundingMesh;
 	}
 
 	bool DisplayGeometrySphere::CreateBuffers(CreateInfoRef _rInfo)
@@ -172,8 +289,8 @@ namespace ElixirEngine
 			const float fVertSliceAngle = D3DXToRadian(360.0f / float(_rInfo.m_uVertSlices));
 			const float fHorizSliceAngle = D3DXToRadian(90.0f / float(_rInfo.m_uHorizSlices));
 
-			GeometryHelperVertexPtr pVertexData = new GeometryHelperVertex[m_uVertexCount];
-			GeometryHelperVertexPtr pVertex = pVertexData;
+			m_pVertex = new GeometryHelperVertex[m_uVertexCount];
+			GeometryHelperVertexPtr pVertex = m_pVertex;
 
 			/*
 				phi = Acos(pn.Normal.z)
@@ -195,9 +312,9 @@ namespace ElixirEngine
 			if (false != _rInfo.m_bTopHemisphere)
 			{
 				// top hemisphere end
-				pVertex->m_oPosition.x = 0.0f;
-				pVertex->m_oPosition.y = 1.0f;
-				pVertex->m_oPosition.z = 0.0f;
+				pVertex->m_f3Position.x = 0.0f;
+				pVertex->m_f3Position.y = 1.0f;
+				pVertex->m_f3Position.z = 0.0f;
 				++pVertex;
 
 				for (UInt i = 0 ; _rInfo.m_uHorizSlices > i ; ++i)
@@ -209,10 +326,10 @@ namespace ElixirEngine
 						for (UInt j = 0 ; _rInfo.m_uVertSlices > j ; ++j)
 						{
 							const float fAngle = j * fVertSliceAngle;
-							pVertex->m_oPosition.x = cos(fAngle) * fScale;
-							pVertex->m_oPosition.y = fHeight;
-							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
+							pVertex->m_f3Position.x = cos(fAngle) * fScale;
+							pVertex->m_f3Position.y = fHeight;
+							pVertex->m_f3Position.z = sin(fAngle) * fScale;
+							//vsoutput("%f;%f;%f\n", pVertex->m_f3Position.x, pVertex->m_f3Position.y, pVertex->m_f3Position.z);
 							++pVertex;
 						}
 					}
@@ -221,16 +338,15 @@ namespace ElixirEngine
 						for (UInt j = _rInfo.m_uVertSlices - 1 ; _rInfo.m_uVertSlices > j ; --j)
 						{
 							const float fAngle = j * fVertSliceAngle;
-							pVertex->m_oPosition.x = cos(fAngle) * fScale;
-							pVertex->m_oPosition.y = fHeight;
-							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
+							pVertex->m_f3Position.x = cos(fAngle) * fScale;
+							pVertex->m_f3Position.y = fHeight;
+							pVertex->m_f3Position.z = sin(fAngle) * fScale;
+							//vsoutput("%f;%f;%f\n", pVertex->m_f3Position.x, pVertex->m_f3Position.y, pVertex->m_f3Position.z);
 							++pVertex;
 						}
 					}
 				}
 			}
-
 
 			if (false != _rInfo.m_bBottomHemisphere)
 			{
@@ -244,10 +360,10 @@ namespace ElixirEngine
 						for (UInt j = 0 ; _rInfo.m_uVertSlices > j ; ++j)
 						{
 							const float fAngle = j * fVertSliceAngle;
-							pVertex->m_oPosition.x = cos(fAngle) * fScale;
-							pVertex->m_oPosition.y = -fHeight;
-							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
+							pVertex->m_f3Position.x = cos(fAngle) * fScale;
+							pVertex->m_f3Position.y = -fHeight;
+							pVertex->m_f3Position.z = sin(fAngle) * fScale;
+							//vsoutput("%f;%f;%f\n", pVertex->m_f3Position.x, pVertex->m_f3Position.y, pVertex->m_f3Position.z);
 							++pVertex;
 						}
 					}
@@ -256,36 +372,38 @@ namespace ElixirEngine
 						for (UInt j = _rInfo.m_uVertSlices - 1 ; _rInfo.m_uVertSlices > j ; --j)
 						{
 							const float fAngle = j * fVertSliceAngle;
-							pVertex->m_oPosition.x = cos(fAngle) * fScale;
-							pVertex->m_oPosition.y = -fHeight;
-							pVertex->m_oPosition.z = sin(fAngle) * fScale;
-							//vsoutput("%f;%f;%f\n", pVertex->m_oPosition.x, pVertex->m_oPosition.y, pVertex->m_oPosition.z);
+							pVertex->m_f3Position.x = cos(fAngle) * fScale;
+							pVertex->m_f3Position.y = -fHeight;
+							pVertex->m_f3Position.z = sin(fAngle) * fScale;
+							//vsoutput("%f;%f;%f\n", pVertex->m_f3Position.x, pVertex->m_f3Position.y, pVertex->m_f3Position.z);
 							++pVertex;
 						}
 					}
 				}
 
 				// bottom hemisphere end
-				pVertex->m_oPosition.x = 0.0f;
-				pVertex->m_oPosition.y = -1.0f;
-				pVertex->m_oPosition.z = 0.0f;
+				pVertex->m_f3Position.x = 0.0f;
+				pVertex->m_f3Position.y = -1.0f;
+				pVertex->m_f3Position.z = 0.0f;
 			}
 
-			pVertex = pVertexData;
+			pVertex = m_pVertex;
 			const float fNormalDir = (false == _rInfo.m_bViewFromInside) ? 1.0f : -1.0f;
 			for (UInt i = 0 ; m_uVertexCount > i ; ++i)
 			{
-				D3DXVec3Normalize(&pVertex->m_oNormal, &pVertex->m_oPosition);
-				pVertex->m_oNormal *= fNormalDir;
-				pVertex->m_oPosition.x *= _rInfo.m_oRadius.x;
-				pVertex->m_oPosition.y *= _rInfo.m_oRadius.y;
-				pVertex->m_oPosition.z *= _rInfo.m_oRadius.z;
+				pVertex->m_f3Position.x *= _rInfo.m_f3Radius.x;
+				pVertex->m_f3Position.y *= _rInfo.m_f3Radius.y;
+				pVertex->m_f3Position.z *= _rInfo.m_f3Radius.z;
+				D3DXVec3Normalize(&pVertex->m_f3Normal, &pVertex->m_f3Position);
+				pVertex->m_f3Normal *= fNormalDir;
 				++pVertex;
 			}
 
+			Display::GetInstance()->SetVertexBufferKeyData(m_uVertexBuffer, m_pVertex);
 
-			Display::GetInstance()->SetVertexBufferKeyData(m_uVertexBuffer, pVertexData);
-			delete[] pVertexData;
+			fsVector3 fs3TRF(_rInfo.m_f3Radius.x, (false != _rInfo.m_bTopHemisphere) ? _rInfo.m_f3Radius.y : 0.0f, _rInfo.m_f3Radius.z);
+			fsVector3 fs3BLN(-_rInfo.m_f3Radius.x, (false != _rInfo.m_bBottomHemisphere) ? -_rInfo.m_f3Radius.y : 0.0f, -_rInfo.m_f3Radius.z);
+			SetAABB(fs3TRF, fs3BLN);
 		}
 
 		return bResult;
@@ -299,13 +417,12 @@ namespace ElixirEngine
 		{
 			const bool b16Bits = (m_uIndexCount <= 0xffff);
 
-			// temp
 			if (false != b16Bits)
 			{
-				WordPtr pIndexData = new Word[m_uIndexCount];
-				WordPtr pIndex = pIndexData;
+				m_pIndex16 = new Word[m_uIndexCount];
+				WordPtr pIndex = m_pIndex16;
 
-				memset(pIndexData, 0, m_uIndexCount * sizeof(Word));
+				memset(m_pIndex16, 0, m_uIndexCount * sizeof(Word));
 
 				const UInt uHSVertexCount = _rInfo.m_uVertSlices;
 
@@ -363,15 +480,115 @@ namespace ElixirEngine
 					pIndex[1] = m_uVertexCount - 1;
 				}
 
-				Display::GetInstance()->SetIndexBufferKeyData(m_uIndexBuffer, pIndexData);
-				delete[] pIndexData;
+				Display::GetInstance()->SetIndexBufferKeyData(m_uIndexBuffer, m_pIndex16);
 			}
 			else
 			{
+				m_pIndex32 = new UInt[m_uIndexCount];
+				UIntPtr pIndex = m_pIndex32;
 
+				memset(m_pIndex32, 0, m_uIndexCount * sizeof(UInt));
+
+				const UInt uHSVertexCount = _rInfo.m_uVertSlices;
+
+				UInt uCurrentVertexIndex = 0;
+
+				if (false != _rInfo.m_bTopHemisphere)
+				{
+					for (UInt i = 0 ; _rInfo.m_uVertSlices > i ; ++i, pIndex += 2)
+					{
+						pIndex[0] = 0;
+						pIndex[1] = i + 1;
+					}
+					pIndex[0] = 0;
+					pIndex[1] = 1;
+					pIndex += 2;
+					uCurrentVertexIndex = 1;
+				}
+
+				const UInt uHemisphereCount = (_rInfo.m_bBottomHemisphere ? 1 : 0) + (_rInfo.m_bTopHemisphere ? 1 : 0);
+				const UInt uHorizSlicesWOTops = uHemisphereCount * (_rInfo.m_uHorizSlices - 1); // WOTops = WithOut tops
+				for (UInt i = 0 ; uHorizSlicesWOTops > i ; ++i)
+				{
+					const UInt uStartVertexIndex = uCurrentVertexIndex;
+					for (UInt j = 0 ; _rInfo.m_uVertSlices > j ; ++j, pIndex += 2, ++uCurrentVertexIndex)
+					{
+						pIndex[0] = uCurrentVertexIndex;
+						pIndex[1] = uCurrentVertexIndex + uHSVertexCount;
+					}
+
+					// end of horizontal slice strip (back to starting vertex index)
+					uCurrentVertexIndex = uStartVertexIndex;
+					pIndex[0] = uCurrentVertexIndex;
+					uCurrentVertexIndex += uHSVertexCount;
+					pIndex[1] = uCurrentVertexIndex;
+					pIndex += 2;
+
+					// link to next strip
+					if (((uHorizSlicesWOTops - 1) > i) || (false != _rInfo.m_bBottomHemisphere))
+					{
+						pIndex[0] = uCurrentVertexIndex;
+						pIndex[1] = uCurrentVertexIndex;
+						pIndex += 2;
+					}
+				}
+
+				if (false != _rInfo.m_bBottomHemisphere)
+				{
+					const UInt uStartVertexIndex = uCurrentVertexIndex;
+					for (UInt i = 0 ; _rInfo.m_uVertSlices > i ; ++i, pIndex += 2)
+					{
+						pIndex[0] = uCurrentVertexIndex + i;
+						pIndex[1] = m_uVertexCount - 1;
+					}
+					pIndex[0] = uStartVertexIndex;
+					pIndex[1] = m_uVertexCount - 1;
+				}
+
+				Display::GetInstance()->SetIndexBufferKeyData(m_uIndexBuffer, m_pIndex32);
 			}
 		}
 
 		return bResult;
+	}
+
+	bool DisplayGeometrySphere::CreateBoundingMesh(CreateInfoRef _rInfo)
+	{
+		m_oBoundingMesh.Clear();
+
+		const float fTop = (false != _rInfo.m_bTopHemisphere) ? _rInfo.m_f3Radius.y : 0.0f;
+		const float fBottom = (false != _rInfo.m_bBottomHemisphere) ? -_rInfo.m_f3Radius.y : 0.0f;
+
+		// vertex
+		m_oBoundingMesh.AddVertex(-_rInfo.m_f3Radius.x, fTop, _rInfo.m_f3Radius.z);		// TOPLEFTFAR
+		m_oBoundingMesh.AddVertex(_rInfo.m_f3Radius.x, fTop, _rInfo.m_f3Radius.z);		// TOPRIGHTTFAR
+		m_oBoundingMesh.AddVertex(_rInfo.m_f3Radius.x, fTop, -_rInfo.m_f3Radius.z);		// TOPRIGHTTNEAR
+		m_oBoundingMesh.AddVertex(-_rInfo.m_f3Radius.x, fTop, -_rInfo.m_f3Radius.z);	// TOPLEFTNEAR
+		m_oBoundingMesh.AddVertex(-_rInfo.m_f3Radius.x, fBottom, _rInfo.m_f3Radius.z);	// BOTTOMLEFTFAR
+		m_oBoundingMesh.AddVertex(_rInfo.m_f3Radius.x, fBottom, _rInfo.m_f3Radius.z);	// BOTTOMRIGHTTFAR
+		m_oBoundingMesh.AddVertex(_rInfo.m_f3Radius.x, fBottom, -_rInfo.m_f3Radius.z);	// BOTTOMRIGHTTNEAR
+		m_oBoundingMesh.AddVertex(-_rInfo.m_f3Radius.x, fBottom, -_rInfo.m_f3Radius.z);	// BOTTOMLEFTTNEAR
+
+		//triangles
+		// top
+		m_oBoundingMesh.AddTriangle(0, 3, 2);
+		m_oBoundingMesh.AddTriangle(0, 2, 1);
+		// right
+		m_oBoundingMesh.AddTriangle(3, 7, 6);
+		m_oBoundingMesh.AddTriangle(3, 6, 2);
+		// near
+		m_oBoundingMesh.AddTriangle(2, 6, 5);
+		m_oBoundingMesh.AddTriangle(2, 5, 5);
+		// bottom
+		m_oBoundingMesh.AddTriangle(7, 4, 5);
+		m_oBoundingMesh.AddTriangle(7, 5, 6);
+		// left
+		m_oBoundingMesh.AddTriangle(0, 4, 7);
+		m_oBoundingMesh.AddTriangle(0, 7, 3);
+		// far
+		m_oBoundingMesh.AddTriangle(1, 5, 4);
+		m_oBoundingMesh.AddTriangle(1, 4, 0);
+
+		return true;
 	}
 }

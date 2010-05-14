@@ -122,7 +122,7 @@ namespace ElixirEngine
 
 	UInt Octree::NewNode()
 	{
-		UInt uResult = (false == m_vAvailable.empty()) ? m_vAvailable.back() : NewNode_();
+		UInt uResult = (false == m_vAvailable.empty()) ? UInt(m_vAvailable.back()) : NewNode_();
 		m_vInUse.push_back(uResult);
 		m_vAvailable.pop_back();
 		return uResult;
@@ -142,6 +142,6 @@ namespace ElixirEngine
 	{
 		m_vPool.push_back(new OctreeNode(*this));
 		m_vAvailable.push_back(m_vPool.size() - 1);
-		return m_vAvailable.back();
+		return UInt(m_vAvailable.back());
 	}
 }

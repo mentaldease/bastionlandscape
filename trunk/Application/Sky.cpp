@@ -43,15 +43,15 @@ namespace BastionGame
 	bool Sky::Create(const boost::any& _rConfig)
 	{
 		LuaObject rTable = boost::any_cast<LuaObject>(_rConfig);
-		m_pSphere = new DisplayGeometrySphere();
+		m_pSphere = new DisplayGeometrySphere(*m_rScene.GetOctree());
 		const float fSize = 100.f;
 		DisplayGeometrySphere::CreateInfo oGSCInfo;
 		Scripting::Lua::Get(rTable, "bottom_hemisphere", true, oGSCInfo.m_bBottomHemisphere);
 		Scripting::Lua::Get(rTable, "top_hemisphere", true, oGSCInfo.m_bTopHemisphere);
 		Scripting::Lua::Get(rTable, "view_from_inside", false, oGSCInfo.m_bViewFromInside);
-		Scripting::Lua::Get(rTable, "position", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oPos);
-		Scripting::Lua::Get(rTable, "rotation", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_oRot);
-		Scripting::Lua::Get(rTable, "radius", Vector3(fSize, fSize, fSize), oGSCInfo.m_oRadius);
+		Scripting::Lua::Get(rTable, "position", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_f3Pos);
+		Scripting::Lua::Get(rTable, "rotation", Vector3(0.0f, 0.0f, 0.0f), oGSCInfo.m_f3Rot);
+		Scripting::Lua::Get(rTable, "radius", Vector3(fSize, fSize, fSize), oGSCInfo.m_f3Radius);
 		Scripting::Lua::Get(rTable, "horiz_slices", UInt(10), oGSCInfo.m_uHorizSlices);
 		Scripting::Lua::Get(rTable, "vert_slices", UInt(10), oGSCInfo.m_uVertSlices);
 		Scripting::Lua::Get(rTable, "color", Vector4(26.0f / 255.0f, 103.0f / 255.0f, 149.0f / 255.0f, 1.0f), oGSCInfo.m_f4Color);

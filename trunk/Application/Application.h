@@ -49,6 +49,9 @@ namespace BastionGame
 		void SetMousePos(const float _fX, const float _fY);
 		const Vector3& GetMousePos();
 
+		void SetData(const Key _uDataKey, VoidPtr _pData);
+		VoidPtr GetData(const Key _uDataKey);
+
 	protected:
 		typedef boost::function<void()> UpdateFunction;
 
@@ -81,6 +84,7 @@ namespace BastionGame
 	protected:
 		GraphicConfigData			m_oGraphicConfig;
 		CameraParams				m_oCameraParams;
+		VoidPtrMap					m_mDataExchanger;
 		Vector3						m_f3MousePos;
 		EStateMode					m_eStateMode;
 		DisplayPtr					m_pDisplay;

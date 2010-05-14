@@ -113,6 +113,8 @@ namespace BastionGame
 	Application::Application()
 	:	CoreObject(),
 		m_oGraphicConfig(),
+		m_oCameraParams(),
+		m_mDataExchanger(),
 		m_f3MousePos(0.0f, 0.0f, 0.0f),
 		m_eStateMode(EStateMode_UNINITIALIZED),
 		m_pDisplay(NULL),
@@ -511,6 +513,8 @@ namespace BastionGame
 			m_pTime = NULL;
 		}
 
+		m_mDataExchanger.clear();
+
 		m_eStateMode = EStateMode_UNINITIALIZED;
 	}
 
@@ -552,6 +556,16 @@ namespace BastionGame
 		}
 #endif
 		return m_f3MousePos;
+	}
+
+	void Application::SetData(const Key _uDataKey, VoidPtr _pData)
+	{
+		m_mDataExchanger[_uDataKey] = _pData;
+	}
+
+	VoidPtr Application::GetData(const Key _uDataKey)
+	{
+		return m_mDataExchanger[_uDataKey];
 	}
 
 	void Application::LoadScene()

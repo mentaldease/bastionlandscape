@@ -30,4 +30,5 @@ keybinds =
 	[Keys.DIM_MOVEX_DEC] = Actions.POINTERMOVEX,
 	[Keys.DIM_MOVEY_INC] = Actions.POINTERMOVEY,
 	[Keys.DIM_MOVEY_DEC] = Actions.POINTERMOVEY,
+	[Keys.DIK_ESCAPE + Keys.ONCE] = Actions.CANCEL,
 }

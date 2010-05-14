@@ -30,6 +30,9 @@ namespace ElixirEngine
 	typedef map<Key, Vector2*>				Vector2PtrMap;
 	typedef map<Key, Vector3*>				Vector3PtrMap;
 	typedef map<Key, Vector4*>				Vector4PtrMap;
+	typedef vector<Vector2>					Vector2Vec;
+	typedef vector<Vector3>					Vector3Vec;
+	typedef vector<Vector4>					Vector4Vec;
 	typedef D3DXMATRIX						Matrix;
 	typedef Matrix*							MatrixPtr;
 	typedef Matrix&							MatrixRef;
@@ -284,6 +287,14 @@ namespace ElixirEngine
 	class DisplayStateManager;
 	typedef DisplayStateManager* DisplayStateManagerPtr;
 	typedef DisplayStateManager& DisplayStateManagerRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class DisplayObjectDummy;
+	typedef DisplayObjectDummy* DisplayObjectDummyPtr;
+	typedef DisplayObjectDummy& DisplayObjectDummyRef;
 }
 
 #endif // __DISPLAYTYPES_H__

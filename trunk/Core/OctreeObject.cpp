@@ -31,10 +31,10 @@ namespace ElixirEngine
 		//	_rf3BottomLeftNear.x(), _rf3BottomLeftNear.y(), _rf3BottomLeftNear.z(),
 		//	_rf3TopRightFar.x(), _rf3TopRightFar.y(), _rf3TopRightFar.z());
 
-#define SETPOINT(ID, XVEC3, YVEC3, ZVEC3) \
-	m_vPoints[ID].x() = XVEC3.x(); \
-	m_vPoints[ID].y() = YVEC3.y(); \
-	m_vPoints[ID].z() = ZVEC3.z();
+		#define SETPOINT(ID, XVEC3, YVEC3, ZVEC3) \
+			m_vPoints[ID].x() = XVEC3.x(); \
+			m_vPoints[ID].y() = YVEC3.y(); \
+			m_vPoints[ID].z() = ZVEC3.z();
 
 		SETPOINT(EOctreeAABB_TOPLEFTFAR, _rf3TopRightFar, _rf3BottomLeftNear, _rf3TopRightFar);
 		SETPOINT(EOctreeAABB_TOPRIGHTTFAR, _rf3TopRightFar, _rf3TopRightFar, _rf3TopRightFar);
@@ -46,7 +46,7 @@ namespace ElixirEngine
 		SETPOINT(EOctreeAABB_BOTTOMRIGHTTNEAR, _rf3BottomLeftNear, _rf3TopRightFar, _rf3BottomLeftNear);
 		SETPOINT(EOctreeAABB_BOTTOMLEFTTNEAR, _rf3BottomLeftNear, _rf3BottomLeftNear, _rf3BottomLeftNear);
 
-#undef SETPOINT
+		#undef SETPOINT
 
 		m_fs3Center.x() = (_rf3TopRightFar.x() - _rf3BottomLeftNear.x()) / 2.0f;
 		m_fs3Center.y() = (_rf3TopRightFar.y() - _rf3BottomLeftNear.y()) / 2.0f;

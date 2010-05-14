@@ -21,11 +21,9 @@
 #include "../Display/RenderStage.h"
 #include "../Display/GeometryHelper.h"
 #include "../Display/OctreeTraverseFuncFrustum.h"
-
+#include "../Display/DisplayObjectDummy.h"
 #include "../Input/Input.h"
-
 #include "../Landscape/Landscape.h"
-
 using namespace ElixirEngine;
 
 #include "../Application/ApplicationTypes.h"

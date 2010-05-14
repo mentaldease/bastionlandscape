@@ -45,6 +45,7 @@ namespace ElixirEngine
 
 	typedef void*				VoidPtr;
 	typedef vector<VoidPtr>		VoidPtrVec;
+	typedef map<Key, VoidPtr>	VoidPtrMap;
 
 	typedef unsigned int		UInt;
 	typedef UInt*				UIntPtr;
