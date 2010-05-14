@@ -79,7 +79,7 @@ namespace BastionGame
 
 			}
 
-			void Do(const UINT _uKey)
+			bool Do(const UINT _uKey)
 			{
 				KeyActionMap::iterator iPair = m_rContex.m_mKeyActions.find(_uKey);
 				if (m_rContex.m_mKeyActions.end() != iPair)
@@ -90,8 +90,14 @@ namespace BastionGame
 					if (false != bActive)
 					{
 						m_rvActions.push_back(uAction);
+						if (1 == uAction) // EAppAction_CANCEL = 1
+						{
+							BP;
+						}
 					}
+					return bActive;
 				}
+				return false;
 			}
 
 			ContextRef	m_rContex;
@@ -106,7 +112,11 @@ namespace BastionGame
 			{
 				const bool bOnce = ((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i]));
 				const UINT uKey = i + uBaseModifiers + (((0 != m_pKeysInfoOld[i]) && (0 == m_pKeysInfo[i])) ? s_uOnceModifier : 0);
-				funcTestAction.Do(uKey);
+				const bool bResult = funcTestAction.Do(uKey);
+				if ((false != bResult) && (DIK_ESCAPE == i))
+				{
+					BP;
+				}
 			}
 		}
 

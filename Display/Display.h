@@ -110,14 +110,22 @@ namespace ElixirEngine
 	class DisplayObject : public CoreObject
 	{
 	public:
-		// derived DisplayObject class should also derivate CloneInfo if they need to provide more control over Clone method.
-		struct CloneInfo
+		struct BoundingMesh;
+		typedef BoundingMesh* BoundingMeshPtr;
+		typedef BoundingMesh& BoundingMeshRef;
+
+		struct BoundingMesh
 		{
-			bool	m_bShareVertexBuffer;
-			bool	m_bShareIndexBuffer;
+			void Clear();
+
+			void AddVertex(const float _fX, const float _fY, const float _fZ);
+			void AddTriangle(const UInt _uI1, const UInt _uI2, const UInt _uI3);
+
+			void Transform(BoundingMeshRef _rBoundingMesh, MatrixRef _rm4Transform);
+
+			Vector3Vec	m_vVertex;
+			UIntVec		m_vTriangles; // 3 index per triangle
 		};
-		typedef CloneInfo* CloneInfoPtr;
-		typedef CloneInfo& CloneInfoRef;
 
 	public:
 		DisplayObject();
@@ -127,10 +135,8 @@ namespace ElixirEngine
 
 		virtual void SetWorldMatrix(MatrixRef _rWorld);
 		virtual MatrixPtr GetWorldMatrix();
-
 		virtual void SetMaterial(DisplayMaterialPtr _pMaterial);
 		virtual DisplayMaterialPtr GetMaterial();
-
 		virtual void SetRenderStage(const Key& _uRenderPass);
 		virtual const Key& GetRenderStage() const;
 
@@ -139,11 +145,12 @@ namespace ElixirEngine
 		virtual void RenderEnd() {};
 
 		virtual bool RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect);
-
-		virtual DisplayObjectPtr Clone(const CloneInfoRef _rInfo);
+		virtual BoundingMeshRef GetBoundingMesh();
+		virtual void GetTransformedBoundingMesh(BoundingMeshRef _rBoundingMesh, MatrixRef _rm4Transform);
 
 	protected:
-		Matrix				m_oWorld;
+		Matrix				m_m4World;
+		BoundingMesh		m_oBoundingMesh;
 		DisplayMaterialPtr	m_pMaterial;
 		Key					m_uRenderPass;
 	};

@@ -76,9 +76,9 @@ namespace ElixirEngine
 		if (false != bResult)
 		{
 			Matrix m4Pos;
-			D3DXMatrixTranslation(&m4Pos, pInfo->m_oPos.x, pInfo->m_oPos.y, pInfo->m_oPos.z);
+			D3DXMatrixTranslation(&m4Pos, pInfo->m_f3Pos.x, pInfo->m_f3Pos.y, pInfo->m_f3Pos.z);
 			Matrix m4Rot;
-			D3DXMatrixRotationYawPitchRoll(&m4Rot, D3DXToRadian(pInfo->m_oRot.x), D3DXToRadian(pInfo->m_oRot.y), D3DXToRadian(pInfo->m_oRot.z));
+			D3DXMatrixRotationYawPitchRoll(&m4Rot, D3DXToRadian(pInfo->m_f3Rot.x), D3DXToRadian(pInfo->m_f3Rot.y), D3DXToRadian(pInfo->m_f3Rot.z));
 			Matrix m4World;
 			D3DXMatrixMultiply(&m4World, &m4Rot, &m4Pos);
 			SetWorldMatrix(m4World);
@@ -105,7 +105,7 @@ namespace ElixirEngine
 			m_uVertDecl = 0;
 		}
 
-		const UInt uSize = m_vLineStrips.size();
+		const UInt uSize = UInt(m_vLineStrips.size());
 		for (UInt i = 0 ; uSize > i ; ++i)
 		{
 			delete m_vLineStrips[i];
@@ -135,12 +135,12 @@ namespace ElixirEngine
 				LineStripInfoRef rLS = *m_vLineStrips[i];
 				pDisplay->GetDevicePtr()->DrawIndexedPrimitiveUP(D3DPT_LINESTRIP,
 					0,
-					rLS.m_vVertexBuffer.size(),
-					rLS.m_vIndexBuffer.size() - 1,
+					UInt(rLS.m_vVertexBuffer.size()),
+					UInt(rLS.m_vIndexBuffer.size() - 1),
 					&rLS.m_vIndexBuffer[0],
 					D3DFMT_INDEX32,
 					&rLS.m_vVertexBuffer[0],
-					sizeof(GeometryHelperVertexColor));
+					UInt(sizeof(GeometryHelperVertexColor)));
 			}
 		}
 	}
@@ -205,5 +205,17 @@ namespace ElixirEngine
 		VERTEX(5, _f3TopRightFar, _f3BottomLeftNear, _f3TopRightFar);
 		VERTEX(6, _f3TopRightFar, _f3BottomLeftNear, _f3BottomLeftNear);
 		VERTEX(7, _f3BottomLeftNear, _f3BottomLeftNear, _f3BottomLeftNear);
+	}
+
+	void DisplayGeometryLineManager::NewBoundingMesh(DisplayObject::BoundingMeshRef _rBoundingMesh, const Vector4& _f4Color)
+	{
+		Vector3Vec& rvVertex = _rBoundingMesh.m_vVertex;
+		UIntVec& rvTriangles = _rBoundingMesh.m_vTriangles;
+		const UInt uCount = UInt(rvTriangles.size());
+
+		for (UInt i = 0 ; uCount > i ; i += 3)
+		{
+			NewTriangle(rvVertex[rvTriangles[i]], rvVertex[rvTriangles[i + 1]], rvVertex[rvTriangles[i + 2]], _f4Color);
+		}
 	}
 }

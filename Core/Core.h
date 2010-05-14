@@ -82,6 +82,12 @@ namespace ElixirEngine
 			}
 		}
 
+		inline bool IsChild(CoreObjectPtr _pObject)
+		{
+			CoreObjectPtrVec::iterator iEnd = m_vChildren.end();
+			return (iEnd != find(m_vChildren.begin(), iEnd, _pObject));
+		}
+
 		inline const CoreObjectPtrVec& GetChildren() { return m_vChildren; }
 
 		static CoreObjectPtrCounterMap s_mObjects;

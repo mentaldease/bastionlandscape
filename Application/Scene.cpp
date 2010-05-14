@@ -25,10 +25,12 @@ namespace BastionGame
 		m_mCameras(),
 		m_mRenderStages(),
 		m_vRenderStages(),
+		m_vLandscapes(),
 		m_f4LightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
 		m_pOctree(NULL),
 		m_pOTFFrustum(NULL),
+		m_pDisplay(NULL),
 		m_uWaterDataCount(0),
 		m_strName(),
 		m_fWaterLevel(200.0f),
@@ -102,10 +104,10 @@ namespace BastionGame
 
 		if (false != bResult)
 		{
-			DisplayPtr pDisplay = Display::GetInstance();
+			m_pDisplay = Display::GetInstance();
 			DebugTextOverlay::CreateInfo oDTOCInfo;
 			unsigned int uTemp[2];
-			pDisplay->GetResolution(uTemp[0], uTemp[1]);
+			m_pDisplay->GetResolution(uTemp[0], uTemp[1]);
 			oDTOCInfo.m_mFontNameList[m_uUIMainFontLabel] = "Data/Fonts/arial24.fnt";
 			oDTOCInfo.m_mFontMaterialList[m_uUIMainFontLabel] = "ui";
 			oDTOCInfo.m_f3ScreenOffset = Vector3(-float(uTemp[0] / 2), float(uTemp[1] / 2), 0.0f);
@@ -134,8 +136,7 @@ namespace BastionGame
 	{
 		PROFILING(__FUNCTION__);
 
-		DisplayPtr pDisplay = Display::GetInstance();
-		const Key uCurrentRenderStage = pDisplay->GetCurrentRenderStage()->GetNameKey();
+		const Key uCurrentRenderStage = m_pDisplay->GetCurrentRenderStage()->GetNameKey();
 		if (m_uUIRenderStage != uCurrentRenderStage)
 		{
 			{
@@ -169,62 +170,39 @@ namespace BastionGame
 						DisplayObjectPtr pDisplayObject = dynamic_cast<DisplayObjectPtr>(*iObject);
 						if (NULL != pDisplayObject)
 						{
-							const Key uRenderStageName = pDisplayObject->GetRenderStage();
-							if (uCurrentRenderStage == uRenderStageName)
+							const Key uRenderStageKey = pDisplayObject->GetRenderStage();
+							if (uCurrentRenderStage == uRenderStageKey)
 							{
-								pDisplay->RenderRequest(uRenderStageName, pDisplayObject);
+								m_pDisplay->RenderRequest(uRenderStageKey, pDisplayObject);
+								const CoreObjectPtrVec& rvChildren = pDisplayObject->GetChildren();
+								if (false == rvChildren.empty())
+								{
+									CoreObjectPtrVec::const_iterator iChild = rvChildren.begin();
+									CoreObjectPtrVec::const_iterator iChildEnd = rvChildren.end();
+									while (iChildEnd != iChild)
+									{
+										DisplayObjectPtr pDisplayChild = dynamic_cast<DisplayObjectPtr>(*iChild);
+										if (NULL != pDisplayChild)
+										{
+											const Key uChildRenderStageKey = pDisplayChild->GetRenderStage();
+											if (uCurrentRenderStage == uChildRenderStageKey)
+											{
+												m_pDisplay->RenderRequest(uChildRenderStageKey, pDisplayChild);
+											}
+										}
+										++iChild;
+									}
+								}
 							}
 						}
 						++iObject;
 					}
 				}
 
-				DisplayGeometryLineManagerPtr pLineManager = static_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
-				if ((NULL != pLineManager) && (true))
-				{
-					PROFILING(__FUNCTION__" [DEBUGLINES]");
-					// octree nodes
-					if (false)
-					{
-						const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
-						OctreeNodePtrVec::iterator iNode = vNodes.begin();
-						OctreeNodePtrVec::iterator iEnd = vNodes.end();
-						while (iEnd != iNode)
-						{
-							OctreeNodePtr pNode = *iNode;
-							const fsVector3Vec& rvAABB = pNode->GetAABB();
-							#define fsVec3ToVec3(vFSVEC3) Vector3((vFSVEC3).x(), (vFSVEC3).y(), (vFSVEC3).z())
-							pLineManager->NewAABB(
-								fsVec3ToVec3(rvAABB[EOctreeAABB_TOPRIGHTTFAR]),
-								fsVec3ToVec3(rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR]),
-								f4Color);
-							#undef fsVec3ToVec3
-							++iNode;
-						}
-					}
-					// octree objects
-					if (false)
-					{
-						const Vector4 f4Color(0.75f, 0.125f, 0.125f, 1.0f);
-						OctreeObjectPtrVec::iterator iObject = vOctreeObjects.begin();
-						OctreeObjectPtrVec::iterator iEnd = vOctreeObjects.end();
-						while (iEnd != iObject)
-						{
-							OctreeObjectPtr pObject = *iObject;
-							const fsVector3Vec& rvAABB = pObject->GetAABB();
-							#define fsVec3ToVec3(vFSVEC3) Vector3((vFSVEC3).x(), (vFSVEC3).y(), (vFSVEC3).z())
-							pLineManager->NewAABB(
-								fsVec3ToVec3(rvAABB[EOctreeAABB_TOPRIGHTTFAR]),
-								fsVec3ToVec3(rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR]),
-								f4Color);
-							#undef fsVec3ToVec3
-							++iObject;
-						}
-					}
-				}
+				UpdateDebug(vOctreeObjects, vNodes);
 			}
 		}
-		else if (NULL != m_pUITextOverlay)
+		else
 		{
 			// project name
 			{
@@ -253,6 +231,18 @@ namespace BastionGame
 	void Scene::Release()
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
+
+		// dummies
+		CoreObjectPtrVec::iterator iObject = m_vDummies.begin();
+		CoreObjectPtrVec::iterator iEnd = m_vDummies.end();
+		while (iEnd != iObject)
+		{
+			CoreObjectPtr pObject = *iObject;
+			pObject->Release();
+			delete pObject;
+			++iObject;
+		}
+		m_vDummies.clear();
 
 		// render stages
 		m_rApplication.GetDisplay()->RemoveRenderStages(m_vRenderStages);
@@ -335,6 +325,8 @@ namespace BastionGame
 			pTextureManager->Unload(iPair->first);
 			m_mAdditionalRTs.erase(iPair);
 		}
+
+		m_vLandscapes.clear();
 	}
 
 	void Scene::PreUpdate()
@@ -343,14 +335,10 @@ namespace BastionGame
 
 	void Scene::DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _f4Color)
 	{
-		DisplayPtr pDisplay = Display::GetInstance();
-		if (m_uUIRenderStage == pDisplay->GetCurrentRenderStage()->GetNameKey())
+		if (m_uUIRenderStage == m_pDisplay->GetCurrentRenderStage()->GetNameKey())
 		{
-			if (NULL != m_pUITextOverlay)
-			{
-				const static Key uFontLabelKey = MakeKey(string("Normal"));
-				m_pUITextOverlay->DrawRequest(_fX, _fY, uFontLabelKey, _wstrText, _f4Color);
-			}
+			const static Key uFontLabelKey = MakeKey(string("Normal"));
+			m_pUITextOverlay->DrawRequest(_fX, _fY, uFontLabelKey, _wstrText, _f4Color);
 		}
 	}
 
@@ -385,6 +373,65 @@ namespace BastionGame
 		m_oPicker.Activate(_bState);
 	}
 
+	void Scene::NewDummy()
+	{
+		DisplayObjectDummyPtr pDummy = new DisplayObjectDummy;
+		bool bResult = pDummy->Create(boost::any(0));
+		if (false != bResult)
+		{
+			DisplayObjectPtr pDummyDisplay = reinterpret_cast<DisplayObjectPtr>(m_mHierarchy[MakeKey(string("dummy"))]);
+			bResult = (NULL != pDummyDisplay);
+			if (false != bResult)
+			{
+				pDummy->SetWorldMatrix(*m_oPicker.GetWorldMatrix());
+				pDummy->SetObject(pDummyDisplay);
+				pDummy->SetRenderStage(pDummyDisplay->GetRenderStage());
+				pDummy->SetMaterial(pDummyDisplay->GetMaterial());
+				AddObject(pDummy);
+				m_vDummies.push_back(pDummy);
+			}
+
+		}
+		if (false == bResult)
+		{
+			pDummy->Release();
+			delete pDummy;
+		}
+	}
+
+	void Scene::AddLandscape(LandscapePtr _pLandscape)
+	{
+		if (m_vLandscapes.end() == find(m_vLandscapes.begin(), m_vLandscapes.end(), _pLandscape))
+		{
+			m_vLandscapes.push_back(_pLandscape);
+		}
+	}
+
+	WaterDataPtr Scene::GetWaterData(UIntRef _uCount)
+	{
+		_uCount = m_uWaterDataCount;
+		return m_pWaterData;
+	}
+
+	bool Scene::GetWaterLevel(const Vector3& _f3Pos, FloatRef _fLevel)
+	{
+		bool bResult = false;
+		LandscapePtrVec::iterator iLandscape = m_vLandscapes.begin();
+		LandscapePtrVec::iterator iEnd = m_vLandscapes.end();
+		while (iEnd != iLandscape)
+		{
+			UInt uIndex;
+			bResult = (*iLandscape)->GetWaterIndex(_f3Pos, uIndex);
+			if (false != bResult)
+			{
+				_fLevel = m_pWaterData[uIndex].m_fWaterLevel;
+				break;
+			}
+			++iLandscape;
+		}
+		return bResult;
+	}
+
 	bool Scene::CreateFromLuaConfig(Scene::CreateInfoPtr _pInfo)
 	{
 		bool bResult = Scripting::Lua::Loadfile(_pInfo->m_strPath);
@@ -408,5 +455,74 @@ namespace BastionGame
 				&& CreateLoadRenderStages(oRoot);
 		}
 		return bResult;
+	}
+
+	void Scene::AddObject(DisplayObjectPtr _pObject)
+	{
+		LandscapePtrVec::iterator iLandscape = m_vLandscapes.begin();
+		LandscapePtrVec::iterator iEnd = m_vLandscapes.end();
+		while (iEnd != iLandscape)
+		{
+			(*iLandscape)->UpdateObjectLocation(_pObject);
+			++iLandscape;
+		}
+	}
+
+	void Scene::UpdateDebug(OctreeObjectPtrVec& _rvOctreeObjects, OctreeNodePtrVec& _rvNodes)
+	{
+		//DisplayGeometryLineManagerPtr pLineManager = reinterpret_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
+		DisplayGeometryLineManagerPtr pLineManager = dynamic_cast<DisplayGeometryLineManagerPtr>(m_mHierarchy[MakeKey(string("debuglines"))]);
+		if ((NULL != pLineManager) && (true))
+		{
+			PROFILING(__FUNCTION__);
+			// picked object
+			if (true)
+			{
+				DisplayObjectPtr pObject = dynamic_cast<DisplayObjectPtr>(m_oPicker.GetPickedObject());
+				if (NULL != pObject)
+				{
+					const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
+					pLineManager->NewBoundingMesh(pObject->GetBoundingMesh(), f4Color);
+				}
+			}
+			// octree nodes
+			if (false)
+			{
+				const Vector4 f4Color(0.25f, 0.125f, 0.75f, 1.0f);
+				OctreeNodePtrVec::iterator iNode = _rvNodes.begin();
+				OctreeNodePtrVec::iterator iEnd = _rvNodes.end();
+				while (iEnd != iNode)
+				{
+					OctreeNodePtr pNode = *iNode;
+					const fsVector3Vec& rvAABB = pNode->GetAABB();
+					#define fsVec3ToVec3(vFSVEC3) Vector3((vFSVEC3).x(), (vFSVEC3).y(), (vFSVEC3).z())
+					pLineManager->NewAABB(
+						fsVec3ToVec3(rvAABB[EOctreeAABB_TOPRIGHTTFAR]),
+						fsVec3ToVec3(rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR]),
+						f4Color);
+					#undef fsVec3ToVec3
+					++iNode;
+				}
+			}
+			// octree objects
+			if (false)
+			{
+				const Vector4 f4Color(0.75f, 0.125f, 0.125f, 1.0f);
+				OctreeObjectPtrVec::iterator iObject = _rvOctreeObjects.begin();
+				OctreeObjectPtrVec::iterator iEnd = _rvOctreeObjects.end();
+				while (iEnd != iObject)
+				{
+					OctreeObjectPtr pObject = *iObject;
+					const fsVector3Vec& rvAABB = pObject->GetAABB();
+					#define fsVec3ToVec3(vFSVEC3) Vector3((vFSVEC3).x(), (vFSVEC3).y(), (vFSVEC3).z())
+					pLineManager->NewAABB(
+						fsVec3ToVec3(rvAABB[EOctreeAABB_TOPRIGHTTFAR]),
+						fsVec3ToVec3(rvAABB[EOctreeAABB_BOTTOMLEFTTNEAR]),
+						f4Color);
+					#undef fsVec3ToVec3
+					++iObject;
+				}
+			}
+		}
 	}
 }

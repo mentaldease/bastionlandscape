@@ -10,6 +10,7 @@ namespace BastionGame
 	enum EAppAction
 	{
 		EAppAction_UNKNOWN,
+		EAppAction_CANCEL,
 		EAppAction_CAMERA_INC_SPEED,
 		EAppAction_CAMERA_DEC_SPEED,
 		EAppAction_CAMERA_STRAFE_FRONT,

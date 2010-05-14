@@ -404,6 +404,16 @@ namespace ElixirEngine
 		return m_pIndexes;
 	}
 
+	void Landscape::UpdateObjectLocation(DisplayObjectPtr _pObject)
+	{
+		m_vGrid[0]->UpdateObjectLocation(_pObject);
+	}
+
+	bool Landscape::GetWaterIndex(const Vector3& _f3Pos, UIntRef _uLevel)
+	{
+		return m_vGrid[0]->GetWaterIndex(_f3Pos, _uLevel);
+	}
+
 	bool Landscape::CreateIndexBuffer()
 	{
 		bool bResult = false;

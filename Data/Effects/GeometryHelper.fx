@@ -125,6 +125,8 @@ PS_OUTPUT RenderScenePS(VS_OUTPUT psInput)
 	//float4 vTexColor = tex2D(DiffuseSampler0, psInput.UV);
 	//psOutput.vColor = g_f4Diffuse * vTexColor;
 	psOutput.vColor = g_f4Diffuse;
+	//psOutput.vColor *= saturate(dot(psInput.Light, psInput.Normal));
+	//psOutput.vColor.a = 1.0f;
 
 #if USE_PS_NORMAL
 	float3 vNormal = (psInput.Normal + float3(1.0f, 1.0f, 1.0f)) * 0.5f;

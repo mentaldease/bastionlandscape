@@ -175,8 +175,9 @@ namespace ElixirEngine
 		bool SetIndices();
 		bool UseLODVertexBuffer(const UInt& _uLOD);
 		void UseLayering();
-
 		const UIntPtr GetIndices() const;
+		void UpdateObjectLocation(DisplayObjectPtr _pObject);
+		bool GetWaterIndex(const Vector3& _f3Pos, UIntRef _uLevel);
 
 	protected:
 		bool CreateVertexBufferIndependent();
@@ -246,6 +247,11 @@ namespace ElixirEngine
 
 		void Traverse(LandscapeChunkPtrVecRef _rRenderList, const Vector3& _rCamPos, const float& _fPixelSize);
 		UInt GetLODID() const;
+		void UpdateObjectLocation(DisplayObjectPtr _pObject);
+		bool GetWaterIndex(const Vector3& _f3Pos, UIntRef _uLevel);
+
+	protected:
+		bool CreateBoundingMesh();
 
 	protected:
 		static Key				s_uMorphFactorKey;
@@ -255,8 +261,9 @@ namespace ElixirEngine
 		UInt					m_uLOD;
 		LandscapeChunkPtr		m_pParent;
 		LandscapeChunkPtr		m_pChildren[ESubChild_COUNT];
-		Vector3					m_oCenter;
-		Vector3					m_oExtends;
+		Vector3					m_f3AABB[2]; // 0 = (left, bottom, near), 1 = (right, top, far)
+		Vector3					m_f3Center;
+		Vector3					m_f3Extends;
 		Landscape::LODInfoPtr	m_pLODInfo;
 		DisplayPtr				m_pDisplay;
 		float					m_fMorphFactor;

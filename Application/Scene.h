@@ -27,7 +27,8 @@ namespace BastionGame
 
 		void Activate(const bool _bState);
 		void Update(OctreeObjectPtrVecRef _rvOctreeObjects);
-		void RenderDebug();
+		MatrixPtr GetWorldMatrix();
+		DisplayObjectPtr GetPickedObject();
 
 	protected:
 		void PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects);
@@ -39,6 +40,8 @@ namespace BastionGame
 		Vector3				m_f3RayBegin;
 		Vector3				m_f3RayEnd;
 		Vector3				m_f3Pick;
+		DisplayObjectPtr	m_pPickCursorObject;
+		DisplayObjectPtr	m_pPickedObject;
 		bool				m_bActive;
 	};
 
@@ -71,13 +74,15 @@ namespace BastionGame
 
 		void PreUpdate();
 		void DrawOverlayText(const float _fX, const float _fY, const wstring& _wstrText, const Vector4& _f4Color);
-
 		ApplicationRef GetApplication();
 		Vector4 GetLightDir();
 		OctreePtr GetOctree();
 		CoreObjectPtr GetHierarchyObject(const Key _uNameKey);
-
 		void ActivatePicking(const bool _bState);
+		void NewDummy();
+		void AddLandscape(LandscapePtr _pLandscape);
+		WaterDataPtr GetWaterData(UIntRef _uCount);
+		bool GetWaterLevel(const Vector3& _f3Pos, FloatRef _fLevel);
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
@@ -91,6 +96,8 @@ namespace BastionGame
 		bool CreateLoadRenderStage(LuaObjectRef _rLuaObject);
 		bool CreateLoadHierarchy(LuaObjectRef _rLuaObject);
 
+		void AddObject(DisplayObjectPtr _pObject);
+		void UpdateDebug(OctreeObjectPtrVec& _rvOctreeObjects, OctreeNodePtrVec& _rvNodes);
 
 	protected:
 		static CoreObjectPtr CreateClassLandscape(LuaObjectRef _rTable, ScenePtr _pScene);
@@ -108,10 +115,13 @@ namespace BastionGame
 		DisplayCameraPtrMap				m_mCameras;
 		DisplayRenderStagePtrMap		m_mRenderStages;
 		DisplayRenderStagePtrVec		m_vRenderStages;
+		CoreObjectPtrVec				m_vDummies;
+		LandscapePtrVec					m_vLandscapes;
 		Vector4							m_f4LightDir;
 		WaterDataPtr					m_pWaterData;
 		OctreePtr						m_pOctree;
 		OctreeTraverseFuncFrustumPtr	m_pOTFFrustum;
+		DisplayPtr						m_pDisplay;
 		UInt							m_uWaterDataCount;
 		string							m_strName;
 		float							m_fWaterLevel;
