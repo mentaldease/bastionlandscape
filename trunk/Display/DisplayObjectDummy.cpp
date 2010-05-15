@@ -56,10 +56,24 @@ namespace ElixirEngine
 	bool DisplayObjectDummy::RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect)
 	{
 		assert(NULL != m_pActualObject);
-		m_m4WorldSave = *m_pActualObject->GetWorldMatrix();
-		m_pActualObject->SetWorldMatrix(m_m4World);
-		const bool bResult = m_pActualObject->RayIntersect(_f3RayBegin, _f3RayEnd, _f3Intersect);
-		m_pActualObject->SetWorldMatrix(m_m4WorldSave);
+
+		Matrix m4WorldInv;
+		Vector4 f4RB;
+		Vector4 f4RE;
+		D3DXMatrixInverse(&m4WorldInv, NULL, &m_m4World);
+		D3DXVec3Transform(&f4RB, &_f3RayBegin, &m4WorldInv);
+		D3DXVec3Transform(&f4RE, &_f3RayEnd, &m4WorldInv);
+
+		const bool bResult = m_pActualObject->RayIntersect(Vector3(f4RB.x, f4RB.y, f4RB.z), Vector3(f4RE.x, f4RE.y, f4RE.z), _f3Intersect);
+		if (false != bResult)
+		{
+			Vector4 f4Intersect;
+			D3DXVec3Transform(&f4Intersect, &_f3Intersect, &m_m4World);
+			_f3Intersect.x = f4Intersect.x;
+			_f3Intersect.y = f4Intersect.y;
+			_f3Intersect.z = f4Intersect.z;
+		}
+
 		return bResult;
 	}
 

@@ -26,7 +26,6 @@ namespace ElixirEngine
 		void SetObject(DisplayObjectPtr	_pObject);
 
 	protected:
-		Matrix				m_m4WorldSave;
 		DisplayObjectPtr	m_pActualObject;
 	};
 }
