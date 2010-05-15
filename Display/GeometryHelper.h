@@ -63,7 +63,6 @@ namespace ElixirEngine
 		virtual void RenderBegin();
 		virtual void Render();
 		virtual bool RayIntersect(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, Vector3& _f3Intersect);
-		virtual BoundingMeshRef GetBoundingMesh();
 
 	protected:
 		bool CreateBuffers(CreateInfoRef _rInfo);

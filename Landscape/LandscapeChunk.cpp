@@ -167,9 +167,9 @@ namespace ElixirEngine
 	void LandscapeChunk::SetWorldMatrix(MatrixRef _rWorld)
 	{
 		DisplayObject::SetWorldMatrix(_rWorld);
-		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
+		if (0 != m_uLOD)
 		{
-			if (NULL != m_pChildren[i])
+			for (int i = 0 ; ESubChild_COUNT > i ; ++i)
 			{
 				m_pChildren[i]->SetWorldMatrix(_rWorld);
 			}
@@ -179,9 +179,9 @@ namespace ElixirEngine
 	void LandscapeChunk::SetMaterial(DisplayMaterialPtr _pMaterial)
 	{
 		DisplayObject::SetMaterial(_pMaterial);
-		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
+		if (0 != m_uLOD)
 		{
-			if (NULL != m_pChildren[i])
+			for (int i = 0 ; ESubChild_COUNT > i ; ++i)
 			{
 				m_pChildren[i]->SetMaterial(_pMaterial);
 			}
@@ -191,9 +191,9 @@ namespace ElixirEngine
 	void LandscapeChunk::SetRenderStage(const Key& _uRenderPass)
 	{
 		DisplayObject::SetRenderStage(_uRenderPass);
-		for (int i = 0 ; ESubChild_COUNT > i ; ++i)
+		if (0 != m_uLOD)
 		{
-			if (NULL != m_pChildren[i])
+			for (int i = 0 ; ESubChild_COUNT > i ; ++i)
 			{
 				m_pChildren[i]->SetRenderStage(_uRenderPass);
 			}

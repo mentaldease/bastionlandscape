@@ -175,7 +175,6 @@ namespace ElixirEngine
 		Vector3 aVertices[3];
 		VertexAccessor* pVertexAccessor = NULL;
 		PITTester3 oPITTester;
-		Vector4 f4Tranform;
 		Vector3 f3Out;
 		Vector3 f3Delta;
 		float fLength;
@@ -192,10 +191,8 @@ namespace ElixirEngine
 			pVertexAccessor = new TVertexAccessor<UInt>(m_pVertex, m_pIndex32);
 		}
 
-		D3DXVec3Transform(&f4Tranform, &pVertexAccessor->Get(0)->m_f3Position, &m_m4World);
-		aVertices[0] = Vector3(f4Tranform.x, f4Tranform.y, f4Tranform.z);
-		D3DXVec3Transform(&f4Tranform, &pVertexAccessor->Get(1)->m_f3Position, &m_m4World);
-		aVertices[1] = Vector3(f4Tranform.x, f4Tranform.y, f4Tranform.z);
+		aVertices[0] = pVertexAccessor->Get(0)->m_f3Position;
+		aVertices[1] = pVertexAccessor->Get(1)->m_f3Position;
 
 		for (UInt i = 2 ; m_uIndexCount > i ; ++i, ++uIndex)
 		{
@@ -203,8 +200,7 @@ namespace ElixirEngine
 			const UInt uI1 = ((uIndex + 1) % 3);
 			const UInt uI2 = ((uIndex + 2) % 3);
 
-			D3DXVec3Transform(&f4Tranform, &pVertexAccessor->Get(i)->m_f3Position, &m_m4World);
-			aVertices[i % 3] = Vector3(f4Tranform.x, f4Tranform.y, f4Tranform.z);
+			aVertices[i % 3] = pVertexAccessor->Get(i)->m_f3Position;
 
 			if ((aVertices[uI0] == aVertices[uI1]) || (aVertices[uI0] == aVertices[uI2]))
 			{
@@ -229,11 +225,6 @@ namespace ElixirEngine
 		delete pVertexAccessor;
 
 		return bResult;
-	}
-
-	DisplayObject::BoundingMeshRef DisplayGeometrySphere::GetBoundingMesh()
-	{
-		return m_oBoundingMesh;
 	}
 
 	bool DisplayGeometrySphere::CreateBuffers(CreateInfoRef _rInfo)
