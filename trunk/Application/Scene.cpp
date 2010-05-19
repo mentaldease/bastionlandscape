@@ -26,6 +26,7 @@ namespace BastionGame
 		m_mRenderStages(),
 		m_vRenderStages(),
 		m_vLandscapes(),
+		m_vEntities(),
 		m_f4LightDir(0.0f, 0.0f, 0.0f, 0.0f),
 		m_pWaterData(NULL),
 		m_pOctree(NULL),
@@ -232,15 +233,27 @@ namespace BastionGame
 	{
 		DisplayMaterialManagerPtr pMaterialManager = m_rApplication.GetDisplay()->GetMaterialManager();
 
-		// dummies
-		CoreObjectPtrVec::iterator iObject = m_vDummies.begin();
-		CoreObjectPtrVec::iterator iEnd = m_vDummies.end();
-		while (iEnd != iObject)
+		// components
+		EntityPtrVec::iterator iEntity = m_vEntities.begin();
+		EntityPtrVec::iterator iEntityEnd = m_vEntities.end();
+		while (iEntityEnd != iEntity)
 		{
-			CoreObjectPtr pObject = *iObject;
-			pObject->Release();
-			delete pObject;
-			++iObject;
+			EntityPtr pEntity = *iEntity;
+			pEntity->Release();
+			delete pEntity;
+			++iEntity;
+		}
+		m_vEntities.clear();
+
+		// dummies
+		CoreObjectPtrVec::iterator iDummy = m_vDummies.begin();
+		CoreObjectPtrVec::iterator iDummyEnd = m_vDummies.end();
+		while (iDummyEnd != iDummy)
+		{
+			CoreObjectPtr pDummy = *iDummy;
+			pDummy->Release();
+			delete pDummy;
+			++iDummy;
 		}
 		m_vDummies.clear();
 
@@ -380,18 +393,24 @@ namespace BastionGame
 		if (false != bResult)
 		{
 			DisplayObjectPtr pDummyDisplay = reinterpret_cast<DisplayObjectPtr>(m_mHierarchy[MakeKey(string("dummy"))]);
-			bResult = (NULL != pDummyDisplay);
-			if (false != bResult)
-			{
-				pDummy->SetWorldMatrix(*m_oPicker.GetWorldMatrix());
-				pDummy->SetObject(pDummyDisplay);
-				pDummy->SetRenderStage(pDummyDisplay->GetRenderStage());
-				pDummy->SetMaterial(pDummyDisplay->GetMaterial());
-				AddObject(pDummy);
-				m_vDummies.push_back(pDummy);
-			}
 
+			assert(NULL != pDummyDisplay);
+			pDummy->SetWorldMatrix(*m_oPicker.GetWorldMatrix());
+			pDummy->SetObject(pDummyDisplay);
+			pDummy->SetRenderStage(pDummyDisplay->GetRenderStage());
+			pDummy->SetMaterial(pDummyDisplay->GetMaterial());
+			AddObject(pDummy);
+			m_vDummies.push_back(pDummy);
+
+			EntityPtr pEntity = new Entity;
+			DisplayComponentPtr pComponent = dynamic_cast<DisplayComponentPtr>(m_pDisplay->NewComponent(*pEntity, boost::any(0)));
+			assert(NULL != pComponent);
+			pComponent->SetDisplayObject(pDummy);
+			pDummy->SetComponent(pComponent);
+			pEntity->AddComponent(pComponent);
+			m_vEntities.push_back(pEntity);
 		}
+
 		if (false == bResult)
 		{
 			pDummy->Release();
@@ -430,6 +449,18 @@ namespace BastionGame
 			++iLandscape;
 		}
 		return bResult;
+	}
+
+	EntityPtr Scene::GetSelectedEntity()
+	{
+		DisplayObjectPtr pObject = dynamic_cast<DisplayObjectPtr>(m_oPicker.GetPickedObject());
+		ComponentPtr pComponent = (NULL != pObject) ? pObject->GetComponent() : NULL;
+		return ((NULL != pComponent) ? &pComponent->GetParent() : NULL);
+	}
+
+	ScenePickerRef Scene::GetPicker()
+	{
+		return m_oPicker;
 	}
 
 	bool Scene::CreateFromLuaConfig(Scene::CreateInfoPtr _pInfo)

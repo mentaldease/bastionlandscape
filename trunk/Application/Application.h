@@ -117,6 +117,7 @@ namespace BastionGame
 		ActionCallbackFunc			m_pActionCallback;
 		JobManagerPtr				m_pJobManager;
 		JobPtr						m_pOneJob;
+		EntityPtr					m_pSelectedEntity;
 		Key							m_uProcessAction;
 		UInt						m_uPendingAction;
 

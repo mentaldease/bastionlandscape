@@ -169,6 +169,21 @@ namespace ElixirEngine
 	class JobManager;
 	typedef JobManager* JobManagerPtr;
 	typedef JobManager& JobManagerRef;
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class Entity;
+	typedef Entity* EntityPtr;
+	typedef Entity& EntityRef;
+	typedef vector<EntityPtr> EntityPtrVec;
+
+	class Component;
+	typedef Component* ComponentPtr;
+	typedef Component& ComponentRef;
+	typedef vector<ComponentPtr> ComponentPtrVec;
+	typedef map<Key, ComponentPtr> ComponentPtrMap;
 }
 
 namespace LuaPlus

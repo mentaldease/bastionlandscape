@@ -45,6 +45,10 @@ namespace BastionGame
 	typedef map<Key, ActionCallbackFunc> ActionCallbackFuncMap;
 	typedef ActionCallbackFuncMap& ActionCallbackFuncMapRef;
 	typedef map<UInt, ActionCallbackFuncMap> ActionCallbackFuncMultiMap;
+
+	class ScenePicker;
+	typedef ScenePicker* ScenePickerPtr;
+	typedef ScenePicker& ScenePickerRef;
 }
 
 #endif // __APPLICATIONTYPES_H__

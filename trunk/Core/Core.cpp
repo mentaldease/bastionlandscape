@@ -69,4 +69,72 @@ namespace ElixirEngine
 	{
 		m_vChildren.clear();
 	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	Entity::Entity()
+	:	CoreObject(),
+		m_mComponents()
+	{
+
+	}
+
+	Entity::~Entity()
+	{
+
+	}
+
+	void Entity::Release()
+	{
+		m_mComponents.clear();
+	}
+
+	void Entity::AddComponent(ComponentPtr _pComponent)
+	{
+		const Key uSignature = _pComponent->GetSignature();
+		if (m_mComponents.end() == m_mComponents.find(uSignature))
+		{
+			m_mComponents[uSignature] = _pComponent;
+		}
+	}
+
+	ComponentPtr Entity::GetComponent(const Key _uSignature)
+	{
+		ComponentPtrMap::iterator iPair = m_mComponents.find(_uSignature);
+		return ((m_mComponents.end() != iPair) ? iPair->second : NULL);
+	}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	Component::Component(EntityRef _rParent)
+	:	CoreObject(),
+		m_rParent(_rParent),
+		m_uSignature(0)
+	{
+
+	}
+
+	Component::~Component()
+	{
+
+	}
+
+	EntityRef Component::GetParent()
+	{
+		return m_rParent;
+	}
+
+	Key Component::GetSignature()
+	{
+		return m_uSignature;
+	}
+
+	ComponentPtr Component::GetParentComponent(const Key _uSignature)
+	{
+		return m_rParent.GetComponent(_uSignature);
+	}
 }

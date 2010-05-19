@@ -101,6 +101,64 @@ namespace ElixirEngine
 	//-----------------------------------------------------------------------------------------------
 	//-----------------------------------------------------------------------------------------------
 
+	class Entity : public CoreObject
+	{
+	public:
+		Entity();
+		virtual ~Entity();
+
+		virtual void Release();
+
+		virtual void AddComponent(ComponentPtr _pComponent);
+		virtual ComponentPtr GetComponent(const Key _uSignature);
+
+	protected:
+		ComponentPtrMap	m_mComponents;
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class Component : public CoreObject
+	{
+	public:
+		Component(EntityRef _rParent);
+		virtual ~Component();
+
+		EntityRef GetParent();
+		Key GetSignature();
+		virtual ComponentPtr GetParentComponent(const Key _uSignature);
+
+	protected:
+		EntityRef	m_rParent;
+		Key			m_uSignature;
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	template<typename T>
+	class ComponentFactory : public CoreObject
+	{
+	public:
+		ComponentFactory();
+		virtual ~ComponentFactory();
+
+		virtual void Release();
+
+		ComponentPtr New(EntityRef _rParent, const boost::any& _rConfig);
+		void Delete(ComponentPtr _pComponent);
+
+	protected:
+		vector<ComponentPtr>	m_vComponents;
+	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
 	template <typename T>
 	class WeakSingleton
 	{
@@ -140,6 +198,69 @@ namespace ElixirEngine
 		{ \
 			return s_pInstance; \
 		}
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	template<typename T>
+	ComponentFactory<T>::ComponentFactory()
+	:	CoreObject(),
+		m_vComponents()
+	{
+
+	}
+
+	template<typename T>
+	ComponentFactory<T>::~ComponentFactory()
+	{
+
+	}
+
+	template<typename T>
+	void ComponentFactory<T>::Release()
+	{
+		vector<ComponentPtr>::iterator iComponent = m_vComponents.begin();
+		vector<ComponentPtr>::iterator iEnd = m_vComponents.end();
+		while (iEnd != iComponent)
+		{
+			ComponentPtr pComponent = *iComponent;
+			pComponent->Release();
+			delete pComponent;
+			++iComponent;
+		}
+		m_vComponents.clear();
+	}
+
+	template<typename T>
+	ComponentPtr ComponentFactory<T>::New(EntityRef _rParent, const boost::any& _rConfig)
+	{
+		ComponentPtr pComponent = new T(_rParent);
+		if (false == pComponent->Create(_rConfig))
+		{
+			pComponent->Release();
+			delete pComponent;
+			pComponent = NULL;
+		}
+		else
+		{
+			m_vComponents.push_back(pComponent);
+		}
+		return pComponent;
+	}
+
+	template<typename T>
+	void ComponentFactory<T>::Delete(ComponentPtr _pComponent)
+	{
+		vector<ComponentPtr>::iterator iEnd = m_vComponents.end();
+		vector<ComponentPtr>::iterator iComponent = find(m_vComponents.begin(), iEnd, _pComponent);
+		if (iEnd != iComponent)
+		{
+			_pComponent->Release();
+			delete _pComponent;
+			m_vComponents.erase(iComponent);
+		}
+	}
 }
 
 #endif // __CORE_H__
