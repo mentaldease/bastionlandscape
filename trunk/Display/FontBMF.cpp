@@ -676,16 +676,12 @@ namespace ElixirEngine
 
 			if (NULL != m_pTextPool)
 			{
-				m_pTextPool->Release();
-				delete m_pTextPool;
-				m_pTextPool = NULL;
+				CoreObject::ReleaseDeleteReset(m_pTextPool);
 			}
 
 			if (NULL != m_pVertexPool)
 			{
-				m_pVertexPool->Release();
-				delete m_pVertexPool;
-				m_pVertexPool = NULL;
+				CoreObject::ReleaseDeleteReset(m_pVertexPool);
 			}
 		}
 
@@ -703,8 +699,7 @@ namespace ElixirEngine
 
 		void DisplayFontLoader::Unload(ElixirEngine::DisplayFontPtr _pFont)
 		{
-			_pFont->Release();
-			delete _pFont;
+			CoreObject::ReleaseDeleteReset(_pFont);
 		}
 
 		VertexPoolRef DisplayFontLoader::GetVertexPool()

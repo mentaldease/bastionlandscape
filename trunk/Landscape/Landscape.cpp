@@ -317,8 +317,7 @@ namespace ElixirEngine
 		{
 			void operator() (LandscapeChunkPtr pLandscapeChunk)
 			{
-				pLandscapeChunk->Release();
-				delete pLandscapeChunk;
+				CoreObject::ReleaseDeleteReset(pLandscapeChunk);
 			}
 		};
 		for_each(m_vGrid.begin(), m_vGrid.end(), ReleaseAndDeleteFunction());

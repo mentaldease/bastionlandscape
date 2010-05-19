@@ -107,9 +107,7 @@ namespace BastionGame
 	{
 		if (NULL != m_pSphere)
 		{
-			m_pSphere->Release();
-			delete m_pSphere;
-			m_pSphere = NULL;
+			CoreObject::ReleaseDeleteReset(m_pSphere);
 		}
 	}
 

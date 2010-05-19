@@ -215,8 +215,7 @@ namespace ElixirEngine
 			}
 			else if (NULL != pSurface)
 			{
-				pSurface->Release();
-				delete pSurface;
+				CoreObject::ReleaseDeleteReset(pSurface);
 			}
 		}
 
@@ -230,8 +229,7 @@ namespace ElixirEngine
 		if (m_mSurfaces.end() != iPair)
 		{
 			DisplaySurfacePtr pSurface = iPair->second;
-			pSurface->Release();
-			delete pSurface;
+			CoreObject::ReleaseDeleteReset(pSurface);
 			m_mSurfaces.erase(iPair);
 		}
 	}
@@ -252,8 +250,7 @@ namespace ElixirEngine
 		while (iEnd != iPair)
 		{
 			DisplaySurfacePtr pSurface = iPair->second;
-			pSurface->Release();
-			delete pSurface;
+			CoreObject::ReleaseDeleteReset(pSurface);
 			++iPair;
 		}
 

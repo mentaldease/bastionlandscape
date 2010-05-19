@@ -157,14 +157,6 @@ namespace BastionGame
 				m_uPendingAction = _uActionID;
 				m_pScene->ActivatePicking(true);
 				m_pActionDispatcher->UnregisterActionCallback(_uActionID, m_uProcessAction);
-				//if ((NULL == m_pOneJob) && (NULL != m_pJobManager))
-				//{
-				//	m_pOneJob = new AppTestJob(*m_pJobManager);
-				//	if (false != m_pOneJob->Create(boost::any(0)))
-				//	{
-				//		m_pJobManager->PushJob(m_pOneJob);
-				//	}
-				//}
 				break;
 			}
 			case EAppAction_ENTITY_CREATE:
@@ -226,6 +218,19 @@ namespace BastionGame
 							m_pScene->ActivatePicking(false);
 							m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
 							m_uPendingAction = EAppAction_UNKNOWN;
+
+							if ((NULL == m_pOneJob) && (NULL != m_pJobManager))
+							{
+								m_pOneJob = new PathfindJob(*m_pJobManager);
+								if (false != m_pOneJob->Create(boost::any(0)))
+								{
+									m_pJobManager->PushJob(m_pOneJob);
+								}
+								else
+								{
+									CoreObject::ReleaseDeleteReset(m_pOneJob);
+								}
+							}
 						}
 						break;
 					}
@@ -258,16 +263,11 @@ namespace BastionGame
 	{
 		if (NULL != m_pActionDispatcher)
 		{
-			m_pActionDispatcher->Release();
-			delete m_pActionDispatcher;
-			m_pActionDispatcher = NULL;
+			CoreObject::ReleaseDeleteReset(m_pActionDispatcher);
 		}
-
 		if (NULL != m_pKeybinds)
 		{
-			m_pKeybinds->Release();
-			delete m_pKeybinds;
-			m_pKeybinds = NULL;
+			CoreObject::ReleaseDeleteReset(m_pKeybinds);
 		}
 	}
 

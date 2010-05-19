@@ -160,8 +160,7 @@ namespace ElixirEngine
 			}
 			else if (NULL != pMaterial)
 			{
-				pMaterial->Release();
-				delete pMaterial;
+				CoreObject::ReleaseDeleteReset(pMaterial);
 			}
 		}
 
@@ -180,8 +179,7 @@ namespace ElixirEngine
 		bool bResult = (m_mMaterials.end() != iPair);
 		if (false != bResult)
 		{
-			iPair->second->Release();
-			delete iPair->second;
+			CoreObject::ReleaseDeleteReset(iPair->second);
 			m_mMaterials.erase(iPair);
 		}
 	}
@@ -216,8 +214,7 @@ namespace ElixirEngine
 			}
 			else
 			{
-				pEffect->Release();
-				delete pEffect;
+				CoreObject::ReleaseDeleteReset(pEffect);
 			}
 		}
 		return bResult;
@@ -231,8 +228,7 @@ namespace ElixirEngine
 		bool bResult = (m_mEffects.end() != iPair);
 		if (false != bResult)
 		{
-			iPair->second->Release();
-			delete iPair->second;
+			CoreObject::ReleaseDeleteReset(iPair->second);
 			m_mEffects.erase(iPair);
 		}
 	}
@@ -295,8 +291,7 @@ namespace ElixirEngine
 
 	void DisplayMaterialManager::ReleaseParam(DisplayEffectParamPtr _pParam)
 	{
-		_pParam->Release();
-		delete _pParam;
+		CoreObject::ReleaseDeleteReset(_pParam);
 	}
 
 	void DisplayMaterialManager::UnloadAll()
@@ -305,8 +300,7 @@ namespace ElixirEngine
 		{
 			void operator()(pair<Key, DisplayMaterialPtr> _iPair)
 			{
-				_iPair.second->Release();
-				delete _iPair.second;
+				CoreObject::ReleaseDeleteReset(_iPair.second);
 			}
 		};
 		for_each(m_mMaterials.begin(), m_mMaterials.end(), MaterialReleaseAndDeleteFunction());
@@ -316,8 +310,7 @@ namespace ElixirEngine
 		{
 			void operator()(pair<Key, DisplayEffectPtr> _iPair)
 			{
-				_iPair.second->Release();
-				delete _iPair.second;
+				CoreObject::ReleaseDeleteReset(_iPair.second);
 			}
 		};
 		for_each(m_mEffects.begin(), m_mEffects.end(), EffectReleaseAndDeleteFunction());

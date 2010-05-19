@@ -238,9 +238,7 @@ namespace BastionGame
 		EntityPtrVec::iterator iEntityEnd = m_vEntities.end();
 		while (iEntityEnd != iEntity)
 		{
-			EntityPtr pEntity = *iEntity;
-			pEntity->Release();
-			delete pEntity;
+			CoreObject::ReleaseDeleteReset(*iEntity);
 			++iEntity;
 		}
 		m_vEntities.clear();
@@ -250,9 +248,7 @@ namespace BastionGame
 		CoreObjectPtrVec::iterator iDummyEnd = m_vDummies.end();
 		while (iDummyEnd != iDummy)
 		{
-			CoreObjectPtr pDummy = *iDummy;
-			pDummy->Release();
-			delete pDummy;
+			CoreObject::ReleaseDeleteReset(*iDummy);
 			++iDummy;
 		}
 		m_vDummies.clear();
@@ -261,9 +257,7 @@ namespace BastionGame
 		m_rApplication.GetDisplay()->RemoveRenderStages(m_vRenderStages);
 		while (false == m_vRenderStages.empty())
 		{
-			DisplayRenderStagePtr pRS = *m_vRenderStages.begin();
-			pRS->Release();
-			delete pRS;
+			CoreObject::ReleaseDeleteReset(*m_vRenderStages.begin());
 			m_vRenderStages.erase(m_vRenderStages.begin());
 		}
 
@@ -280,9 +274,7 @@ namespace BastionGame
 		// ui
 		if (NULL != m_pUITextOverlay)
 		{
-			m_pUITextOverlay->Release();
-			delete m_pUITextOverlay;
-			m_pUITextOverlay = NULL;
+			CoreObject::ReleaseDeleteReset(m_pUITextOverlay);
 		}
 
 		// water rendering configuration data
@@ -295,9 +287,7 @@ namespace BastionGame
 		// hierarchy
 		while (false == m_mHierarchy.empty())
 		{
-			CoreObjectPtr pObject = m_mHierarchy.begin()->second;
-			pObject->Release();
-			delete pObject;
+			CoreObject::ReleaseDeleteReset(m_mHierarchy.begin()->second);
 			m_mHierarchy.erase(m_mHierarchy.begin());
 		}
 
@@ -307,16 +297,12 @@ namespace BastionGame
 		// octree
 		if (NULL != m_pOTFFrustum)
 		{
-			m_pOTFFrustum->Release();
-			delete m_pOTFFrustum;
-			m_pOTFFrustum = NULL;
+			CoreObject::ReleaseDeleteReset(m_pOTFFrustum);
 		}
 		if (NULL != m_pOctree)
 		{
 			m_pOctree->RemoveTraverseMode(m_uFrustumModeKey);
-			m_pOctree->Release();
-			delete m_pOctree;
-			m_pOctree = NULL;
+			CoreObject::ReleaseDeleteReset(m_pOctree);
 		}
 
 		// materials
@@ -413,8 +399,7 @@ namespace BastionGame
 
 		if (false == bResult)
 		{
-			pDummy->Release();
-			delete pDummy;
+			CoreObject::ReleaseDeleteReset(pDummy);
 		}
 	}
 

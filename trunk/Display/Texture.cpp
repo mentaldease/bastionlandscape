@@ -309,8 +309,7 @@ namespace ElixirEngine
 			}
 			else if (NULL != pTexture)
 			{
-				pTexture->Release();
-				delete pTexture;
+				CoreObject::ReleaseDeleteReset(pTexture);
 			}
 		}
 
@@ -333,8 +332,7 @@ namespace ElixirEngine
 			}
 			else if (NULL != pTexture)
 			{
-				pTexture->Release();
-				delete pTexture;
+				CoreObject::ReleaseDeleteReset(pTexture);
 			}
 		}
 
@@ -352,9 +350,7 @@ namespace ElixirEngine
 		DisplayTexturePtrMap::iterator iPair = m_mTextures.find(_strNameKey);
 		if (m_mTextures.end() != iPair)
 		{
-			DisplayTexturePtr pTexture = iPair->second;
-			pTexture->Release();
-			delete pTexture;
+			CoreObject::ReleaseDeleteReset(iPair->second);
 			m_mTextures.erase(iPair);
 		}
 	}
@@ -379,9 +375,7 @@ namespace ElixirEngine
 
 		while (iEnd != iPair)
 		{
-			DisplayTexturePtr pTexture = iPair->second;
-			pTexture->Release();
-			delete pTexture;
+			CoreObject::ReleaseDeleteReset(iPair->second);
 			++iPair;
 		}
 

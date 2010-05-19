@@ -63,9 +63,7 @@ namespace ElixirEngine
 		OctreeNodePtrVec::iterator iEnd = m_vPool.end();
 		while (iEnd != iNode)
 		{
-			OctreeNodePtr pNode = *iNode;
-			pNode->Release();
-			delete pNode;
+			CoreObject::ReleaseDeleteReset(*iNode);
 			++iNode;
 		}
 

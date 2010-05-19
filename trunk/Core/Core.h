@@ -90,6 +90,15 @@ namespace ElixirEngine
 
 		inline const CoreObjectPtrVec& GetChildren() { return m_vChildren; }
 
+		template<typename T>
+		static inline void ReleaseDeleteReset(T*& _rpObject)
+		{
+			assert(NULL != _rpObject);
+			_rpObject->Release();
+			delete _rpObject;
+			_rpObject = NULL;
+		}
+
 		static CoreObjectPtrCounterMap s_mObjects;
 
 	protected:

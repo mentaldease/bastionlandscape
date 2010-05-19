@@ -73,8 +73,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		while (Application::EStateMode_QUIT != pApp->GetStateMode());
 	}
 
-	pApp->Release();
-	delete pApp;
+	CoreObject::ReleaseDeleteReset(pApp);
 
 	return 0;
 }

@@ -112,9 +112,7 @@ namespace ElixirEngine
 			DisplayFontLoaderPtrMap::iterator iEnd = m_mLoaders.end();
 			while (iEnd != iPair)
 			{
-				DisplayFontLoaderPtr pLoader = iPair->second;
-				pLoader->Release();
-				delete pLoader;
+				CoreObject::ReleaseDeleteReset(iPair->second);
 				++iPair;
 			}
 			m_mLoaders.clear();

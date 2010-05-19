@@ -164,8 +164,7 @@ namespace ElixirEngine
 
 	void FSNative::CloseFile(FilePtr _pFile)
 	{
-		_pFile->Release();
-		delete _pFile;
+		CoreObject::ReleaseDeleteReset(_pFile);
 	}
 }
 

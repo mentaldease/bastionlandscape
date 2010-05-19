@@ -80,9 +80,7 @@ namespace BastionGame
 		}
 		if (false == bResult)
 		{
-			pLandscape->Release();
-			delete pLandscape;
-			pLandscape = NULL;
+			CoreObject::ReleaseDeleteReset(pLandscape);
 		}
 
 		return pLandscape;
@@ -132,9 +130,7 @@ namespace BastionGame
 
 		if (false == bResult)
 		{
-			pResult->Release();
-			delete pResult;
-			pResult = NULL;
+			CoreObject::ReleaseDeleteReset(pResult);
 		}
 
 		return pResult;
@@ -147,9 +143,7 @@ namespace BastionGame
 
 		if (false == bResult)
 		{
-			pResult->Release();
-			delete pResult;
-			pResult = NULL;
+			CoreObject::ReleaseDeleteReset(pResult);
 		}
 
 		return pResult;
@@ -191,9 +185,7 @@ namespace BastionGame
 
 		if (false == bResult)
 		{
-			pResult->Release();
-			delete pResult;
-			pResult = NULL;
+			CoreObject::ReleaseDeleteReset(pResult);
 		}
 
 		return pResult;

@@ -74,9 +74,7 @@ namespace ElixirEngine
 		// render post processes
 		while (m_mPostProcesses.end() != m_mPostProcesses.begin())
 		{
-			DisplayPostProcessPtr pPostProcess = m_mPostProcesses.begin()->second;
-			pPostProcess->Release();
-			delete pPostProcess;
+			CoreObject::ReleaseDeleteReset(m_mPostProcesses.begin()->second);
 			m_mPostProcesses.erase(m_mPostProcesses.begin());
 		}
 		m_vPostProcesses.clear();
@@ -84,12 +82,11 @@ namespace ElixirEngine
 		// render normal processes
 		while (m_mNormalProcesses.end() != m_mNormalProcesses.begin())
 		{
-			DisplayNormalProcessPtr pNormalProcess = m_mNormalProcesses.begin()->second;
-			pNormalProcess->Release();
-			delete pNormalProcess;
+			CoreObject::ReleaseDeleteReset(m_mNormalProcesses.begin()->second);
 			m_mNormalProcesses.erase(m_mNormalProcesses.begin());
 		}
 		m_vNormalProcesses.clear();
+
 		m_vRenderList.clear();
 	}
 
@@ -150,8 +147,7 @@ namespace ElixirEngine
 		else
 		{
 			vsoutput(__FUNCTION__" : could not create %s post process\n", strName.c_str());
-			pPostProcess->Release();
-			delete pPostProcess;
+			CoreObject::ReleaseDeleteReset(pPostProcess);
 		}
 
 		return bResult;
@@ -196,8 +192,7 @@ namespace ElixirEngine
 		else
 		{
 			vsoutput(__FUNCTION__" : could not create %s normal process\n", strName.c_str());
-			pNormalProcess->Release();
-			delete pNormalProcess;
+			CoreObject::ReleaseDeleteReset(pNormalProcess);
 		}
 
 		return bResult;
