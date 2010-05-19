@@ -10,6 +10,7 @@
 #include "../Display/Font.h"
 #include "../Display/RenderStage.h"
 #include "../Display/EffectStateManager.h"
+#include "../Display/DisplayComponent.h"
 #include "../Core/Scripting.h"
 #include "../Core/Util.h"
 #include "../Core/Octree.h"
@@ -40,6 +41,7 @@ namespace ElixirEngine
 		m_oVertexBuffers(),
 		m_oIndexBuffer(),
 		m_mVertexDecls(),
+		m_oComponentFactory(),
 		m_pCurrentCamera(NULL),
 		m_pMaterialManager(NULL),
 		m_pTextureManager(NULL),
@@ -230,6 +232,11 @@ namespace ElixirEngine
 
 		if (false != bResult)
 		{
+			bResult = m_oComponentFactory.Create(boost::any(0));
+		}
+
+		if (false != bResult)
+		{
 			// DisplayStateManager is NOT a CoreObject derived class, no Create call
 			m_pStateManagerInterface = new DisplayStateManager;
 			m_pStateManagerInterface->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE);
@@ -355,6 +362,8 @@ namespace ElixirEngine
 			ReleaseCamera(m_mCameras.begin()->first);
 			m_mCameras.erase(m_mCameras.begin());
 		}
+
+		m_oComponentFactory.Release();
 	}
 
 	void Display::UpdateRequest(CoreObjectPtr _pCoreObject)
@@ -757,6 +766,11 @@ namespace ElixirEngine
 		return m_pCurrentRenderStage;
 	}
 
+	DisplayStateManagerPtr Display::GetStateManagerInterface()
+	{
+		return m_pStateManagerInterface;
+	}
+
 	Key Display::CreateVertexDeclaration(VertexElementPtr _pVertexElements)
 	{
 		VertexDeclPtr pVertexDecl = NULL;
@@ -799,11 +813,6 @@ namespace ElixirEngine
 		}
 	}
 
-	DisplayStateManagerPtr Display::GetStateManagerInterface()
-	{
-		return m_pStateManagerInterface;
-	}
-
 	void Display::Unproject(const Vector3Ptr _pf3In, Vector3Ptr _pf3Out, DisplayCameraPtr _pCamera, const MatrixPtr _pObjectWorld)
 	{
 		Matrix mIdentity;
@@ -816,6 +825,16 @@ namespace ElixirEngine
 			_pCamera->GetMatrix(DisplayCamera::EMatrix_PROJ),
 			_pCamera->GetMatrix(DisplayCamera::EMatrix_VIEW),
 			(NULL != _pObjectWorld) ? _pObjectWorld : &mIdentity);
+	}
+
+	ComponentPtr Display::NewComponent(EntityRef _rEntity, const boost::any& _rConfig)
+	{
+		return m_oComponentFactory.New(_rEntity, _rConfig);
+	}
+
+	void Display::DeleteComponent(ComponentPtr _pComponent)
+	{
+		m_oComponentFactory.Delete(_pComponent);
 	}
 
 	void Display::RenderUpdate()

@@ -29,6 +29,7 @@ namespace BastionGame
 		void Update(OctreeObjectPtrVecRef _rvOctreeObjects);
 		MatrixPtr GetWorldMatrix();
 		DisplayObjectPtr GetPickedObject();
+		bool IsPickOnWater();
 
 	protected:
 		void PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects);
@@ -43,6 +44,7 @@ namespace BastionGame
 		DisplayObjectPtr	m_pPickCursorObject;
 		DisplayObjectPtr	m_pPickedObject;
 		bool				m_bActive;
+		bool				m_bPickOnWater;
 	};
 
 	//-----------------------------------------------------------------------------------------------
@@ -83,6 +85,8 @@ namespace BastionGame
 		void AddLandscape(LandscapePtr _pLandscape);
 		WaterDataPtr GetWaterData(UIntRef _uCount);
 		bool GetWaterLevel(const Vector3& _f3Pos, FloatRef _fLevel);
+		EntityPtr GetSelectedEntity();
+		ScenePickerRef GetPicker();
 
 	protected:
 		bool CreateFromLuaConfig(CreateInfoPtr _pInfo);
@@ -117,6 +121,7 @@ namespace BastionGame
 		DisplayRenderStagePtrVec		m_vRenderStages;
 		CoreObjectPtrVec				m_vDummies;
 		LandscapePtrVec					m_vLandscapes;
+		EntityPtrVec					m_vEntities;
 		Vector4							m_f4LightDir;
 		WaterDataPtr					m_pWaterData;
 		OctreePtr						m_pOctree;

@@ -16,7 +16,8 @@ namespace BastionGame
 		m_f3Pick(0.0f, 0.0f, 0.0),
 		m_pPickCursorObject(NULL),
 		m_pPickedObject(NULL),
-		m_bActive(false)
+		m_bActive(false),
+		m_bPickOnWater(false)
 	{
 	}
 
@@ -39,6 +40,7 @@ namespace BastionGame
 	void ScenePicker::Update(OctreeObjectPtrVecRef _rvOctreeObjects)
 	{
 		m_pPickedObject = NULL;
+		m_bPickOnWater = false;
 
 		if (NULL == m_pPickCursorObject)
 		{
@@ -86,6 +88,11 @@ namespace BastionGame
 	DisplayObjectPtr ScenePicker::GetPickedObject()
 	{
 		return m_pPickedObject;
+	}
+
+	bool ScenePicker::IsPickOnWater()
+	{
+		return m_bPickOnWater;
 	}
 
 	void ScenePicker::PickObjects(const Vector3& _f3RayBegin, const Vector3& _f3RayEnd, CoreObjectPtrVec& _rvObjects, OctreeObjectPtrVecRef _rvOctreeObjects)
@@ -191,6 +198,7 @@ namespace BastionGame
 						{
 							f3Pick = f3Intersect;
 							fNearDist = fDist;
+							m_bPickOnWater = true;
 						}
 					}
 				}

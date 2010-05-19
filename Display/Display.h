@@ -148,10 +148,14 @@ namespace ElixirEngine
 		virtual BoundingMeshRef GetBoundingMesh();
 		virtual void GetTransformedBoundingMesh(BoundingMeshRef _rBoundingMesh, MatrixRef _rm4Transform);
 
+		virtual void SetComponent(ComponentPtr _pComponent);
+		virtual ComponentPtr GetComponent();
+
 	protected:
 		Matrix				m_m4World;
 		BoundingMesh		m_oBoundingMesh;
 		DisplayMaterialPtr	m_pMaterial;
+		ComponentPtr		m_pComponent;
 		Key					m_uRenderPass;
 	};
 
@@ -218,15 +222,17 @@ namespace ElixirEngine
 		void AddRenderStages(DisplayRenderStagePtrVec _vRenderPasses);
 		void RemoveRenderStages(DisplayRenderStagePtrVec _vRenderPasses);
 		DisplayRenderStagePtr GetCurrentRenderStage();
+		DisplayStateManagerPtr GetStateManagerInterface();
 
 		Key CreateVertexDeclaration(VertexElementPtr _pVertexElements);
 		bool SetVertexDeclaration(const Key _uVertexDeclaration);
 		Key GetCurrentVertexDeclaration();
 		void ReleaseVertexDeclaration(const Key _uVertexDeclaration);
 
-		DisplayStateManagerPtr GetStateManagerInterface();
-
 		void Unproject(const Vector3Ptr _pf3In, Vector3Ptr _pf3Out, DisplayCameraPtr _pCamera = NULL, const MatrixPtr _pObjectWorld = NULL);
+
+		ComponentPtr NewComponent(EntityRef _rEntity, const boost::any& _rConfig);
+		void DeleteComponent(ComponentPtr _pComponent);
 
 		static unsigned int GetFormatBitsPerPixel(const D3DFORMAT& _eFormat);
 		static bool IsPowerOf2(const unsigned int& _uValue, UIntPtr _pPowerLevel = NULL);
@@ -264,6 +270,7 @@ namespace ElixirEngine
 		DisplayVertexBufferCreator		m_oVertexBuffers;
 		DisplayIndexBufferCreator		m_oIndexBuffer;
 		VertexDeclPtrMap				m_mVertexDecls;
+		DisplayComponentFactory			m_oComponentFactory;
 		DisplayCameraPtr				m_pCurrentCamera;
 		DisplayMaterialManagerPtr		m_pMaterialManager;
 		DisplayTextureManagerPtr		m_pTextureManager;

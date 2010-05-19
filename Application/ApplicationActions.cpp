@@ -153,6 +153,7 @@ namespace BastionGame
 			}
 			case EAppAction_PATH_CREATE:
 			{
+				m_pSelectedEntity = NULL;
 				m_uPendingAction = _uActionID;
 				m_pScene->ActivatePicking(true);
 				m_pActionDispatcher->UnregisterActionCallback(_uActionID, m_uProcessAction);
@@ -191,10 +192,13 @@ namespace BastionGame
 				{
 					case EAppAction_POINTERCLICK1:
 					{
-						m_pScene->NewDummy();
-						m_pScene->ActivatePicking(false);
-						m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
-						m_uPendingAction = EAppAction_UNKNOWN;
+						if (false != m_pScene->GetPicker().IsPickOnWater())
+						{
+							m_pScene->NewDummy();
+							m_pScene->ActivatePicking(false);
+							m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
+							m_uPendingAction = EAppAction_UNKNOWN;
+						}
 						break;
 					}
 					case EAppAction_CANCEL:
@@ -213,9 +217,16 @@ namespace BastionGame
 				{
 					case EAppAction_POINTERCLICK1:
 					{
-						m_pScene->ActivatePicking(false);
-						m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
-						m_uPendingAction = EAppAction_UNKNOWN;
+						if (NULL == m_pSelectedEntity)
+						{
+							m_pSelectedEntity = m_pScene->GetSelectedEntity();
+						}
+						else if (false != m_pScene->GetPicker().IsPickOnWater())
+						{
+							m_pScene->ActivatePicking(false);
+							m_pActionDispatcher->RegisterActionCallback(m_uPendingAction, m_uProcessAction, m_pActionCallback);
+							m_uPendingAction = EAppAction_UNKNOWN;
+						}
 						break;
 					}
 					case EAppAction_CANCEL:

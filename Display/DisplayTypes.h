@@ -295,6 +295,12 @@ namespace ElixirEngine
 	class DisplayObjectDummy;
 	typedef DisplayObjectDummy* DisplayObjectDummyPtr;
 	typedef DisplayObjectDummy& DisplayObjectDummyRef;
+
+	class DisplayComponent;
+	typedef DisplayComponent* DisplayComponentPtr;
+	typedef DisplayComponent& DisplayComponentRef;
+
+	typedef ComponentFactory<DisplayComponent> DisplayComponentFactory;
 }
 
 #endif // __DISPLAYTYPES_H__

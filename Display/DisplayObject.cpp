@@ -45,6 +45,7 @@ namespace ElixirEngine
 	:	CoreObject(),
 		m_m4World(),
 		m_pMaterial(NULL),
+		m_pComponent(NULL),
 		m_oBoundingMesh(),
 		m_uRenderPass(0)
 	{
@@ -59,7 +60,9 @@ namespace ElixirEngine
 	void DisplayObject::Release()
 	{
 		D3DXMatrixIdentity(&m_m4World);
+		m_oBoundingMesh.Clear();
 		m_pMaterial = NULL;
+		m_pComponent = NULL;
 		m_uRenderPass = 0;
 	}
 
@@ -106,5 +109,15 @@ namespace ElixirEngine
 	void DisplayObject::GetTransformedBoundingMesh(DisplayObject::BoundingMeshRef _rBoundingMesh, MatrixRef _rm4Transform)
 	{
 		m_oBoundingMesh.Transform(_rBoundingMesh, _rm4Transform);
+	}
+
+	void DisplayObject::SetComponent(ComponentPtr _pComponent)
+	{
+		m_pComponent = _pComponent;
+	}
+
+	ComponentPtr DisplayObject::GetComponent()
+	{
+		return m_pComponent;
 	}
 }

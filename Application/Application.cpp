@@ -139,6 +139,7 @@ namespace BastionGame
 		m_pLog(NULL),
 		m_pJobManager(NULL),
 		m_pOneJob(NULL),
+		m_pSelectedEntity(NULL),
 		m_uProcessAction(MakeKey(string("ProcessAction"))),
 		m_uPendingAction(EAppAction_UNKNOWN)
 	{
@@ -373,6 +374,8 @@ namespace BastionGame
 
 	void Application::Release()
 	{
+		m_pSelectedEntity = NULL;
+
 		if (NULL != m_pCameraListener)
 		{
 			m_pMainCamera->RemoveListener(m_pCameraListener);
