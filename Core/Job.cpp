@@ -161,8 +161,7 @@ namespace ElixirEngine
 				bResult = pJobThread->Create(boost::any(0));
 				if (false == bResult)
 				{
-					pJobThread->Release();
-					delete pJobThread;
+					CoreObject::ReleaseDeleteReset(pJobThread);
 					break;
 				}
 				m_vThreads.push_back(pJobThread);
@@ -180,9 +179,7 @@ namespace ElixirEngine
 			JobThreadPtrVec::iterator iEnd = m_vThreads.end();
 			while (iEnd != iJobThread)
 			{
-				JobThreadPtr pJobThread = *iJobThread;
-				pJobThread->Release();
-				delete pJobThread;
+				CoreObject::ReleaseDeleteReset(*iJobThread);
 				++iJobThread;
 			}
 			m_vThreads.clear();

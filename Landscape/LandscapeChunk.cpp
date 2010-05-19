@@ -150,9 +150,7 @@ namespace ElixirEngine
 		{
 			if (NULL != m_pChildren[i])
 			{
-				m_pChildren[i]->Release();
-				delete m_pChildren[i];
-				m_pChildren[i] = NULL;
+				CoreObject::ReleaseDeleteReset(m_pChildren[i]);
 			}
 		}
 

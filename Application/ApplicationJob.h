@@ -20,6 +20,22 @@ namespace BastionGame
 
 	protected:
 	};
+
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------------------------
+
+	class PathfindJob : public Job
+	{
+	public:
+		PathfindJob(JobManagerRef _rJobManager);
+		virtual ~PathfindJob();
+
+		virtual bool Create(const boost::any& _rConfig);
+		virtual void Update();
+
+	protected:
+	};
 }
 
 #endif // __APPLICATIONJOB_H__

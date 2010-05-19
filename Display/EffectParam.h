@@ -142,9 +142,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDVIEWPROJ(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -193,9 +191,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLD(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -242,9 +238,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEW(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -295,9 +289,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDVIEW(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -346,9 +338,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEWINV(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -395,9 +385,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamVIEWPROJ(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -444,9 +432,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamPROJ(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -493,9 +479,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamWORLDINVTRANSPOSE(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -562,9 +546,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamENVIRONMENTTEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -668,9 +650,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamNORMALTEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -753,9 +733,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamFLOAT(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -803,9 +781,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR2(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -855,9 +831,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR3(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -904,9 +878,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamVECTOR4(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -952,9 +924,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamMATRIX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -1019,9 +989,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamDIFFUSETEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -1106,9 +1074,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamSEMANTICTEX(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -1158,9 +1124,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamFRUSTUMCORNERS(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}
@@ -1208,9 +1172,7 @@ namespace ElixirEngine
 			DisplayEffectParamPtr pParam = new DisplayEffectParamSTRUCT(*(pDEPCInfo->m_pMaterial));
 			if (false == pParam->Create(_rConfig))
 			{
-				pParam->Release();
-				delete pParam;
-				pParam = NULL;
+				CoreObject::ReleaseDeleteReset(pParam);
 			}
 			return pParam;
 		}

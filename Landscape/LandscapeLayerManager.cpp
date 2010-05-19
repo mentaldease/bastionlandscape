@@ -534,8 +534,7 @@ namespace ElixirEngine
 			LandscapeLayeringPtrMap::iterator iPair = m_mConfigs.begin();
 			LandscapeLayeringPtr pConfig = iPair->second;
 			m_mConfigs.erase(iPair);
-			pConfig->Release();
-			delete pConfig;
+			CoreObject::ReleaseDeleteReset(pConfig);
 		}
 	}
 
@@ -552,9 +551,7 @@ namespace ElixirEngine
 
 		if (false == bResult)
 		{
-			pResult->Release();
-			delete pResult;
-			pResult = NULL;
+			CoreObject::ReleaseDeleteReset(pResult);
 		}
 
 		return pResult;

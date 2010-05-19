@@ -154,8 +154,7 @@ namespace ElixirEngine
 		{
 			void operator() (TimerPtr _pTimer)
 			{
-				_pTimer->Release();
-				delete _pTimer;
+				CoreObject::ReleaseDeleteReset(_pTimer);
 			}
 		};
 		for_each(m_vpTimers.begin(), m_vpTimers.end(), TimerReleaseAndDeleteFunction());

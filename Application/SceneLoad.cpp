@@ -304,8 +304,7 @@ namespace BastionGame
 		else
 		{
 			vsoutput(__FUNCTION__" : failed to create %s render stage\n", strName.c_str());
-			pRenderStage->Release();
-			delete pRenderStage;
+			CoreObject::ReleaseDeleteReset(pRenderStage);
 		}
 
 		return bResult;

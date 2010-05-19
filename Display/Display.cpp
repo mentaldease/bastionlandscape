@@ -296,59 +296,39 @@ namespace ElixirEngine
 
 		if (NULL != m_pRTChain)
 		{
-			m_pRTChain->Release();
-			delete m_pRTChain;
-			m_pRTChain = NULL;
+			CoreObject::ReleaseDeleteReset(m_pRTChain);
 		}
-
 		if (NULL != m_pPostProcessGeometry)
 		{
-			m_pPostProcessGeometry->Release();
-			delete m_pPostProcessGeometry;
-			m_pPostProcessGeometry = NULL;
+			CoreObject::ReleaseDeleteReset(m_pPostProcessGeometry);
 		}
-
 		if (NULL != m_pDispFXPP)
 		{
 			m_pMaterialManager->UnloadEffect("MRT");
 			m_pDispFXPP = NULL;
 		}
-
 		if (NULL != m_pFontManager)
 		{
-			m_pFontManager->Release();
-			delete m_pFontManager;
-			m_pFontManager = NULL;
+			CoreObject::ReleaseDeleteReset(m_pFontManager);
 		}
-
 		if (NULL != m_pSurfaceManager)
 		{
-			m_pSurfaceManager->Release();
-			delete m_pSurfaceManager;
-			m_pSurfaceManager = NULL;
+			CoreObject::ReleaseDeleteReset(m_pSurfaceManager);
 		}
-
 		if (NULL != m_pTextureManager)
 		{
-			m_pTextureManager->Release();
-			delete m_pTextureManager;
-			m_pTextureManager = NULL;
+			CoreObject::ReleaseDeleteReset(m_pTextureManager);
 		}
-
 		if (NULL != m_pMaterialManager)
 		{
-			m_pMaterialManager->Release();
-			delete m_pMaterialManager;
-			m_pMaterialManager = NULL;
+			CoreObject::ReleaseDeleteReset(m_pMaterialManager);
 		}
-
 		// DisplayStateManager is NOT a CoreObject derived class, no Release call
 		if (NULL != m_pStateManagerInterface)
 		{
 			delete m_pStateManagerInterface;
 			m_pStateManagerInterface = NULL;
 		}
-
 		if (NULL != m_pDevice)
 		{
 			m_pDevice->Release();
@@ -505,8 +485,7 @@ namespace ElixirEngine
 
 	void Display::ReleaseVertexBuffer(DisplayVertexBufferPtr _pVertexBuffer)
 	{
-		_pVertexBuffer->Release();
-		delete _pVertexBuffer;
+		CoreObject::ReleaseDeleteReset(_pVertexBuffer);
 	}
 
 	DisplayIndexBufferPtr Display::CreateIndexBuffer(DisplayIndexBuffer::CreateInfo& _rCreateInfo)
@@ -542,8 +521,7 @@ namespace ElixirEngine
 
 	void Display::ReleaseIndexBuffer(DisplayIndexBufferPtr _pIndexBuffer)
 	{
-		_pIndexBuffer->Release();
-		delete _pIndexBuffer;
+		CoreObject::ReleaseDeleteReset(_pIndexBuffer);
 	}
 
 	DevicePtr Display::GetDevicePtr() const
@@ -681,9 +659,7 @@ namespace ElixirEngine
 		DisplayCameraPtrMap::iterator iPair = m_mCameras.find(_uNameKey);
 		if (m_mCameras.end() != iPair)
 		{
-			DisplayCameraPtr pCamera =  iPair->second;
-			pCamera->Release();
-			delete pCamera;
+			CoreObject::ReleaseDeleteReset(iPair->second);
 			m_mCameras.erase(iPair);
 		}
 	}

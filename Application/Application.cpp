@@ -379,16 +379,12 @@ namespace BastionGame
 		if (NULL != m_pCameraListener)
 		{
 			m_pMainCamera->RemoveListener(m_pCameraListener);
-			m_pCameraListener->Release();
-			delete m_pCameraListener;
-			m_pCameraListener = NULL;
+			CoreObject::ReleaseDeleteReset(m_pCameraListener);
 		}
 
 		if (NULL != m_pScene)
 		{
-			m_pScene->Release();
-			delete m_pScene;
-			m_pScene = NULL;
+			CoreObject::ReleaseDeleteReset(m_pScene);
 		}
 
 		ReleaseActions();
@@ -396,9 +392,7 @@ namespace BastionGame
 		if (NULL != m_pInput)
 		{
 			Input::SetRoot(NULL);
-			m_pInput->Release();
-			delete m_pInput;
-			m_pInput = NULL;
+			CoreObject::ReleaseDeleteReset(m_pInput);
 			m_pKeyboard = NULL;
 			m_pMouse = NULL;
 		}
@@ -407,9 +401,7 @@ namespace BastionGame
 
 		if (NULL != m_pLandscapeLayerManager)
 		{
-			m_pLandscapeLayerManager->Release();
-			delete m_pLandscapeLayerManager;
-			m_pLandscapeLayerManager = NULL;
+			CoreObject::ReleaseDeleteReset(m_pLandscapeLayerManager);
 			LandscapeLayerManager::SetInstance(NULL);
 		}
 
@@ -449,9 +441,7 @@ namespace BastionGame
 
 		if (NULL != m_pDisplay)
 		{
-			m_pDisplay->Release();
-			delete m_pDisplay;
-			m_pDisplay = NULL;
+			CoreObject::ReleaseDeleteReset(m_pDisplay);
 		}
 
 		if (NULL != m_pLuaState)
@@ -470,39 +460,29 @@ namespace BastionGame
 		if ((NULL != m_pFSRoot) && (NULL != m_pFSMemory))
 		{
 			m_pFSRoot->RemoveFS("MEMORY", m_pFSMemory);
-			m_pFSMemory->Release();
-			delete m_pFSMemory;
-			m_pFSMemory = NULL;
+			CoreObject::ReleaseDeleteReset(m_pFSMemory);
 		}
 
 		if ((NULL != m_pFSRoot) && (NULL != m_pFSNative))
 		{
 			m_pFSRoot->RemoveFS("NATIVE", m_pFSNative);
-			m_pFSNative->Release();
-			delete m_pFSNative;
-			m_pFSNative = NULL;
+			CoreObject::ReleaseDeleteReset(m_pFSNative);
 		}
 
 		if (NULL != m_pFSRoot)
 		{
 			FS::SetRoot(NULL);
-			m_pFSRoot->Release();
-			delete m_pFSRoot;
-			m_pFSRoot = NULL;
-		}
-
-		if (NULL != m_pJobManager)
-		{
-			m_pJobManager->Release();
-			delete m_pJobManager;
-			m_pJobManager = NULL;
+			CoreObject::ReleaseDeleteReset(m_pFSRoot);
 		}
 
 		if (NULL != m_pOneJob)
 		{
-			m_pOneJob->Release();
-			delete m_pOneJob;
-			m_pOneJob = NULL;
+			CoreObject::ReleaseDeleteReset(m_pOneJob);
+		}
+
+		if (NULL != m_pJobManager)
+		{
+			CoreObject::ReleaseDeleteReset(m_pJobManager);
 		}
 
 		if (NULL != m_pTime)
@@ -511,9 +491,7 @@ namespace BastionGame
 			float fTemp;
 			m_pTime->ReleaseTimer(m_uProfileTimerID, fTemp);
 			m_pTime->ReleaseTimer(m_uUpdateTimerID, fTemp);
-			m_pTime->Release();
-			delete m_pTime;
-			m_pTime = NULL;
+			CoreObject::ReleaseDeleteReset(m_pTime);
 		}
 
 		m_mDataExchanger.clear();
@@ -594,9 +572,7 @@ namespace BastionGame
 			}
 			if (false == bResult)
 			{
-				m_pScene->Release();
-				delete m_pScene;
-				m_pScene = NULL;
+				CoreObject::ReleaseDeleteReset(m_pScene);
 			}
 		}
 	}

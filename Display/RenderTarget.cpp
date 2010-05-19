@@ -448,8 +448,7 @@ namespace ElixirEngine
 				bResult = pRT->Create(boost::any(&oRTRTCInfo));
 				if (false == bResult)
 				{
-					pRT->Release();
-					delete pRT;
+					CoreObject::ReleaseDeleteReset(pRT);
 					break;
 				}
 				m_vGBuffer.push_back(pRT);
@@ -469,10 +468,8 @@ namespace ElixirEngine
 	{
 		while (false == m_vGBuffer.empty())
 		{
-			DisplayRenderTargetPtr pRT = m_vGBuffer.back();
+			CoreObject::ReleaseDeleteReset(m_vGBuffer.back());
 			m_vGBuffer.pop_back();
-			pRT->Release();
-			delete pRT;
 		}
 	}
 
