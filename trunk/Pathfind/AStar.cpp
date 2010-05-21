@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "../Pathfind/Pathfind.h"
+#include "../Pathfind/AStar.h"
 
 namespace ElixirEngine
 {
