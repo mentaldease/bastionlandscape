@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="Pathfind"
+	Name="Astar"
 	ProjectGUID="{FFE36CEF-6AEA-4604-A6FF-926FA996428B}"
 	RootNamespace="Pathfind"
 	Keyword="Win32Proj"
@@ -147,7 +147,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Pathfind.cpp"
+				RelativePath=".\AStar.cpp"
 				>
 			</File>
 			<File
@@ -177,11 +177,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\Pathfind.h"
+				RelativePath=".\AStar.h"
 				>
 			</File>
 			<File
-				RelativePath=".\PathfindTypes.h"
+				RelativePath=".\AStarTypes.h"
 				>
 			</File>
 			<File
